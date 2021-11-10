@@ -47,6 +47,7 @@ class Main {
 
   private _start = () => {
     console.log('start')
+    // https://stackoverflow.com/questions/19764018/controlling-fps-with-requestanimationframe
     this._fpsInterval = 1000 / this._fps;
     this._lastDrawTime = Date.now();
     this._startTime = this._lastDrawTime;
