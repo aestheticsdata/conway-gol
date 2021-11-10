@@ -1,3 +1,3 @@
 export const GRID = {
-  COLOR: 'rgb(5,103,44)',
+  COLOR: 'rgba(5,36,103,0.2)',
 }
