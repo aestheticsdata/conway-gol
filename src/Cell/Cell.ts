@@ -6,7 +6,6 @@ class Cell {
   public static size: number = 10
   private _state: CellState
   public color: string
-  public id: number = Math.ceil(Math.random()*1000000)
 
   constructor(state?: CellState) {
     this._state = state ?? this._randomState()

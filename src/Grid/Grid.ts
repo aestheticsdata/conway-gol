@@ -1,12 +1,13 @@
 import Cell from "../Cell/Cell"
 import { GRID } from "./constants"
 import Data from "../data/Data";
+import {CELL_STATE} from "../Cell/constants";
 
 export type CellGrid = Cell[][];
 
 class Grid {
   private _canvas: HTMLCanvasElement
-  public _cellsMatrix: CellGrid = []
+  private _cellsMatrix: CellGrid = []
 
   constructor(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) {
     this._canvas = canvas
@@ -36,6 +37,11 @@ class Grid {
     ctx.stroke()
   };
 
+  private _drawCell(ctx: CanvasRenderingContext2D, cell: Cell, row: number, column: number) {
+    ctx.fillStyle = cell.color
+    ctx.fillRect(column*(Cell.size), row*(Cell.size), Cell.size, Cell.size)
+  }
+
   private _createCells(ctx: CanvasRenderingContext2D, data?: CellGrid) {
     let tmpCell: Cell
     for (let i = 0; i < this._canvas.height / Cell.size; i++) {
@@ -47,11 +53,76 @@ class Grid {
           tmpCell = new Cell()
         }
         this._cellsMatrix[i].push(tmpCell)
-        ctx.fillStyle = tmpCell.color
-        ctx.fillRect(j*(Cell.size), i*(Cell.size), Cell.size, Cell.size)
+        this._drawCell(ctx, tmpCell, i, j)
       }
     }
-    // console.log('cell matrix: ', this._cellsMatrix)
+  }
+
+  private _getLivingNeighbourCount(row: number, column: number) {
+    let count: number = 0
+    const previousRowIndex = row === 0 ? row = 29 : row - 1
+    const nextRowIndex = row === 29 ? 0 : row + 1
+    const prevColumnIndex = column === 0 ? 29 : column - 1
+    const nextColumnIndex = column === 29 ? 0 : column + 1
+
+    if (this._cellsMatrix[previousRowIndex][prevColumnIndex].state === CELL_STATE.ALIVE) {
+      count++
+    }
+    if (this._cellsMatrix[previousRowIndex][column].state === CELL_STATE.ALIVE) {
+      count++
+    }
+    if (this._cellsMatrix[previousRowIndex][nextColumnIndex].state === CELL_STATE.ALIVE) {
+      count++
+    }
+    if (this._cellsMatrix[row][prevColumnIndex].state === CELL_STATE.ALIVE) {
+      count++
+    }
+    if (this._cellsMatrix[row][nextColumnIndex].state === CELL_STATE.ALIVE) {
+      count++
+    }
+    if (this._cellsMatrix[nextRowIndex][prevColumnIndex].state === CELL_STATE.ALIVE) {
+      count++
+    }
+    if (this._cellsMatrix[nextRowIndex][column].state === CELL_STATE.ALIVE) {
+      count++
+    }
+    if (this._cellsMatrix[nextRowIndex][nextColumnIndex].state === CELL_STATE.ALIVE) {
+      count++
+    }
+    return count
+  }
+
+  public processNextGeneration(ctx: CanvasRenderingContext2D) {
+    let livingNeighbour = 0;
+    const nextCellMatrix: Cell[][] = [...this._cellsMatrix]
+
+    for (let i = 0; i < this._canvas.height / Cell.size; i++) {
+      for (let j = 0; j < this._canvas.width / Cell.size; j++) {
+        livingNeighbour = this._getLivingNeighbourCount(i, j);
+        // console.log('livingNeighbour', livingNeighbour);
+        if (this._cellsMatrix[i][j].state === CELL_STATE.ALIVE) {
+          if (livingNeighbour < 2) {
+            nextCellMatrix[i][j].state = CELL_STATE.DEAD
+          }
+          if (livingNeighbour === 2 || livingNeighbour === 3) {
+            nextCellMatrix[i][j].state = CELL_STATE.ALIVE
+          }
+          if (livingNeighbour > 3) {
+            nextCellMatrix[i][j].state = CELL_STATE.DEAD
+          }
+        } else {
+          if (livingNeighbour === 3) {
+            nextCellMatrix[i][j].state = CELL_STATE.ALIVE
+          } else {
+            nextCellMatrix[i][j].state = CELL_STATE.DEAD
+          }
+        }
+        this._drawCell(ctx, nextCellMatrix[i][j], i, j)
+      }
+    }
+    this._drawGrid(ctx)
+    this._cellsMatrix = nextCellMatrix
+    console.log('cell matrix after update: ', this._cellsMatrix);
   }
 }
 

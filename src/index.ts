@@ -14,7 +14,7 @@ class Main {
   }
 
   private _renderGeneration() {
-
+    this._grid.processNextGeneration(this._stage)
   }
 
   // private _togglePause = () => {
@@ -24,7 +24,7 @@ class Main {
 
   private _step = (_timestamp) => {
     this._renderGeneration();
-    this._requestAnimationID = window.requestAnimationFrame(this._step);
+    // this._requestAnimationID = window.requestAnimationFrame(this._step);
   }
 
   private _start = () => {
@@ -37,7 +37,9 @@ class Main {
 
   init() {
     console.log('init')
-    // this._start()
+    setTimeout(() => {
+      this._start()
+    }, 2000)
   }
 }
 
