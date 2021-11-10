@@ -12,9 +12,9 @@ class Data {
         this.grid[i].push(new Cell(CELL_STATE.DEAD))
       }
     }
-    this.grid[2][3].state = CELL_STATE.ALIVE
-    this.grid[2][4].state = CELL_STATE.ALIVE
-    this.grid[2][5].state = CELL_STATE.ALIVE
+    this.grid[1][2].state = CELL_STATE.ALIVE
+    this.grid[1][3].state = CELL_STATE.ALIVE
+    this.grid[1][4].state = CELL_STATE.ALIVE
   }
 }
 

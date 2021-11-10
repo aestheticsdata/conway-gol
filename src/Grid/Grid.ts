@@ -1,7 +1,8 @@
 import Cell from "../Cell/Cell"
 import { GRID } from "./constants"
-import Data from "../data/Data";
-import {CELL_STATE} from "../Cell/constants";
+import Data from "../data/Data"
+import { CELL_STATE } from "../Cell/constants"
+import { cloneDeep } from "lodash";
 
 export type CellGrid = Cell[][];
 
@@ -13,8 +14,8 @@ class Grid {
     this._canvas = canvas
     const data = new Data();
     data.factory();
-    this._createCells(ctx, data.grid);
-    // this._createCells(ctx);
+    // this._createCells(ctx, data.grid);
+    this._createCells(ctx);
     this._drawGrid(ctx)
   }
 
@@ -60,7 +61,7 @@ class Grid {
 
   private _getLivingNeighbourCount(row: number, column: number) {
     let count: number = 0
-    const previousRowIndex = row === 0 ? row = 29 : row - 1
+    const previousRowIndex = row === 0 ? 29 : row - 1
     const nextRowIndex = row === 29 ? 0 : row + 1
     const prevColumnIndex = column === 0 ? 29 : column - 1
     const nextColumnIndex = column === 29 ? 0 : column + 1
@@ -93,25 +94,25 @@ class Grid {
   }
 
   public processNextGeneration(ctx: CanvasRenderingContext2D) {
-    let livingNeighbour = 0;
-    const nextCellMatrix: Cell[][] = [...this._cellsMatrix]
+    let livingNeighbours = 0;
+    const nextCellMatrix: Cell[][] = cloneDeep(this._cellsMatrix)
 
     for (let i = 0; i < this._canvas.height / Cell.size; i++) {
       for (let j = 0; j < this._canvas.width / Cell.size; j++) {
-        livingNeighbour = this._getLivingNeighbourCount(i, j);
-        // console.log('livingNeighbour', livingNeighbour);
+        livingNeighbours = this._getLivingNeighbourCount(i, j)
+
         if (this._cellsMatrix[i][j].state === CELL_STATE.ALIVE) {
-          if (livingNeighbour < 2) {
+          if (livingNeighbours < 2) {
             nextCellMatrix[i][j].state = CELL_STATE.DEAD
           }
-          if (livingNeighbour === 2 || livingNeighbour === 3) {
+          if (livingNeighbours === 2 || livingNeighbours === 3) {
             nextCellMatrix[i][j].state = CELL_STATE.ALIVE
           }
-          if (livingNeighbour > 3) {
+          if (livingNeighbours > 3) {
             nextCellMatrix[i][j].state = CELL_STATE.DEAD
           }
         } else {
-          if (livingNeighbour === 3) {
+          if (livingNeighbours === 3) {
             nextCellMatrix[i][j].state = CELL_STATE.ALIVE
           } else {
             nextCellMatrix[i][j].state = CELL_STATE.DEAD
@@ -122,7 +123,6 @@ class Grid {
     }
     this._drawGrid(ctx)
     this._cellsMatrix = nextCellMatrix
-    console.log('cell matrix after update: ', this._cellsMatrix);
   }
 }
 

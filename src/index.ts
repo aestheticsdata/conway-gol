@@ -23,8 +23,10 @@ class Main {
   // }
 
   private _step = (_timestamp) => {
-    this._renderGeneration();
-    // this._requestAnimationID = window.requestAnimationFrame(this._step);
+    setTimeout(() => {
+      this._renderGeneration();
+      this._requestAnimationID = window.requestAnimationFrame(this._step);
+    }, 50)
   }
 
   private _start = () => {
@@ -37,9 +39,7 @@ class Main {
 
   init() {
     console.log('init')
-    setTimeout(() => {
-      this._start()
-    }, 2000)
+    this._start()
   }
 }
 

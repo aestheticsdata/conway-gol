@@ -20,7 +20,7 @@ class Cell {
 
   private _randomState(): number {
     const rnd = Math.ceil(Math.random()*100)
-    const isAlive = rnd >= 92
+    const isAlive = rnd >= 82
     this.color = (isAlive ? this._getColor(CELL_STATE.ALIVE) : this._getColor(CELL_STATE.DEAD))
     return (isAlive ? CELL_STATE.ALIVE : CELL_STATE.DEAD)
   }
