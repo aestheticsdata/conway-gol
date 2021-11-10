@@ -1,13 +1,19 @@
 import Cell from "../Cell/Cell"
 import { GRID } from "./constants"
+import Data from "../data/Data";
+
+export type CellGrid = Cell[][];
 
 class Grid {
   private _canvas: HTMLCanvasElement
-  public _cellsMatrix: Cell[][] = []
+  public _cellsMatrix: CellGrid = []
 
   constructor(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) {
     this._canvas = canvas
-    this._createCells(ctx)
+    const data = new Data();
+    data.factory();
+    this._createCells(ctx, data.grid);
+    // this._createCells(ctx);
     this._drawGrid(ctx)
   }
 
@@ -30,18 +36,22 @@ class Grid {
     ctx.stroke()
   };
 
-  private _createCells(ctx: CanvasRenderingContext2D) {
-    let tmpCell: Cell;
+  private _createCells(ctx: CanvasRenderingContext2D, data?: CellGrid) {
+    let tmpCell: Cell
     for (let i = 0; i < this._canvas.height / Cell.size; i++) {
       this._cellsMatrix.push([])
       for (let j = 0; j < this._canvas.width / Cell.size; j++) {
-        tmpCell = new Cell();
+        if (data) {
+          tmpCell = data[i][j]
+        } else {
+          tmpCell = new Cell()
+        }
         this._cellsMatrix[i].push(tmpCell)
         ctx.fillStyle = tmpCell.color
         ctx.fillRect(j*(Cell.size), i*(Cell.size), Cell.size, Cell.size)
       }
     }
-    console.log('cell matrix: ', this._cellsMatrix)
+    // console.log('cell matrix: ', this._cellsMatrix)
   }
 }
 
