@@ -1,35 +1,48 @@
 @import url(reset.css);
+@import url('https://fonts.googleapis.com/css2?family=Dongle:wght@300&display=swap');
 
 body {
 	background: #ccc;
-	font-family: Arial, serif;
-	font-size: 12px;
 }
 
-.canvasWrapper {
+.wrapper {
 	height: 100vh;
 	display: flex;
+	flex-direction: column;
 	justify-content: center;
 	align-items: center;
-	color: #10afff;
 }
 
 button {
-	font:10px Futura, 'Century Gothic', sans-serif;
-	padding:1px;
+	font-family: 'Dongle', sans-serif;
+	font-size: 25px;
+	padding: 1px;
 	margin-right: 3px;
-	background-color:rgba(255,204,0,1);
-	border:1px solid #ffcc00;
-	border-radius:5px;
-	border-bottom:1px solid #9f9f9f;
-	box-shadow:inset 0 1px 0 rgba(255,255,255,0.5);
-	cursor:default;
+	background-color: rgba(255,204,0,1);
+	border: 1px solid #ffcc00;
+	border-radius: 5px;
+	border-bottom: 1px solid #9f9f9f;
+	box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+	cursor: pointer;
 	width: 70px;
+	margin-top: 10px;
 }
 
+button:hover {
+	box-shadow: 0 0 7px #9f9f9f;
+}
 
-.fpsCounter {
-	background-color: rgba(12,12,127,1);
-	padding: 1px 3px;
+button:active {
+	background-color: rgba(255,204,0,.7);
+}
+
+.iteration {
+	font-family: 'Dongle', sans-serif;
+	font-size: 25px;
+	background-color: rgb(15, 95, 217);
+	color: #c1e7fd;
+	padding: 5px;
+	margin-top: 15px;
+	border-radius: 3px;
 }
 

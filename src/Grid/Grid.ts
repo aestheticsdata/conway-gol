@@ -9,11 +9,13 @@ export type CellGrid = Cell[][];
 class Grid {
   private _canvas: HTMLCanvasElement
   private _cellsMatrix: CellGrid = []
+  public static gridSize: number
 
   constructor(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) {
     this._canvas = canvas
+    Grid.gridSize = canvas.width / Cell.size
     const data = new Data();
-    data.factory();
+    // data.factory();
     // this._createCells(ctx, data.grid);
     this._createCells(ctx);
     this._drawGrid(ctx)
@@ -45,9 +47,9 @@ class Grid {
 
   private _createCells(ctx: CanvasRenderingContext2D, data?: CellGrid) {
     let tmpCell: Cell
-    for (let i = 0; i < this._canvas.height / Cell.size; i++) {
+    for (let i = 0; i < Grid.gridSize; i++) {
       this._cellsMatrix.push([])
-      for (let j = 0; j < this._canvas.width / Cell.size; j++) {
+      for (let j = 0; j < Grid.gridSize; j++) {
         if (data) {
           tmpCell = data[i][j]
         } else {
@@ -61,10 +63,10 @@ class Grid {
 
   private _getLivingNeighbourCount(row: number, column: number) {
     let count: number = 0
-    const previousRowIndex = row === 0 ? 29 : row - 1
-    const nextRowIndex = row === 29 ? 0 : row + 1
-    const prevColumnIndex = column === 0 ? 29 : column - 1
-    const nextColumnIndex = column === 29 ? 0 : column + 1
+    const previousRowIndex = row === 0 ? (Grid.gridSize - 1) : row - 1
+    const nextRowIndex = row === (Grid.gridSize - 1) ? 0 : row + 1
+    const prevColumnIndex = column === 0 ? (Grid.gridSize - 1) : column - 1
+    const nextColumnIndex = column === (Grid.gridSize - 1) ? 0 : column + 1
 
     if (this._cellsMatrix[previousRowIndex][prevColumnIndex].state === CELL_STATE.ALIVE) {
       count++
@@ -97,8 +99,8 @@ class Grid {
     let livingNeighbours = 0;
     const nextCellMatrix: Cell[][] = cloneDeep(this._cellsMatrix)
 
-    for (let i = 0; i < this._canvas.height / Cell.size; i++) {
-      for (let j = 0; j < this._canvas.width / Cell.size; j++) {
+    for (let i = 0; i < Grid.gridSize; i++) {
+      for (let j = 0; j < Grid.gridSize; j++) {
         livingNeighbours = this._getLivingNeighbourCount(i, j)
 
         if (this._cellsMatrix[i][j].state === CELL_STATE.ALIVE) {
