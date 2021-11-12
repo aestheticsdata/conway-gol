@@ -33,9 +33,17 @@ class Main {
     })
   }
 
-  private _handleKeyUp(e: KeyboardEvent) {
+  private _handleKeyUp = (e: KeyboardEvent) => {
     if (e.keyCode === 13) {
       e.preventDefault();
+      if (Number((e.currentTarget as HTMLInputElement).value) > 60) {
+        this._fps = 60
+        this._speedSelector.value = String(this._fps)
+      }
+      if (Number((e.currentTarget as HTMLInputElement).value) < 1) {
+        this._fps = 1
+        this._speedSelector.value = String(this._fps)
+      }
       (e.currentTarget as HTMLInputElement).blur();
     }
   }
@@ -45,7 +53,6 @@ class Main {
   }
 
   private _togglePause = () => {
-    console.log('toggle pause')
     this._isPlaying ? this._stop() : this._start()
     this._isPlaying = !this._isPlaying
   }
@@ -64,7 +71,6 @@ class Main {
   }
 
   private _start = () => {
-    console.log('start')
     // https://stackoverflow.com/questions/19764018/controlling-fps-with-requestanimationframe
     this._lastDrawTime = Date.now()
     this._startTime = this._lastDrawTime
@@ -72,12 +78,10 @@ class Main {
   }
 
   private _stop = () => {
-    console.log('stop')
     cancelAnimationFrame(this._requestAnimationID)
   }
 
   init() {
-    console.log('init')
     this._start()
   }
 }

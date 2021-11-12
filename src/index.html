@@ -8,14 +8,14 @@
 </head>
 <body>
   <div class="wrapper">
-    <canvas id="canvasID" width="500" height="500">canvas not available in this browser</canvas>
+    <canvas id="canvasID" width="550" height="550">canvas not available in this browser</canvas>
     <div class="iteration">
       <span class="iteration-label">Iteration : </span>
       <span class="iteration-counter" />
     </div>
     <div class="speed-selector">
-      <span>FPS: </span>
-      <input type="number" id="speed-input" />
+      <label for="speed-input">FPS : </label>
+      <input type="text" id="speed-input" min="1" max="60" />
     </div>
     <button class="pause">pause</button>
   </div>
