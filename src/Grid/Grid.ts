@@ -15,9 +15,9 @@ class Grid {
     this._canvas = canvas
     Grid.gridSize = canvas.width / Cell.size
     const data = new Data();
-    // data.factory();
-    // this._createCells(ctx, data.grid);
-    this._createCells(ctx);
+    data.factory('pentadecathlon', [10, 10]);
+    this._createCells(ctx, data.grid);
+    // this._createCells(ctx);
     this._drawGrid(ctx)
   }
 

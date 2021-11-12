@@ -5,19 +5,57 @@ import Grid from "../Grid/Grid";
 
 class Data {
   public grid: CellGrid = []
+  private _glider: number[][] = [
+    [0,1,1,1],
+    [0,1,0,0],
+    [0,0,1,0],
+  ]
+  private _pulsar: number[][] = [
+    [0,0,1,1,1,0,0,0,1,1,1,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [1,0,0,0,0,1,0,1,0,0,0,0,1],
+    [1,0,0,0,0,1,0,1,0,0,0,0,1],
+    [1,0,0,0,0,1,0,1,0,0,0,0,1],
+    [0,0,1,1,1,0,0,0,1,1,1,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,1,1,1,0,0,0,1,1,1,0,0],
+    [1,0,0,0,0,1,0,1,0,0,0,0,1],
+    [1,0,0,0,0,1,0,1,0,0,0,0,1],
+    [1,0,0,0,0,1,0,1,0,0,0,0,1],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,1,1,1,0,0,0,1,1,1,0,0],
+  ]
+  private _pentadecathlon: number[][] = [
+    [0,1,0],
+    [0,1,0],
+    [1,0,1],
+    [0,1,0],
+    [0,1,0],
+    [0,1,0],
+    [0,1,0],
+    [1,0,1],
+    [0,1,0],
+    [0,1,0],
+  ]
 
-  public factory() {
+  private makeEntity(entity: string, startIndex: number[]) {
+    for (let j=0; j<this['_'+entity].length; j++) {
+      for (let i=0; i<this['_'+entity][0].length; i++) {
+        if (this['_'+entity][j][i] === 1) {
+          this.grid[j+startIndex[0]][i+startIndex[1]].state = CELL_STATE.ALIVE
+        }
+      }
+    }
+  }
+
+  public factory(entity, startIndex: number[]) {
     for (let i=0; i<Grid.gridSize; i++) {
       this.grid.push([])
       for (let j=0; j<Grid.gridSize; j++) {
         this.grid[i].push(new Cell(CELL_STATE.DEAD))
       }
     }
-    this.grid[1][1].state = CELL_STATE.ALIVE
-    this.grid[1][2].state = CELL_STATE.ALIVE
-    this.grid[1][3].state = CELL_STATE.ALIVE
-    this.grid[2][1].state = CELL_STATE.ALIVE
-    this.grid[3][2].state = CELL_STATE.ALIVE
+    this.makeEntity(entity, startIndex)
   }
 }
 
