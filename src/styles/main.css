@@ -39,10 +39,16 @@ button:active {
 .iteration {
 	font-family: 'Dongle', sans-serif;
 	font-size: 25px;
+	width: 200px;
+	text-align: center;
 	background-color: rgb(15, 95, 217);
 	color: #c1e7fd;
 	padding: 5px;
 	margin-top: 15px;
 	border-radius: 3px;
+}
+
+#speed-input {
+	
 }
 
