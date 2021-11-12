@@ -4,7 +4,10 @@
   "source": "src/index.html",
   "main": "index.ts",
   "targets": {
-    "main": false
+    "main": false,
+    "default": {
+      "publicUrl": "./"
+    }
   },
   "scripts": {
     "start": "parcel",
