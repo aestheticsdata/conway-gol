@@ -12,12 +12,12 @@ class Grid {
   private _cellsMatrix: CellGrid = []
   public static gridSize: number
 
-  constructor(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, mode: Mode) {
+  constructor(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, mode: Mode, species?: string) {
     this._canvas = canvas
     Grid.gridSize = canvas.width / Cell.size
     const data = new Data()
     if (mode === 'zoo') {
-      data.factory('pentadecathlon', [10, 10])
+      data.factory(species ?? "glider", [10, 10])
       this._createCells(ctx, data.grid)
     }
     if (mode === 'random') {

@@ -22,8 +22,9 @@ class Main {
   private _now
   private _lastDrawTime
   private _elapsed
-  private _zooPrimitivesDOMSelector = document.querySelector('#primitives');
-  private _changeZoo;
+  private _zooPrimitivesDOMSelector = document.querySelector('#primitives')
+  private _changeZoo
+  private _selectedSpecies: string = "glider"
 
   constructor() {
     this._canvas = document.querySelector('canvas')
@@ -33,12 +34,14 @@ class Main {
     this._pauseBtn.textContent = 'start'
     this._iterationCounter.textContent = String(this._iterationCounterValue)
     this._modeSelector = new ModeSelector(this._changeMode)
-    this._changeZoo = (species) => {console.log(species)}
+    this._changeZoo = (species) => {
+      this._selectedSpecies = species
+      this._setup()
+    }
   }
 
   private _changeMode = (mode: Mode) => {
       this._selectedMode = mode
-      // this._togglePause()
       this._setup()
   }
 
@@ -110,14 +113,15 @@ class Main {
     if (this._isPlaying === true) {
       this._togglePause()
     }
-    this._grid = new Grid(this._stage, this._canvas, this._selectedMode)
 
     if (this._selectedMode === 'zoo') {
       if (!this._zooSelector) this._zooSelector = new ZooSelector()
       this._zooSelector.createSelectButton(this._zooPrimitivesDOMSelector, ['glider', 'pulsar', 'pentadecathlon', 'fumarol'], this._changeZoo);
       (<HTMLInputElement>this._zooPrimitivesDOMSelector).style.visibility = "visible"
+      this._grid = new Grid(this._stage, this._canvas, this._selectedMode, this._selectedSpecies);
     } else {
       (<HTMLInputElement>this._zooPrimitivesDOMSelector).style.visibility = "hidden"
+      this._grid = new Grid(this._stage, this._canvas, this._selectedMode);
     }
     this._iterationCounterValue = 0
     this._fps = 7
