@@ -1,6 +1,7 @@
 import Grid from "./Grid/Grid"
 import ModeSelector from "./controls/ModeSelector"
 import type { Mode } from "./controls/ModeSelector"
+import ZooSelector from "./controls/ZooSelector";
 
 class Main {
   private readonly _canvas: HTMLCanvasElement
@@ -14,12 +15,15 @@ class Main {
   private _speedSelector: HTMLInputElement = document.querySelector('#speed-input')
   private _modeSelector: ModeSelector
   private _selectedMode: Mode = "random"
+  private _zooSelector: ZooSelector
   private _fps = 7
   private _fpsInterval
   private _startTime
   private _now
   private _lastDrawTime
   private _elapsed
+  private _zooPrimitivesDOMSelector = document.querySelector('#primitives');
+  private _changeZoo;
 
   constructor() {
     this._canvas = document.querySelector('canvas')
@@ -29,6 +33,7 @@ class Main {
     this._pauseBtn.textContent = 'start'
     this._iterationCounter.textContent = String(this._iterationCounterValue)
     this._modeSelector = new ModeSelector(this._changeMode)
+    this._changeZoo = (species) => {console.log(species)}
   }
 
   private _changeMode = (mode: Mode) => {
@@ -106,13 +111,22 @@ class Main {
       this._togglePause()
     }
     this._grid = new Grid(this._stage, this._canvas, this._selectedMode)
+
+    if (this._selectedMode === 'zoo') {
+      if (!this._zooSelector) this._zooSelector = new ZooSelector()
+      this._zooSelector.createSelectButton(this._zooPrimitivesDOMSelector, ['glider', 'pulsar', 'pentadecathlon', 'fumarol'], this._changeZoo);
+      (<HTMLInputElement>this._zooPrimitivesDOMSelector).style.visibility = "visible"
+    } else {
+      (<HTMLInputElement>this._zooPrimitivesDOMSelector).style.visibility = "hidden"
+    }
     this._iterationCounterValue = 0
+    this._fps = 7
+    this._speedSelector.value = String(this._fps)
     this._iterationCounter.textContent = String(this._iterationCounterValue)
   }
 
   init() {
     this._setup()
-
     const url = new URLSearchParams(window.location.search)
     if (url.get('autostart') === '1') {
       this._togglePause()

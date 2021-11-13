@@ -28,6 +28,13 @@ body {
 .controls-wrapper .mode-selector * {
 	cursor: pointer;
 }
+.controls-wrapper .mode-selector input[disabled] {
+	cursor: default;
+}
+.controls-wrapper .mode-selector input[disabled] + label {
+	cursor: default;
+	color: #858585;
+}
 .canvas-wrapper {
 	height: 100vh;
 	display: flex;
@@ -72,6 +79,9 @@ button:active {
 	font-size: 25px;
 	margin-top: 10px;
 }
+.speed-selector input {
+	padding-top: 6px;
+}
 #speed-input {
 	font-size: 25px;
 	font-family: 'Dongle', sans-serif;
@@ -84,5 +94,10 @@ button:active {
 }
 #speed-input:hover {
 	box-shadow: 0 0 10px #706f6f;
+}
+
+.zoo-selector {
+	display: flex;
+	width: 120px;
 }
 

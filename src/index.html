@@ -18,6 +18,10 @@
           <input type="radio" id="zoo" name="mode" value="zoo">
           <label for="zoo">zoo</label>
         </div>
+        <div>
+          <input type="radio" id="drawing" name="mode" value="zoo" disabled>
+          <label for="drawing">drawing</label>
+        </div>
       </div>
       <div class="iteration">
         <span class="iteration-label">Iteration : </span>
@@ -31,6 +35,13 @@
     </div>
     <div class="canvas-wrapper">
       <canvas id="canvasID" width="550" height="550">canvas not available in this browser</canvas>
+    </div>
+    <div class="zoo-selector" style="visibility: hidden">
+      <div id="selectButton">
+        <label for="primitives"></label>
+        <select id="primitives">
+        </select>
+      </div>
     </div>
   </div>
 </body>
