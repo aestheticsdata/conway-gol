@@ -99,5 +99,19 @@ button:active {
 .zoo-selector {
 	display: flex;
 	width: 120px;
+	height: 100vh;
+	position: relative;
+	top: 210px;
+	left: 40px;
+}
+.zoo-selector label {
+	font-size: 20px;
+}
+
+select, input {
+	outline: none;
+	background-color: #ccc;
+	border-radius: 3px;
+	padding: 3px;
 }
 
