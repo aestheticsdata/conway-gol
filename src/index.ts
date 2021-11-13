@@ -1,4 +1,6 @@
-import Grid from "./Grid/Grid";
+import Grid from "./Grid/Grid"
+import ModeSelector from "./controls/ModeSelector"
+import type { Mode } from "./controls/ModeSelector"
 
 class Main {
   private readonly _canvas: HTMLCanvasElement
@@ -10,6 +12,8 @@ class Main {
   private _iterationCounter: HTMLElement = document.querySelector('.iteration-counter')
   private _pauseBtn: HTMLButtonElement = document.querySelector('button')
   private _speedSelector: HTMLInputElement = document.querySelector('#speed-input')
+  private _modeSelector: ModeSelector
+  private _selectedMode: Mode
   private _fps = 7
   private _fpsInterval
   private _startTime
@@ -25,17 +29,23 @@ class Main {
     this._setFPS()
     this._pauseBtn.textContent = 'start'
     this._iterationCounter.textContent = String(this._iterationCounterValue)
+    this._modeSelector = new ModeSelector(this._changeMode)
+
+  }
+
+  private _changeMode(mode: Mode) {
+    this._selectedMode = mode
   }
 
   private _setFPS() {
     this._speedSelector.value = String(this._fps)
-    this._speedSelector.addEventListener('keypress', this._handleKeyUp)
+    this._speedSelector.addEventListener('keypress', this._handleEnterKey)
     this._speedSelector.addEventListener('change', (e: Event) => {
       this._fps = parseInt((e.currentTarget as HTMLInputElement).value)
     })
   }
 
-  private _handleKeyUp = (e: KeyboardEvent) => {
+  private _handleEnterKey = (e: KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
       if (Number((e.currentTarget as HTMLInputElement).value) > 60) {
@@ -90,7 +100,6 @@ class Main {
   }
 
   init() {
-    // this._start()
     const url = new URLSearchParams(window.location.search)
     if (url.get('autostart') === '1') {
       this._togglePause()

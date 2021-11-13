@@ -16,7 +16,13 @@ body {
 	display: flex;
 	flex-direction: column;
 	justify-content: center;
-	align-items: center;
+	align-items: flex-start;
+	padding: 10px;
+}
+.controls-wrapper .mode-selector {
+	font-size: 25px;
+	border: 1px solid #b0b0b0;
+	border-radius: 3px;
 	padding: 10px;
 }
 .canvas-wrapper {
@@ -53,11 +59,9 @@ button:active {
 	font-family: 'Dongle', sans-serif;
 	font-size: 25px;
 	width: 150px;
-	text-align: center;
-	background-color: rgb(15, 95, 217);
-	color: #c1e7fd;
-	padding: 5px;
-	margin-top: 15px;
+	text-align: left;
+	color: #0d5e8d;
+	margin-top: 10px;
 	border-radius: 3px;
 }
 
