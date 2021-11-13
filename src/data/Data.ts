@@ -3,14 +3,20 @@ import { CELL_STATE } from "../Cell/constants";
 import type { CellGrid } from "../Grid/Grid";
 import Grid from "../Grid/Grid";
 
+type Entity = number[][]
+
 class Data {
   public grid: CellGrid = []
-  private _glider: number[][] = [
+
+  // for many entities, see this catalog:
+  // http://www.ericweisstein.com/encyclopedias/life
+  // http://pentadecathlon.com/lifeNews/oscillators/
+  private _glider: Entity = [
     [0,1,1,1],
     [0,1,0,0],
     [0,0,1,0],
   ]
-  private _pulsar: number[][] = [
+  private _pulsar: Entity = [
     [0,0,1,1,1,0,0,0,1,1,1,0,0],
     [0,0,0,0,0,0,0,0,0,0,0,0,0],
     [1,0,0,0,0,1,0,1,0,0,0,0,1],
@@ -25,7 +31,7 @@ class Data {
     [0,0,0,0,0,0,0,0,0,0,0,0,0],
     [0,0,1,1,1,0,0,0,1,1,1,0,0],
   ]
-  private _pentadecathlon: number[][] = [
+  private _pentadecathlon: Entity = [
     [0,1,0],
     [0,1,0],
     [1,0,1],
@@ -36,6 +42,15 @@ class Data {
     [1,0,1],
     [0,1,0],
     [0,1,0],
+  ]
+  private _fumarol: Entity = [
+    [0,0,0,1,1,0,0,0],
+    [0,1,0,0,0,0,1,0],
+    [0,1,0,0,0,0,1,0],
+    [0,1,0,0,0,0,1,0],
+    [0,0,1,0,0,1,0,0],
+    [1,0,1,0,0,1,0,1],
+    [1,1,0,0,0,0,1,1],
   ]
 
   private makeEntity(entity: string, startIndex: number[]) {

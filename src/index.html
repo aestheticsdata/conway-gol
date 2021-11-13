@@ -7,17 +7,21 @@
   <title>Conway's game of life</title>
 </head>
 <body>
-  <div class="wrapper">
-    <canvas id="canvasID" width="550" height="550">canvas not available in this browser</canvas>
-    <div class="iteration">
-      <span class="iteration-label">Iteration : </span>
-      <span class="iteration-counter" />
+  <div class="container">
+    <div class="controls-wrapper">
+      <div class="iteration">
+        <span class="iteration-label">Iteration : </span>
+        <span class="iteration-counter" />
+      </div>
+      <div class="speed-selector">
+        <label for="speed-input">FPS : </label>
+        <input type="text" id="speed-input" min="1" max="60" />
+      </div>
+      <button class="pause">pause</button>
     </div>
-    <div class="speed-selector">
-      <label for="speed-input">FPS : </label>
-      <input type="text" id="speed-input" min="1" max="60" />
+    <div class="canvas-wrapper">
+      <canvas id="canvasID" width="550" height="550">canvas not available in this browser</canvas>
     </div>
-    <button class="pause">pause</button>
   </div>
 </body>
 </html>

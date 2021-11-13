@@ -14,10 +14,10 @@ class Grid {
   constructor(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) {
     this._canvas = canvas
     Grid.gridSize = canvas.width / Cell.size
-    const data = new Data();
-    data.factory('pentadecathlon', [10, 10]);
-    this._createCells(ctx, data.grid);
-    // this._createCells(ctx);
+    const data = new Data()
+    data.factory('pentadecathlon', [10, 10])
+    this._createCells(ctx, data.grid)
+    // this._createCells(ctx)
     this._drawGrid(ctx)
   }
 

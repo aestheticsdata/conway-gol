@@ -6,10 +6,22 @@ body {
 	background: #ccc;
 }
 
-.wrapper {
+.container {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+.controls-wrapper {
 	height: 100vh;
 	display: flex;
 	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	padding: 10px;
+}
+.canvas-wrapper {
+	height: 100vh;
+	display: flex;
 	justify-content: center;
 	align-items: center;
 }

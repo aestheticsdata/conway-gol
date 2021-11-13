@@ -4,7 +4,7 @@ class Main {
   private readonly _canvas: HTMLCanvasElement
   private readonly _stage: CanvasRenderingContext2D
   private _requestAnimationID: number
-  private _isPlaying: boolean = true
+  private _isPlaying: boolean = false
   private _grid: Grid
   private _iterationCounterValue: number = 0
   private _iterationCounter: HTMLElement = document.querySelector('.iteration-counter')
@@ -15,7 +15,7 @@ class Main {
   private _startTime
   private _now
   private _lastDrawTime
-  private _elapsed;
+  private _elapsed
 
   constructor() {
     this._canvas = document.querySelector('canvas')
@@ -23,6 +23,8 @@ class Main {
     this._grid = new Grid(this._stage, this._canvas)
     this._pauseBtn.addEventListener('click', this._togglePause)
     this._setFPS()
+    this._pauseBtn.textContent = 'start'
+    this._iterationCounter.textContent = String(this._iterationCounterValue)
   }
 
   private _setFPS() {
@@ -34,7 +36,7 @@ class Main {
   }
 
   private _handleKeyUp = (e: KeyboardEvent) => {
-    if (e.keyCode === 13) {
+    if (e.key === "Enter") {
       e.preventDefault();
       if (Number((e.currentTarget as HTMLInputElement).value) > 60) {
         this._fps = 60
@@ -53,7 +55,13 @@ class Main {
   }
 
   private _togglePause = () => {
-    this._isPlaying ? this._stop() : this._start()
+    if (this._isPlaying){
+      this._stop()
+      this._pauseBtn.textContent = 'start'
+    } else {
+      this._pauseBtn.textContent = 'pause'
+      this._start()
+    }
     this._isPlaying = !this._isPlaying
   }
 
@@ -82,7 +90,11 @@ class Main {
   }
 
   init() {
-    this._start()
+    // this._start()
+    const url = new URLSearchParams(window.location.search)
+    if (url.get('autostart') === '1') {
+      this._togglePause()
+    }
   }
 }
 
