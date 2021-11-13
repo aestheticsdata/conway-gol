@@ -13,7 +13,7 @@ class Main {
   private _pauseBtn: HTMLButtonElement = document.querySelector('button')
   private _speedSelector: HTMLInputElement = document.querySelector('#speed-input')
   private _modeSelector: ModeSelector
-  private _selectedMode: Mode
+  private _selectedMode: Mode = "random"
   private _fps = 7
   private _fpsInterval
   private _startTime
@@ -24,17 +24,17 @@ class Main {
   constructor() {
     this._canvas = document.querySelector('canvas')
     this._stage = this._canvas.getContext('2d')
-    this._grid = new Grid(this._stage, this._canvas)
     this._pauseBtn.addEventListener('click', this._togglePause)
     this._setFPS()
     this._pauseBtn.textContent = 'start'
     this._iterationCounter.textContent = String(this._iterationCounterValue)
     this._modeSelector = new ModeSelector(this._changeMode)
-
   }
 
-  private _changeMode(mode: Mode) {
-    this._selectedMode = mode
+  private _changeMode = (mode: Mode) => {
+      this._selectedMode = mode
+      // this._togglePause()
+      this._setup()
   }
 
   private _setFPS() {
@@ -99,7 +99,20 @@ class Main {
     cancelAnimationFrame(this._requestAnimationID)
   }
 
+  private _setup() {
+    // call togglePause only if switching from one mode to another
+    // not the first time start is clicked
+    if (this._isPlaying === true) {
+      this._togglePause()
+    }
+    this._grid = new Grid(this._stage, this._canvas, this._selectedMode)
+    this._iterationCounterValue = 0
+    this._iterationCounter.textContent = String(this._iterationCounterValue)
+  }
+
   init() {
+    this._setup()
+
     const url = new URLSearchParams(window.location.search)
     if (url.get('autostart') === '1') {
       this._togglePause()

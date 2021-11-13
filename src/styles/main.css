@@ -25,6 +25,9 @@ body {
 	border-radius: 3px;
 	padding: 10px;
 }
+.controls-wrapper .mode-selector * {
+	cursor: pointer;
+}
 .canvas-wrapper {
 	height: 100vh;
 	display: flex;

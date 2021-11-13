@@ -3,6 +3,7 @@ import { GRID } from "./constants"
 import Data from "../data/Data"
 import { CELL_STATE } from "../Cell/constants"
 import { cloneDeep } from "lodash";
+import type { Mode } from "../controls/ModeSelector";
 
 export type CellGrid = Cell[][];
 
@@ -11,13 +12,17 @@ class Grid {
   private _cellsMatrix: CellGrid = []
   public static gridSize: number
 
-  constructor(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) {
+  constructor(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, mode: Mode) {
     this._canvas = canvas
     Grid.gridSize = canvas.width / Cell.size
     const data = new Data()
-    data.factory('pentadecathlon', [10, 10])
-    this._createCells(ctx, data.grid)
-    // this._createCells(ctx)
+    if (mode === 'zoo') {
+      data.factory('pentadecathlon', [10, 10])
+      this._createCells(ctx, data.grid)
+    }
+    if (mode === 'random') {
+      this._createCells(ctx)
+    }
     this._drawGrid(ctx)
   }
 
