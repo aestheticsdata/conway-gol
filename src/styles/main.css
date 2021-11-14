@@ -115,3 +115,7 @@ select, input {
 	padding: 3px;
 }
 
+#primitives {
+	width: 150px;
+}
+

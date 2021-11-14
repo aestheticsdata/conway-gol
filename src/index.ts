@@ -2,29 +2,31 @@ import Grid from "./Grid/Grid"
 import ModeSelector from "./controls/ModeSelector"
 import type { Mode } from "./controls/ModeSelector"
 import ZooSelector from "./controls/ZooSelector";
+import axios from 'axios';
 
 class Main {
-  private readonly _canvas: HTMLCanvasElement
-  private readonly _stage: CanvasRenderingContext2D
-  private _requestAnimationID: number
-  private _isPlaying: boolean = false
-  private _grid: Grid
-  private _iterationCounterValue: number = 0
-  private _iterationCounter: HTMLElement = document.querySelector('.iteration-counter')
-  private _pauseBtn: HTMLButtonElement = document.querySelector('button')
-  private _speedSelector: HTMLInputElement = document.querySelector('#speed-input')
-  private _modeSelector: ModeSelector
-  private _selectedMode: Mode = "random"
-  private _zooSelector: ZooSelector
-  private _fps = 7
-  private _fpsInterval
-  private _startTime
-  private _now
-  private _lastDrawTime
-  private _elapsed
-  private _zooPrimitivesDOMSelector = document.querySelector('#primitives')
-  private readonly _changeZoo
-  private _selectedSpecies: string
+  private readonly _canvas: HTMLCanvasElement;
+  private readonly _stage: CanvasRenderingContext2D;
+  private _requestAnimationID: number;
+  private _isPlaying: boolean = false;
+  private _grid: Grid;
+  private _iterationCounterValue: number = 0;
+  private _iterationCounter: HTMLElement = document.querySelector('.iteration-counter');
+  private _pauseBtn: HTMLButtonElement = document.querySelector('button');
+  private _speedSelector: HTMLInputElement = document.querySelector('#speed-input');
+  private _modeSelector: ModeSelector;
+  private _selectedMode: Mode = "random";
+  private _zooSelector: ZooSelector;
+  private _fps = 7;
+  private _fpsInterval;
+  private _startTime;
+  private _now;
+  private _lastDrawTime;
+  private _elapsed;
+  private _zooPrimitivesDOMSelector = document.querySelector('#primitives');
+  private readonly _changeZoo;
+  private _selectedSpecies: string;
+  private _critterList: Promise<string[]>;
 
   constructor() {
     this._canvas = document.querySelector('canvas')
@@ -107,7 +109,8 @@ class Main {
     cancelAnimationFrame(this._requestAnimationID)
   }
 
-  private _setup() {
+  private async _setup() {
+    this._critterList = (await axios.get('http://localhost:5000/list')).data;
     // call togglePause only if switching from one mode to another
     // not the first time start is clicked
     if (this._isPlaying === true) {
@@ -116,7 +119,7 @@ class Main {
 
     if (this._selectedMode === 'zoo') {
       if (!this._zooSelector) this._zooSelector = new ZooSelector()
-      this._zooSelector.createSelectButton(this._zooPrimitivesDOMSelector, this._changeZoo);
+      this._zooSelector.createSelectButton(this._zooPrimitivesDOMSelector, this._changeZoo, this._critterList);
       (<HTMLInputElement>this._zooPrimitivesDOMSelector.previousElementSibling).style.visibility = "visible";
       (<HTMLInputElement>this._zooPrimitivesDOMSelector).style.visibility = "visible";
       this._grid = new Grid(this._stage, this._canvas, this._selectedMode, this._selectedSpecies);

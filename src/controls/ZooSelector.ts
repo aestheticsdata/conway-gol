@@ -3,8 +3,8 @@ import { species } from "../data/species/species";
 class ZooSelector {
   private _created: boolean = false
 
-  public createSelectButton(selector, cb) {
-    const zoo = Object.keys(species);
+  public createSelectButton(selector, cb, list?) {
+    const zoo = (list ? list : Object.keys(species));
     if (!this._created) {
       // https://stackoverflow.com/a/49461484/5671836
       zoo.forEach(primitive => {
