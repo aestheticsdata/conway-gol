@@ -1,0 +1,1 @@
+{"comments":["Name: Clock","Author: Simon Norton","Clock was found in May 1970. This is the fifth or sixth most common oscillator, being about as frequent as the pentadecathlon, but much less frequent than the blinker, toad, beacon or pulsar."],"automata":[["0","0","1","0"],["1","0","1","0"],["0","1","0","1"],["0","1","0","0"],["0","0","0","0"]]}

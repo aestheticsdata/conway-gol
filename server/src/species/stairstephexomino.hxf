@@ -1,0 +1,1 @@
+{"comments":["Name: Stairstep hexomino","One of 35 hexominoes. It is a predecessor of the blockade."],"automata":[["1","1","0","0"],["0","1","1","0"],["0","0","1","1"],["0","0","0","0"]]}

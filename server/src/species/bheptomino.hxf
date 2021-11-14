@@ -1,0 +1,1 @@
+{"comments":["Name: B-heptomino","A very common methuselah that often arises with the cell at top left shifted one space to the left, which does not affect the subsequent evolution."],"automata":[["1","0","1","1"],["1","1","1","0"],["0","1","0","0"],["0","0","0","0"]]}

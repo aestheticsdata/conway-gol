@@ -1,0 +1,1 @@
+{"comments":["Name: Toad","Author: Simon Norton","The second most common oscillator (after the blinker)."],"automata":[["0","1","1","1"],["1","1","1","0"],["0","0","0","0"]]}

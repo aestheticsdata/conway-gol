@@ -1,0 +1,1 @@
+{"comments":["Name: Butterfly","Evolves into a formation of two beehives after 33 generations."],"automata":[["1","0","0","0"],["1","1","0","0"],["1","0","1","0"],["0","1","1","1"],["0","0","0","0"]]}

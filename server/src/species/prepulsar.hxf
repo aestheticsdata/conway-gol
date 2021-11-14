@@ -1,0 +1,1 @@
+{"comments":["Name: Pre-pulsar","A common predecessor of the pulsar. It duplicates itself after 15 generations, although it fails to be a true replicator because of the way the that two copies then interact."],"automata":[["1","1","1","0","0","0","1","1","1"],["1","0","1","0","0","0","1","0","1"],["1","1","1","0","0","0","1","1","1"],["0","0","0","0","0","0","0","0","0"]]}
