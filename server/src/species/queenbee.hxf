@@ -1,1 +1,1 @@
-{"comments":["Name: Queen bee","A pattern that lays a beehive on either side of itself before exploding."],"automata":[["0","0","0","1","0","0","0"],["0","0","1","0","1","0","0"],["0","1","0","0","0","1","0"],["0","0","1","1","1","0","0"],["1","1","0","0","0","1","1"],["0","0","0","0","0","0","0"]]}
+{"comments":["Name: Queen bee","A pattern that lays a beehive on either side of itself before exploding."],"automata":[[0,0,0,1,0,0,0],[0,0,1,0,1,0,0],[0,1,0,0,0,1,0],[0,0,1,1,1,0,0],[1,1,0,0,0,1,1],[0,0,0,0,0,0,0]]}

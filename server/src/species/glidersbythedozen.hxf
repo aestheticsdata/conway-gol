@@ -1,1 +1,1 @@
-{"comments":["Name: Gliders by the dozen","A methuselah with lifespan 184 that emits exactly 12 gliders over the course of its evolution."],"automata":[["1","1","0","0","1"],["1","0","0","0","1"],["1","0","0","1","1"],["0","0","0","0","0"]]}
+{"comments":["Name: Gliders by the dozen","A methuselah with lifespan 184 that emits exactly 12 gliders over the course of its evolution."],"automata":[[1,1,0,0,1],[1,0,0,0,1],[1,0,0,1,1],[0,0,0,0,0]]}

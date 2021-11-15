@@ -1,1 +1,1 @@
-{"comments":["Name: Teardrop","An induction coil that evolves into two beehives after 20 generations."],"automata":[["0","1","1","1"],["1","0","0","1"],["1","0","0","1"],["0","1","1","0"],["0","0","0","0"]]}
+{"comments":["Name: Teardrop","An induction coil that evolves into two beehives after 20 generations."],"automata":[[0,1,1,1],[1,0,0,1],[1,0,0,1],[0,1,1,0],[0,0,0,0]]}

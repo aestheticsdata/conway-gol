@@ -1,1 +1,1 @@
-{"comments":["Name: Aircraft carrier","The smallest still life that has more than one island."],"automata":[["1","1","0","0"],["1","0","0","1"],["0","0","1","1"],["0","0","0","0"]]}
+{"comments":["Name: Aircraft carrier","The smallest still life that has more than one island."],"automata":[[1,1,0,0],[1,0,0,1],[0,0,1,1],[0,0,0,0]]}

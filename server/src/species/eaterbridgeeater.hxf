@@ -1,1 +1,1 @@
-{"comments":["eater bridge eater","https://conwaylife.com/wiki/Eater_bridge_eater"],"automata":[["1","1","0","0","0","0","0","0"],["1","0","0","0","0","0","1","1"],["0","1","1","1","0","1","0","1"],["0","0","0","1","0","1","0","0"],["0","0","0","0","1","1","0","0"]]}
+{"comments":["eater bridge eater","https://conwaylife.com/wiki/Eater_bridge_eater"],"automata":[[1,1,0,0,0,0,0,0],[1,0,0,0,0,0,1,1],[0,1,1,1,0,1,0,1],[0,0,0,1,0,1,0,0],[0,0,0,0,1,1,0,0]]}

@@ -1,1 +1,1 @@
-{"comments":["hookwithtwotails.cells","https://conwaylife.com/wiki/Hook_with_two_tails"],"automata":[["0","1","1","0","0","0"],["0","0","1","0","0","0"],["0","0","1","0","1","1"],["0","0","0","1","0","1"],["1","1","1","0","0","0"],["1","0","0","0","0","0"]]}
+{"comments":["hookwithtwotails.cells","https://conwaylife.com/wiki/Hook_with_two_tails"],"automata":[[0,1,1,0,0,0],[0,0,1,0,0,0],[0,0,1,0,1,1],[0,0,0,1,0,1],[1,1,1,0,0,0],[1,0,0,0,0,0]]}

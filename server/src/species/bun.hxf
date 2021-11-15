@@ -1,1 +1,1 @@
-{"comments":["Name: Bun","An induction coil that is a common predecessor of the honey farm."],"automata":[["0","1","1","0"],["1","0","0","1"],["0","1","1","1"],["0","0","0","0"]]}
+{"comments":["Name: Bun","An induction coil that is a common predecessor of the honey farm."],"automata":[[0,1,1,0],[1,0,0,1],[0,1,1,1],[0,0,0,0]]}

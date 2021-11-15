@@ -1,1 +1,1 @@
-{"comments":["Name: Beehive at beehive","A simple 12-cell still life composed of two beehive."],"automata":[["0","0","0","0","1","0"],["0","0","0","1","0","1"],["0","0","0","1","0","1"],["0","1","1","0","1","0"],["1","0","0","1","0","0"],["0","1","1","0","0","0"],["0","0","0","0","0","0"]]}
+{"comments":["Name: Beehive at beehive","A simple 12-cell still life composed of two beehive."],"automata":[[0,0,0,0,1,0],[0,0,0,1,0,1],[0,0,0,1,0,1],[0,1,1,0,1,0],[1,0,0,1,0,0],[0,1,1,0,0,0],[0,0,0,0,0,0]]}

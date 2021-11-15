@@ -1,1 +1,1 @@
-{"comments":["Name: Pi-heptomino","One of 108 heptominoes."],"automata":[["1","1","1"],["1","0","1"],["1","0","1"],["0","0","0"]]}
+{"comments":["Name: Pi-heptomino","One of 108 heptominoes."],"automata":[[1,1,1],[1,0,1],[1,0,1],[0,0,0]]}

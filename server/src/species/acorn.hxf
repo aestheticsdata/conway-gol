@@ -1,1 +1,1 @@
-{"comments":["Name: Acorn","Author: Charles Corderman","A methuselah that stabilizes after 5206 generations."],"automata":[["0","1","0","0","0","0","0"],["0","0","0","1","0","0","0"],["1","1","0","0","1","1","1"],["0","0","0","0","0","0","0"]]}
+{"comments":["Name: Acorn","Author: Charles Corderman","A methuselah that stabilizes after 5206 generations."],"automata":[[0,1,0,0,0,0,0],[0,0,0,1,0,0,0],[1,1,0,0,1,1,1],[0,0,0,0,0,0,0]]}

@@ -1,1 +1,1 @@
-{"comments":["boatclawwithtail.cells","https://conwaylife.com/wiki/Claw_with_boat_with_tail"],"automata":[["1","1","0","0","0","0"],["1","0","1","0","0","0"],["0","1","0","1","0","0"],["0","0","0","1","0","0"],["0","0","1","0","0","0"],["0","0","0","1","1","1"],["0","0","0","0","0","1"]]}
+{"comments":["boatclawwithtail.cells","https://conwaylife.com/wiki/Claw_with_boat_with_tail"],"automata":[[1,1,0,0,0,0],[1,0,1,0,0,0],[0,1,0,1,0,0],[0,0,0,1,0,0],[0,0,1,0,0,0],[0,0,0,1,1,1],[0,0,0,0,0,1]]}

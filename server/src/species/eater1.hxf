@@ -1,1 +1,1 @@
-{"comments":["Name: Eater 1","Author: Bill Gosper","The first discovered eater."],"automata":[["1","1","0","0"],["1","0","1","0"],["0","0","1","0"],["0","0","1","1"],["0","0","0","0"]]}
+{"comments":["Name: Eater 1","Author: Bill Gosper","The first discovered eater."],"automata":[[1,1,0,0],[1,0,1,0],[0,0,1,0],[0,0,1,1],[0,0,0,0]]}

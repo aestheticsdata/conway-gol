@@ -1,1 +1,1 @@
-{"comments":["Name: Herschel parent","A parent of the herschel."],"automata":[["0","0","1","0","0"],["1","1","0","0","0"],["0","0","1","0","1"],["0","0","0","0","1"],["0","0","0","0","0"]]}
+{"comments":["Name: Herschel parent","A parent of the herschel."],"automata":[[0,0,1,0,0],[1,1,0,0,0],[0,0,1,0,1],[0,0,0,0,1],[0,0,0,0,0]]}

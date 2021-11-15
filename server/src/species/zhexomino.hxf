@@ -1,1 +1,1 @@
-{"comments":["Name: Z-hexomino","One of 35 hexominoes. It appears in pentoad and Achim's p144."],"automata":[["1","1","0"],["0","1","0"],["0","1","0"],["0","1","1"],["0","0","0"]]}
+{"comments":["Name: Z-hexomino","One of 35 hexominoes. It appears in pentoad and Achim's p144."],"automata":[[1,1,0],[0,1,0],[0,1,0],[0,1,1],[0,0,0]]}

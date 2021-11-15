@@ -1,1 +1,1 @@
-{"comments":["Name: Cap","An induction coil."],"automata":[["0","1","1","0"],["1","0","0","1"],["1","1","1","1"],["0","0","0","0"]]}
+{"comments":["Name: Cap","An induction coil."],"automata":[[0,1,1,0],[1,0,0,1],[1,1,1,1],[0,0,0,0]]}

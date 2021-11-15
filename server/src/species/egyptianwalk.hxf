@@ -1,1 +1,1 @@
-{"comments":["egyptianwalk.cells","https://conwaylife.com/wiki/Egyptian_walk"],"automata":[["1","0","1","1","0","0","0"],["1","1","0","1","0","0","0"],["0","0","0","1","0","1","1"],["0","0","0","1","1","0","1"]]}
+{"comments":["egyptianwalk.cells","https://conwaylife.com/wiki/Egyptian_walk"],"automata":[[1,0,1,1,0,0,0],[1,1,0,1,0,0,0],[0,0,0,1,0,1,1],[0,0,0,1,1,0,1]]}

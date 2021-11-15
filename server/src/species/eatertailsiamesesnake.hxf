@@ -1,1 +1,1 @@
-{"comments":["Eater tail siamese snake","Unknown","https://conwaylife.com/wiki/Eater_tail_siamese_snake"],"automata":[["0","0","1","1"],["0","1","0","1"],["0","1","0","0"],["1","1","0","0"],["1","0","0","0"],["0","1","0","0"],["1","1","0","0"]]}
+{"comments":["Eater tail siamese snake","Unknown","https://conwaylife.com/wiki/Eater_tail_siamese_snake"],"automata":[[0,0,1,1],[0,1,0,1],[0,1,0,0],[1,1,0,0],[1,0,0,0],[0,1,0,0],[1,1,0,0]]}

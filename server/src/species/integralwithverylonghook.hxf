@@ -1,1 +1,1 @@
-{"comments":["integralwithverylonghook.cells","https://conwaylife.com/wiki/Integral_with_very_long_hook"],"automata":[["1","1","0","0","0","0","0","0"],["1","0","1","0","0","0","1","1"],["0","0","1","0","0","1","0","1"],["0","0","1","0","1","0","0","0"],["0","0","0","1","0","0","0","0"]]}
+{"comments":["integralwithverylonghook.cells","https://conwaylife.com/wiki/Integral_with_very_long_hook"],"automata":[[1,1,0,0,0,0,0,0],[1,0,1,0,0,0,1,1],[0,0,1,0,0,1,0,1],[0,0,1,0,1,0,0,0],[0,0,0,1,0,0,0,0]]}

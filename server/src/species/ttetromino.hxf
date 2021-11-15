@@ -1,1 +1,1 @@
-{"comments":["Name: T-tetromino","One of 5 tetrominoes."],"automata":[["1","1","1"],["0","1","0"],["0","0","0"]]}
+{"comments":["Name: T-tetromino","One of 5 tetrominoes."],"automata":[[1,1,1],[0,1,0],[0,0,0]]}

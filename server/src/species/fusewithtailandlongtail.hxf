@@ -1,1 +1,1 @@
-{"comments":["Fuse with tail and long tail","Unknown","https://conwaylife.com/wiki/Fuse_with_tail_and_long_tail"],"automata":[["1","0","1","1","0","0","0"],["1","1","0","0","1","0","0"],["0","0","0","1","0","0","0"],["0","0","0","0","1","1","1"],["0","0","0","0","0","0","1"]]}
+{"comments":["Fuse with tail and long tail","Unknown","https://conwaylife.com/wiki/Fuse_with_tail_and_long_tail"],"automata":[[1,0,1,1,0,0,0],[1,1,0,0,1,0,0],[0,0,0,1,0,0,0],[0,0,0,0,1,1,1],[0,0,0,0,0,0,1]]}

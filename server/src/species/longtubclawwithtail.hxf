@@ -1,1 +1,1 @@
-{"comments":["longtubclawwithtail.cells","https://conwaylife.com/wiki/Long_tub-claw_with_tail"],"automata":[["1","1","0","0","0","0","0","0"],["0","1","0","0","1","1","0","0"],["0","1","0","1","0","0","1","0"],["0","0","1","0","0","1","0","1"],["0","0","0","0","0","0","1","0"]]}
+{"comments":["longtubclawwithtail.cells","https://conwaylife.com/wiki/Long_tub-claw_with_tail"],"automata":[[1,1,0,0,0,0,0,0],[0,1,0,0,1,1,0,0],[0,1,0,1,0,0,1,0],[0,0,1,0,0,1,0,1],[0,0,0,0,0,0,1,0]]}

@@ -1,1 +1,1 @@
-{"comments":["Name: Cis-beacon up and long hook","A period two oscillator composed of a beacon and a long hook."],"automata":[["0","0","1","1","0"],["0","0","0","1","0"],["1","0","0","0","0"],["1","1","0","0","0"],["0","0","0","0","0"],["1","1","1","1","0"],["1","0","0","0","1"],["0","0","0","1","1"],["0","0","0","0","0"]]}
+{"comments":["Name: Cis-beacon up and long hook","A period two oscillator composed of a beacon and a long hook."],"automata":[[0,0,1,1,0],[0,0,0,1,0],[1,0,0,0,0],[1,1,0,0,0],[0,0,0,0,0],[1,1,1,1,0],[1,0,0,0,1],[0,0,0,1,1],[0,0,0,0,0]]}

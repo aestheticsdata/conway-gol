@@ -1,1 +1,1 @@
-{"comments":["Long prodigal","Unknown","https://conwaylife.com/wiki/Long_prodigal"],"automata":[["0","1","0","0","0","0","0"],["1","0","1","0","0","0","0"],["0","1","0","0","1","1","0"],["0","0","1","1","0","0","1"],["0","0","0","0","0","1","1"]]}
+{"comments":["Long prodigal","Unknown","https://conwaylife.com/wiki/Long_prodigal"],"automata":[[0,1,0,0,0,0,0],[1,0,1,0,0,0,0],[0,1,0,0,1,1,0],[0,0,1,1,0,0,1],[0,0,0,0,0,1,1]]}

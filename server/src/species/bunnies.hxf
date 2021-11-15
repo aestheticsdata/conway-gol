@@ -1,1 +1,1 @@
-{"comments":["Name: Bunnies","Author: Robert Wainwright and Andrew Trevorrow","A parent of rabbits."],"automata":[["1","0","0","0","0","0","1","0"],["0","0","1","0","0","0","1","0"],["0","0","1","0","0","1","0","1"],["0","1","0","1","0","0","0","0"],["0","0","0","0","0","0","0","0"]]}
+{"comments":["Name: Bunnies","Author: Robert Wainwright and Andrew Trevorrow","A parent of rabbits."],"automata":[[1,0,0,0,0,0,1,0],[0,0,1,0,0,0,1,0],[0,0,1,0,0,1,0,1],[0,1,0,1,0,0,0,0],[0,0,0,0,0,0,0,0]]}

@@ -1,1 +1,1 @@
-{"comments":["cisbargewithnine.cells","https://conwaylife.com/wiki/Cis-barge_with_nine"],"automata":[["0","0","0","1","0","0"],["0","0","1","0","1","0"],["0","0","0","1","0","1"],["0","0","0","0","1","0"],["0","1","1","1","0","0"],["1","0","0","0","0","0"],["1","1","0","0","0","0"]]}
+{"comments":["cisbargewithnine.cells","https://conwaylife.com/wiki/Cis-barge_with_nine"],"automata":[[0,0,0,1,0,0],[0,0,1,0,1,0],[0,0,0,1,0,1],[0,0,0,0,1,0],[0,1,1,1,0,0],[1,0,0,0,0,0],[1,1,0,0,0,0]]}

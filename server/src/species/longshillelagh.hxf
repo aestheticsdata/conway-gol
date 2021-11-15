@@ -1,1 +1,1 @@
-{"comments":["Name: Long shillelagh","The long version of the shillelagh."],"automata":[["1","1","0","0","1","1"],["1","0","0","1","0","1"],["0","1","1","0","0","0"],["0","0","0","0","0","0"]]}
+{"comments":["Name: Long shillelagh","The long version of the shillelagh."],"automata":[[1,1,0,0,1,1],[1,0,0,1,0,1],[0,1,1,0,0,0],[0,0,0,0,0,0]]}

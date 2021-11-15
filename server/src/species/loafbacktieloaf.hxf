@@ -1,1 +1,1 @@
-{"comments":["loafbacktieloaf.cells","https://conwaylife.com/wiki/Loaf_back_tie_loaf"],"automata":[["0","1","1","0","0","0"],["1","0","0","1","0","0"],["1","0","1","0","1","0"],["0","1","0","1","0","1"],["0","0","1","0","0","1"],["0","0","0","1","1","0"]]}
+{"comments":["loafbacktieloaf.cells","https://conwaylife.com/wiki/Loaf_back_tie_loaf"],"automata":[[0,1,1,0,0,0],[1,0,0,1,0,0],[1,0,1,0,1,0],[0,1,0,1,0,1],[0,0,1,0,0,1],[0,0,0,1,1,0]]}

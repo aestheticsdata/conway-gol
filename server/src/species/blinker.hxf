@@ -1,1 +1,1 @@
-{"comments":["Name: Blinker","Author: John Conway","The smallest and most common oscillator."],"automata":[["1","1","1"],["0","0","0"]]}
+{"comments":["Name: Blinker","Author: John Conway","The smallest and most common oscillator."],"automata":[[1,1,1],[0,0,0]]}

@@ -1,1 +1,1 @@
-{"comments":["Name: Quad","Author: Robert Kraus","A period 2 oscillator that was found in April 1971."],"automata":[["1","1","0","0","1","1"],["1","0","0","1","0","1"],["0","1","0","0","0","0"],["0","0","0","0","1","0"],["1","0","1","0","0","1"],["1","1","0","0","1","1"],["0","0","0","0","0","0"]]}
+{"comments":["Name: Quad","Author: Robert Kraus","A period 2 oscillator that was found in April 1971."],"automata":[[1,1,0,0,1,1],[1,0,0,1,0,1],[0,1,0,0,0,0],[0,0,0,0,1,0],[1,0,1,0,0,1],[1,1,0,0,1,1],[0,0,0,0,0,0]]}

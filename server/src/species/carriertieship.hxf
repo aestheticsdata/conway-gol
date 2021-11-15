@@ -1,1 +1,1 @@
-{"comments":["carriertieship.cells","https://conwaylife.com/wiki/Aircraft_carrier_tie_ship"],"automata":[["0","0","0","0","1","1"],["0","0","0","1","0","1"],["0","0","0","1","1","0"],["0","1","1","0","0","0"],["0","0","1","0","0","0"],["1","0","0","0","0","0"],["1","1","0","0","0","0"]]}
+{"comments":["carriertieship.cells","https://conwaylife.com/wiki/Aircraft_carrier_tie_ship"],"automata":[[0,0,0,0,1,1],[0,0,0,1,0,1],[0,0,0,1,1,0],[0,1,1,0,0,0],[0,0,1,0,0,0],[1,0,0,0,0,0],[1,1,0,0,0,0]]}

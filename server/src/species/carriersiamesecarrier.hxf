@@ -1,1 +1,1 @@
-{"comments":["Name: Carrier siamese carrier","A still life composed of two aircraft carriers attached together."],"automata":[["1","1","0","0","0","0","0"],["1","0","0","1","1","0","0"],["0","0","1","1","0","0","1"],["0","0","0","0","0","1","1"],["0","0","0","0","0","0","0"]]}
+{"comments":["Name: Carrier siamese carrier","A still life composed of two aircraft carriers attached together."],"automata":[[1,1,0,0,0,0,0],[1,0,0,1,1,0,0],[0,0,1,1,0,0,1],[0,0,0,0,0,1,1],[0,0,0,0,0,0,0]]}

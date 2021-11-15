@@ -1,1 +1,1 @@
-{"comments":["tubwithtailwithcape.cells","https://conwaylife.com/wiki/Tub_with_tail_with_cape"],"automata":[["0","1","0","0","0","0","0"],["1","0","1","0","0","1","1"],["0","1","0","1","0","0","1"],["0","0","0","1","0","1","0"],["0","0","0","1","1","0","0"]]}
+{"comments":["tubwithtailwithcape.cells","https://conwaylife.com/wiki/Tub_with_tail_with_cape"],"automata":[[0,1,0,0,0,0,0],[1,0,1,0,0,1,1],[0,1,0,1,0,0,1],[0,0,0,1,0,1,0],[0,0,0,1,1,0,0]]}

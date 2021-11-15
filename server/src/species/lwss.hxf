@@ -1,1 +1,1 @@
-{"comments":["Name: LWSS","Author: John Conway","The smallest known orthogonally moving spaceship, and the second most common spaceship (after the glider)."],"automata":[["0","1","0","0","1"],["1","0","0","0","0"],["1","0","0","0","1"],["1","1","1","1","0"],["0","0","0","0","0"]]}
+{"comments":["Name: LWSS","Author: John Conway","The smallest known orthogonally moving spaceship, and the second most common spaceship (after the glider)."],"automata":[[0,1,0,0,1],[1,0,0,0,0],[1,0,0,0,1],[1,1,1,1,0],[0,0,0,0,0]]}

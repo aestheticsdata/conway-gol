@@ -1,1 +1,1 @@
-{"comments":["Name: Herschel","A heptomino shaped like the lowercase letter h, which occurs at generation 20 of the B-heptomino."],"automata":[["1","0","0"],["1","1","1"],["1","0","1"],["0","0","1"],["0","0","0"]]}
+{"comments":["Name: Herschel","A heptomino shaped like the lowercase letter h, which occurs at generation 20 of the B-heptomino."],"automata":[[1,0,0],[1,1,1],[1,0,1],[0,0,1],[0,0,0]]}

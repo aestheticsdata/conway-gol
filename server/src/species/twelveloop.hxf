@@ -1,1 +1,1 @@
-{"comments":["twelveloop.cells","https://conwaylife.com/wiki/Twelve_loop"],"automata":[["1","1","0","0","0","0"],["1","0","1","0","1","1"],["0","0","1","0","1","0"],["0","0","1","0","0","1"],["0","0","0","1","1","0"]]}
+{"comments":["twelveloop.cells","https://conwaylife.com/wiki/Twelve_loop"],"automata":[[1,1,0,0,0,0],[1,0,1,0,1,1],[0,0,1,0,1,0],[0,0,1,0,0,1],[0,0,0,1,1,0]]}

@@ -1,1 +1,1 @@
-{"comments":["cissnaketie.cells","https://conwaylife.com/wiki/Cis-snake-tie"],"automata":[["0","0","1","1"],["0","0","0","1"],["0","0","1","0"],["0","0","1","1"],["1","1","0","0"],["0","1","0","0"],["1","0","0","0"],["1","1","0","0"]]}
+{"comments":["cissnaketie.cells","https://conwaylife.com/wiki/Cis-snake-tie"],"automata":[[0,0,1,1],[0,0,0,1],[0,0,1,0],[0,0,1,1],[1,1,0,0],[0,1,0,0],[1,0,0,0],[1,1,0,0]]}

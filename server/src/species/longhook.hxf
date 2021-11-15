@@ -1,1 +1,1 @@
-{"comments":["Name: Long hook","A longer version of a bookend (aka. a hook)."],"automata":[["0","0","0","1","1"],["1","0","0","0","1"],["1","1","1","1","0"],["0","0","0","0","0"]]}
+{"comments":["Name: Long hook","A longer version of a bookend (aka. a hook)."],"automata":[[0,0,0,1,1],[1,0,0,0,1],[1,1,1,1,0],[0,0,0,0,0]]}

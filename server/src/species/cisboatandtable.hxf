@@ -1,1 +1,1 @@
-{"comments":["Name: Cis-boat and table","A still life consisting of a boat on a table. It is the 81st most common still life."],"automata":[["0","1","0","0"],["1","0","1","0"],["1","1","0","0"],["0","0","0","0"],["1","1","1","1"],["1","0","0","1"],["0","0","0","0"]]}
+{"comments":["Name: Cis-boat and table","A still life consisting of a boat on a table. It is the 81st most common still life."],"automata":[[0,1,0,0],[1,0,1,0],[1,1,0,0],[0,0,0,0],[1,1,1,1],[1,0,0,1],[0,0,0,0]]}

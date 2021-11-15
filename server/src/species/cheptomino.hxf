@@ -1,1 +1,1 @@
-{"comments":["Name: C-heptomino","A methuselah with lifespan 148 that evolves in the same way as the B-heptomino after its second generation."],"automata":[["0","1","1","1"],["1","1","1","0"],["0","1","0","0"],["0","0","0","0"]]}
+{"comments":["Name: C-heptomino","A methuselah with lifespan 148 that evolves in the same way as the B-heptomino after its second generation."],"automata":[[0,1,1,1],[1,1,1,0],[0,1,0,0],[0,0,0,0]]}

@@ -1,1 +1,1 @@
-{"comments":["Name: Cis-hook with tail","A small still life similar to the long long hook with tail."],"automata":[["0","0","0","1","1"],["0","0","1","0","1"],["0","1","0","0","0"],["1","0","0","0","0"],["0","1","1","1","0"],["0","0","0","1","0"],["0","0","0","0","0"]]}
+{"comments":["Name: Cis-hook with tail","A small still life similar to the long long hook with tail."],"automata":[[0,0,0,1,1],[0,0,1,0,1],[0,1,0,0,0],[1,0,0,0,0],[0,1,1,1,0],[0,0,0,1,0],[0,0,0,0,0]]}

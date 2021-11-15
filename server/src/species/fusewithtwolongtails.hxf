@@ -1,1 +1,1 @@
-{"comments":["fusewithtwolongtails.cells","https://conwaylife.com/wiki/Fuse_with_two_long_tails"],"automata":[["0","0","1","1"],["0","0","1","0"],["0","0","0","1"],["0","1","0","1"],["1","0","1","0"],["1","0","0","0"],["0","1","0","0"],["1","1","0","0"]]}
+{"comments":["fusewithtwolongtails.cells","https://conwaylife.com/wiki/Fuse_with_two_long_tails"],"automata":[[0,0,1,1],[0,0,1,0],[0,0,0,1],[0,1,0,1],[1,0,1,0],[1,0,0,0],[0,1,0,0],[1,1,0,0]]}

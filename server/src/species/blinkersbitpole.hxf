@@ -1,1 +1,1 @@
-{"comments":["Name: Blinkers bit pole","Author: Robert Wainwright","A period 2 oscillator found in June 1977."],"automata":[["0","0","0","0","0","1","1"],["1","1","1","0","1","0","1"],["0","0","0","0","0","0","0"],["0","1","0","1","0","0","1"],["1","0","0","0","0","1","0"],["1","1","0","0","0","1","0"],["0","0","0","0","0","0","0"]]}
+{"comments":["Name: Blinkers bit pole","Author: Robert Wainwright","A period 2 oscillator found in June 1977."],"automata":[[0,0,0,0,0,1,1],[1,1,1,0,1,0,1],[0,0,0,0,0,0,0],[0,1,0,1,0,0,1],[1,0,0,0,0,1,0],[1,1,0,0,0,1,0],[0,0,0,0,0,0,0]]}

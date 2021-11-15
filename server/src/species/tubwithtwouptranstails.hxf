@@ -1,1 +1,1 @@
-{"comments":["tubwithtwouptranstails.cells","https://conwaylife.com/wiki/Tub_with_two_up_trans_tails"],"automata":[["0","0","0","0","0","0","1"],["0","0","0","0","1","1","1"],["0","0","0","1","0","0","0"],["0","0","1","0","1","0","0"],["0","1","0","1","0","0","0"],["0","1","0","0","0","0","0"],["1","1","0","0","0","0","0"]]}
+{"comments":["tubwithtwouptranstails.cells","https://conwaylife.com/wiki/Tub_with_two_up_trans_tails"],"automata":[[0,0,0,0,0,0,1],[0,0,0,0,1,1,1],[0,0,0,1,0,0,0],[0,0,1,0,1,0,0],[0,1,0,1,0,0,0],[0,1,0,0,0,0,0],[1,1,0,0,0,0,0]]}

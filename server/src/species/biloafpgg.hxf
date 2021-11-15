@@ -1,1 +1,1 @@
-{"comments":["biloafpgg.cells","https://www.conwaylife.com/wiki/Bi-loaf_(pure_glider_generator)"],"automata":[["0","0","1","0"],["0","1","0","1"],["1","0","0","1"],["0","1","1","0"],["1","0","0","1"],["1","0","1","0"],["0","1","0","0"]]}
+{"comments":["biloafpgg.cells","https://www.conwaylife.com/wiki/Bi-loaf_(pure_glider_generator)"],"automata":[[0,0,1,0],[0,1,0,1],[1,0,0,1],[0,1,1,0],[1,0,0,1],[1,0,1,0],[0,1,0,0]]}
