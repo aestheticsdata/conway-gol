@@ -5,5 +5,5 @@ dist-ssr
 *.local
 .parcel-cache/*
 .idea
-.yarn-error.log
-/yarn-error.log
+yarn-error.log
+TODO-conway-gol.txt
