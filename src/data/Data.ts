@@ -19,7 +19,8 @@ class Data {
         position: [5, 5],
         content: critterParsed.automata,
       };
-      this.commentsDOMSelector.innerHTML = critterParsed.comments.join('<br />');
+      const commentsList = critterParsed.comments.map(line => '- '+line);
+      this.commentsDOMSelector.innerHTML = commentsList.join('<br />');
     } catch (err) {
       o = species[entity];
     }
