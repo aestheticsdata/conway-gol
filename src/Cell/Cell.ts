@@ -3,7 +3,7 @@ import { CELL_STATE } from "./constants"
 type CellState = typeof CELL_STATE.DEAD | typeof CELL_STATE.ALIVE
 
 class Cell {
-  public static size: number = 10
+  public static size: number = 5
   private _state: CellState
   public color: string
 

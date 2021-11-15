@@ -8,14 +8,14 @@ class ZooSelector {
     if (!this._created) {
       // https://stackoverflow.com/a/49461484/5671836
       zoo.forEach(primitive => {
-        const option = '<option name="'+primitive+'">'+primitive+'</option>';
+        const option = `<option name="${primitive}" ${primitive === 'glider' && 'selected'}>${primitive}</option>`;
         selector.insertAdjacentHTML('beforeend', option);
       });
       (selector as HTMLInputElement).style.visibility = "visible";
-      (selector.previousElementSibling as HTMLInputElement).style.visibility = "visible";
+      (<HTMLInputElement>selector.previousElementSibling).style.visibility = "visible";
       selector.addEventListener('change', function (e) {
         e.preventDefault();
-        cb((e.currentTarget as HTMLSelectElement).value);
+        cb((<HTMLSelectElement>e.currentTarget).value);
       });
       this._created = true
     }

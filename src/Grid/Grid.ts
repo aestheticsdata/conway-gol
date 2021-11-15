@@ -17,13 +17,15 @@ class Grid {
     Grid.gridSize = canvas.width / Cell.size
     const data = new Data()
     if (mode === 'zoo') {
-      data.factory(species ?? "glider", [10, 10])
-      this._createCells(ctx, data.grid)
+      data.factory(species ?? "glider", [10, 10]).then(() => {
+        this._createCells(ctx, data.grid)
+        this._drawGrid(ctx)
+      })
     }
     if (mode === 'random') {
       this._createCells(ctx)
+      this._drawGrid(ctx)
     }
-    this._drawGrid(ctx)
   }
 
   private _drawGrid(ctx: CanvasRenderingContext2D) {

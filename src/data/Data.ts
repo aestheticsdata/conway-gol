@@ -3,12 +3,22 @@ import { CELL_STATE } from "../Cell/constants";
 import type { CellGrid } from "../Grid/Grid";
 import Grid from "../Grid/Grid";
 import { species } from "./species/species";
+import axios from "axios";
 
 class Data {
   public grid: CellGrid = []
 
-  private makeEntity(entity: string, startIndex: number[]) {
-    const o = species[entity];
+  private async makeEntity(entity: string, startIndex: number[]) {
+    const critter = (await axios.get(`http://localhost:5000/critter/${entity}`)).data;
+    const critterParsed = JSON.parse(critter);
+
+    // const o = species[entity];
+    const o = {
+      position: [5, 5],
+      content: critterParsed.automata,
+    };
+
+
     const startPosition = o.position ?? startIndex;
     for (let j=0; j<o.content.length; j++) {
       for (let i=0; i<o.content[0].length; i++) {
@@ -19,14 +29,14 @@ class Data {
     }
   }
 
-  public factory(entity, startIndex: number[]) {
+  public async factory(entity, startIndex: number[]) {
     for (let i=0; i<Grid.gridSize; i++) {
       this.grid.push([])
       for (let j=0; j<Grid.gridSize; j++) {
         this.grid[i].push(new Cell(CELL_STATE.DEAD))
       }
     }
-    this.makeEntity(entity, startIndex)
+    await this.makeEntity(entity, startIndex)
   }
 }
 

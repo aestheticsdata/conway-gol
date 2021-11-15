@@ -180,7 +180,7 @@ export const species: Entity = {
       [0,0,0,0,1,1,1,0,0,0,0],
     ]
   },
-  "Canada goose": {
+  canadagoose: {
     position: [20, 20],
     content: [
       [1,1,1,0,0,0,0,0,0,0,0,0,0],
