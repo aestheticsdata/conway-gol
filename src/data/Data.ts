@@ -4,6 +4,7 @@ import type { CellGrid } from "../Grid/Grid";
 import Grid from "../Grid/Grid";
 import { species } from "./species/species";
 import axios from "axios";
+import Helpers from "../helpers/Helpers";
 
 class Data {
   public grid: CellGrid = [];
@@ -12,8 +13,9 @@ class Data {
 
   private async makeEntity(entity: string, startIndex: number[]) {
     let o;
+    const url = `critter/${entity}`;
     try {
-      const critter = (await axios.get(`http://localhost:5000/critter/${entity}`)).data;
+      const critter = (await axios.get(`${Helpers.getRequestURL(url)}`)).data;
       const critterParsed = JSON.parse(critter);
       o = {
         position: [5, 5],

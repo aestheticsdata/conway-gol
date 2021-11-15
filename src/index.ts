@@ -3,6 +3,7 @@ import ModeSelector from "./controls/ModeSelector"
 import type { Mode } from "./controls/ModeSelector"
 import ZooSelector from "./controls/ZooSelector";
 import axios from 'axios';
+import Helpers from "./helpers/Helpers";
 
 class Main {
   private readonly _canvas: HTMLCanvasElement;
@@ -111,8 +112,9 @@ class Main {
   }
 
   private async _setup() {
+    const url = 'list';
     try {
-      this._critterList = (await axios.get('http://localhost:5000/list')).data;
+      this._critterList = (await axios.get(`${Helpers.getRequestURL(url)}`)).data;
     } catch (err) {
       console.log(err);
     }
