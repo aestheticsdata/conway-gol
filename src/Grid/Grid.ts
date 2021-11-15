@@ -13,24 +13,25 @@ class Grid {
   public static gridSize: number
 
   constructor(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, mode: Mode, species?: string) {
-    this._canvas = canvas
-    Grid.gridSize = canvas.width / Cell.size
-    const data = new Data()
+    this._canvas = canvas;
+    Grid.gridSize = canvas.width / Cell.size;
+    const data = new Data();
+
     if (mode === 'zoo') {
-      data.factory(species ?? "glider", [10, 10]).then(() => {
-        this._createCells(ctx, data.grid)
-        this._drawGrid(ctx)
+      data.factory(species ?? "canadagoose", [10, 10]).then(() => {
+        this._createCells(ctx, data.grid);
+        this._drawGrid(ctx);
       })
     }
     if (mode === 'random') {
-      this._createCells(ctx)
-      this._drawGrid(ctx)
+      this._createCells(ctx);
+      this._drawGrid(ctx);
     }
   }
 
   private _drawGrid(ctx: CanvasRenderingContext2D) {
-    ctx.beginPath()
-    ctx.strokeStyle = GRID.COLOR
+    ctx.beginPath();
+    ctx.strokeStyle = GRID.COLOR;
 
     // Vertical lines
     for (let i = 0; i <= this._canvas.width; i++) {

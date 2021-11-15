@@ -6,7 +6,9 @@ import { species } from "./species/species";
 import axios from "axios";
 
 class Data {
-  public grid: CellGrid = []
+  public grid: CellGrid = [];
+  public comments: string[];
+  public commentsDOMSelector: HTMLElement = document.querySelector('.critter-comments');
 
   private async makeEntity(entity: string, startIndex: number[]) {
     let o;
@@ -17,10 +19,10 @@ class Data {
         position: [5, 5],
         content: critterParsed.automata,
       };
+      this.commentsDOMSelector.innerHTML = critterParsed.comments.join('<br />');
     } catch (err) {
       o = species[entity];
     }
-
 
     const startPosition = o.position ?? startIndex;
     for (let j=0; j<o.content.length; j++) {

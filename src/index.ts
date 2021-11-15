@@ -14,10 +14,11 @@ class Main {
   private _iterationCounter: HTMLElement = document.querySelector('.iteration-counter');
   private _pauseBtn: HTMLButtonElement = document.querySelector('button');
   private _speedSelector: HTMLInputElement = document.querySelector('#speed-input');
+  public commentsDOMSelector: HTMLElement = document.querySelector('.critter-comments');
   private _modeSelector: ModeSelector;
   private _selectedMode: Mode = "random";
   private _zooSelector: ZooSelector;
-  private _fps = 7;
+  private _fps = 12;
   private _fpsInterval;
   private _startTime;
   private _now;
@@ -130,10 +131,11 @@ class Main {
     } else {
       (<HTMLInputElement>this._zooPrimitivesDOMSelector.previousElementSibling).style.visibility = "hidden";
       (<HTMLInputElement>this._zooPrimitivesDOMSelector).style.visibility = "hidden";
+      (<HTMLElement>this.commentsDOMSelector).innerHTML = "";
       this._grid = new Grid(this._stage, this._canvas, this._selectedMode);
     }
-    this._iterationCounterValue = 0
-    this._fps = 7
+    this._iterationCounterValue = 0;
+    this._fps = 12;
     this._speedSelector.value = String(this._fps)
     this._iterationCounter.textContent = String(this._iterationCounterValue)
   }

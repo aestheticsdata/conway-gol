@@ -100,12 +100,19 @@ button:active {
 	display: flex;
 	width: 120px;
 	height: 100vh;
+	flex-direction: column;
 	position: relative;
 	top: 210px;
 	left: 40px;
 }
 .zoo-selector label {
 	font-size: 20px;
+}
+
+.zoo-selector .critter-comments {
+	font-size: 20px;
+	width: 220px;
+	margin: 15px 0 0 3px
 }
 
 select, input {
@@ -118,4 +125,5 @@ select, input {
 #primitives {
 	width: 150px;
 }
+
 

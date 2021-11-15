@@ -8,7 +8,7 @@ class ZooSelector {
     if (!this._created) {
       // https://stackoverflow.com/a/49461484/5671836
       zoo.forEach(primitive => {
-        const option = `<option name="${primitive}" ${primitive === 'glider' && 'selected'}>${primitive}</option>`;
+        const option = `<option name="${primitive}" ${primitive === 'canadagoose' && 'selected'}>${primitive}</option>`;
         selector.insertAdjacentHTML('beforeend', option);
       });
       (selector as HTMLInputElement).style.visibility = "visible";
