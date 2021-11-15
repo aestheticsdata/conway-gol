@@ -9,14 +9,17 @@ class Data {
   public grid: CellGrid = []
 
   private async makeEntity(entity: string, startIndex: number[]) {
-    const critter = (await axios.get(`http://localhost:5000/critter/${entity}`)).data;
-    const critterParsed = JSON.parse(critter);
-
-    // const o = species[entity];
-    const o = {
-      position: [5, 5],
-      content: critterParsed.automata,
-    };
+    let o;
+    try {
+      const critter = (await axios.get(`http://localhost:5000/critter/${entity}`)).data;
+      const critterParsed = JSON.parse(critter);
+      o = {
+        position: [5, 5],
+        content: critterParsed.automata,
+      };
+    } catch (err) {
+      o = species[entity];
+    }
 
 
     const startPosition = o.position ?? startIndex;

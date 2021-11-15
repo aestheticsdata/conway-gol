@@ -110,7 +110,11 @@ class Main {
   }
 
   private async _setup() {
-    this._critterList = (await axios.get('http://localhost:5000/list')).data;
+    try {
+      this._critterList = (await axios.get('http://localhost:5000/list')).data;
+    } catch (err) {
+      console.log(err);
+    }
     // call togglePause only if switching from one mode to another
     // not the first time start is clicked
     if (this._isPlaying === true) {
