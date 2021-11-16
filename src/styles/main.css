@@ -111,8 +111,18 @@ button:active {
 
 .zoo-selector .critter-comments {
 	font-size: 20px;
-	width: 240px;
+	width: 350px;
 	margin: 15px 0 0 3px
+}
+a:link {
+	color: #706f6f;
+	text-decoration: none;
+}
+a:visited {
+	color: #706f6f;
+}
+a:hover {
+	color: #014360;
 }
 
 select, input {

@@ -21,7 +21,14 @@ class Data {
         position: [5, 5],
         content: critterParsed.automata,
       };
-      const commentsList = critterParsed.comments.map(line => '- '+line);
+
+      let commentsList = critterParsed.comments;
+      let lastCommentLine = commentsList[commentsList.length-1];
+      if (lastCommentLine.includes('http')) {
+        lastCommentLine = `<a href="${lastCommentLine}" target="_blank">${lastCommentLine}</a>`;
+      }
+      commentsList[commentsList.length-1] = lastCommentLine;
+      commentsList = commentsList.map(line => '- '+line);
       this.commentsDOMSelector.innerHTML = commentsList.join('<br />');
     } catch (err) {
       o = species[entity];
