@@ -57,7 +57,7 @@ class Grid {
     ctx.fillRect(column*(Cell.size), row*(Cell.size), Cell.size, Cell.size)
   }
 
-  private _createCells(ctx: CanvasRenderingContext2D, data?: CellGrid, isBlank?: boolean) {
+  private _createCells(ctx: CanvasRenderingContext2D, data?: CellGrid, isBlank: boolean = false) {
     let tmpCell: Cell;
     for (let i = 0; i < Grid.gridSize; i++) {
       this._cellsMatrix.push([]);
@@ -76,37 +76,37 @@ class Grid {
   }
 
   private _getLivingNeighbourCount(row: number, column: number) {
-    let count: number = 0
-    const previousRowIndex = row === 0 ? (Grid.gridSize - 1) : row - 1
-    const nextRowIndex = row === (Grid.gridSize - 1) ? 0 : row + 1
-    const prevColumnIndex = column === 0 ? (Grid.gridSize - 1) : column - 1
-    const nextColumnIndex = column === (Grid.gridSize - 1) ? 0 : column + 1
+    let count: number = 0;
+    const previousRowIndex = row === 0 ? (Grid.gridSize - 1) : row - 1;
+    const nextRowIndex = row === (Grid.gridSize - 1) ? 0 : row + 1;
+    const prevColumnIndex = column === 0 ? (Grid.gridSize - 1) : column - 1;
+    const nextColumnIndex = column === (Grid.gridSize - 1) ? 0 : column + 1;
 
     if (this._cellsMatrix[previousRowIndex][prevColumnIndex].state === CELL_STATE.ALIVE) {
-      count++
+      count++;
     }
     if (this._cellsMatrix[previousRowIndex][column].state === CELL_STATE.ALIVE) {
-      count++
+      count++;
     }
     if (this._cellsMatrix[previousRowIndex][nextColumnIndex].state === CELL_STATE.ALIVE) {
-      count++
+      count++;
     }
     if (this._cellsMatrix[row][prevColumnIndex].state === CELL_STATE.ALIVE) {
-      count++
+      count++;
     }
     if (this._cellsMatrix[row][nextColumnIndex].state === CELL_STATE.ALIVE) {
-      count++
+      count++;
     }
     if (this._cellsMatrix[nextRowIndex][prevColumnIndex].state === CELL_STATE.ALIVE) {
-      count++
+      count++;
     }
     if (this._cellsMatrix[nextRowIndex][column].state === CELL_STATE.ALIVE) {
-      count++
+      count++;
     }
     if (this._cellsMatrix[nextRowIndex][nextColumnIndex].state === CELL_STATE.ALIVE) {
-      count++
+      count++;
     }
-    return count
+    return count;
   }
 
   public processNextGeneration(ctx: CanvasRenderingContext2D) {
