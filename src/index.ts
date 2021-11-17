@@ -45,8 +45,8 @@ class Main {
   }
 
   private _changeMode = (mode: Mode) => {
-      this._selectedMode = mode
-      this._setup()
+      this._selectedMode = mode;
+      this._setup();
   }
 
   private _setFPS() {
@@ -123,23 +123,31 @@ class Main {
     if (this._isPlaying === true) {
       this._togglePause()
     }
-
-    if (this._selectedMode === 'zoo') {
-      if (!this._zooSelector) this._zooSelector = new ZooSelector()
-      this._zooSelector.createSelectButton(this._zooPrimitivesDOMSelector, this._changeZoo, this._critterList);
-      (<HTMLInputElement>this._zooPrimitivesDOMSelector.previousElementSibling).style.visibility = "visible";
-      (<HTMLInputElement>this._zooPrimitivesDOMSelector).style.visibility = "visible";
-      this._grid = new Grid(this._stage, this._canvas, this._selectedMode, this._selectedSpecies);
-    } else {
-      (<HTMLInputElement>this._zooPrimitivesDOMSelector.previousElementSibling).style.visibility = "hidden";
-      (<HTMLInputElement>this._zooPrimitivesDOMSelector).style.visibility = "hidden";
-      (<HTMLElement>this.commentsDOMSelector).innerHTML = "";
-      this._grid = new Grid(this._stage, this._canvas, this._selectedMode);
+    switch (this._selectedMode) {
+      case "random":
+        (<HTMLInputElement>this._zooPrimitivesDOMSelector.previousElementSibling).style.visibility = "hidden";
+        (<HTMLInputElement>this._zooPrimitivesDOMSelector).style.visibility = "hidden";
+        (<HTMLElement>this.commentsDOMSelector).innerHTML = "";
+        this._grid = new Grid(this._stage, this._canvas, this._selectedMode);
+        break;
+      case "zoo":
+        if (!this._zooSelector) this._zooSelector = new ZooSelector();
+        this._zooSelector.createSelectButton(this._zooPrimitivesDOMSelector, this._changeZoo, this._critterList);
+        (<HTMLInputElement>this._zooPrimitivesDOMSelector.previousElementSibling).style.visibility = "visible";
+        (<HTMLInputElement>this._zooPrimitivesDOMSelector).style.visibility = "visible";
+        this._grid = new Grid(this._stage, this._canvas, this._selectedMode, this._selectedSpecies);
+        break;
+      case "drawing":
+        (<HTMLInputElement>this._zooPrimitivesDOMSelector.previousElementSibling).style.visibility = "hidden";
+        (<HTMLInputElement>this._zooPrimitivesDOMSelector).style.visibility = "hidden";
+        (<HTMLElement>this.commentsDOMSelector).innerHTML = "";
+        this._grid = new Grid(this._stage, this._canvas, this._selectedMode);
+        break;
     }
     this._iterationCounterValue = 0;
     this._fps = 12;
-    this._speedSelector.value = String(this._fps)
-    this._iterationCounter.textContent = String(this._iterationCounterValue)
+    this._speedSelector.value = String(this._fps);
+    this._iterationCounter.textContent = String(this._iterationCounterValue);
   }
 
   init() {

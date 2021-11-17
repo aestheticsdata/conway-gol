@@ -1,4 +1,4 @@
-export type Mode = 'random' | 'zoo'
+export type Mode = 'random' | 'zoo' | 'drawing';
 
 class ModeSelector {
   constructor(setMode) {

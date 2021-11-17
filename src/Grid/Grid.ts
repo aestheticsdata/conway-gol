@@ -17,14 +17,18 @@ class Grid {
     Grid.gridSize = canvas.width / Cell.size;
     const data = new Data();
 
+    if (mode === 'random') {
+      this._createCells(ctx);
+      this._drawGrid(ctx);
+    }
     if (mode === 'zoo') {
       data.factory(species ?? "canadagoose", [10, 10]).then(() => {
         this._createCells(ctx, data.grid);
         this._drawGrid(ctx);
       })
     }
-    if (mode === 'random') {
-      this._createCells(ctx);
+    if (mode === 'drawing') {
+      this._createCells(ctx, null, true);
       this._drawGrid(ctx);
     }
   }
@@ -53,15 +57,17 @@ class Grid {
     ctx.fillRect(column*(Cell.size), row*(Cell.size), Cell.size, Cell.size)
   }
 
-  private _createCells(ctx: CanvasRenderingContext2D, data?: CellGrid) {
-    let tmpCell: Cell
+  private _createCells(ctx: CanvasRenderingContext2D, data?: CellGrid, isBlank?: boolean) {
+    let tmpCell: Cell;
     for (let i = 0; i < Grid.gridSize; i++) {
-      this._cellsMatrix.push([])
+      this._cellsMatrix.push([]);
       for (let j = 0; j < Grid.gridSize; j++) {
         if (data) {
-          tmpCell = data[i][j]
+          tmpCell = data[i][j];
+        } else if (isBlank) {
+          tmpCell = new Cell(CELL_STATE.DEAD);
         } else {
-          tmpCell = new Cell()
+          tmpCell = new Cell();
         }
         this._cellsMatrix[i].push(tmpCell)
         this._drawCell(ctx, tmpCell, i, j)
