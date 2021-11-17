@@ -9,13 +9,12 @@ class ZooSelector {
       // https://stackoverflow.com/a/49461484/5671836
       zoo.forEach(primitive => {
         const option = `<option name="${primitive}" ${primitive === 'canadagoose' && 'selected'}>${primitive}</option>`;
-        selector.insertAdjacentHTML('beforeend', option);
+        selector.children[0].children[1].insertAdjacentHTML('beforeend', option);
       });
       (selector as HTMLInputElement).style.display= "block";
-      (<HTMLInputElement>selector.previousElementSibling).style.display = "block";
       selector.addEventListener('change', function (e) {
         e.preventDefault();
-        cb((<HTMLSelectElement>e.currentTarget).value);
+        cb((<HTMLSelectElement>e.target).value);
       });
       this._created = true
     }

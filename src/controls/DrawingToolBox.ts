@@ -2,11 +2,13 @@ class DrawingToolBox {
   public toolboxDOM: HTMLElement = document.querySelector('.drawing-toolbox');
 
   constructor() {
-    this.toolboxDOM.style.visibility = "visible";
   }
 
+  public show() {
+    this.toolboxDOM.style.display = "block";
+  }
   public hide() {
-    this.toolboxDOM.style.visibility = "hidden";
+    this.toolboxDOM.style.display = "none";
   }
 }
 

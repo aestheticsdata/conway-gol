@@ -26,7 +26,7 @@ class Main {
   private _now;
   private _lastDrawTime;
   private _elapsed;
-  private _zooPrimitivesDOMSelector = document.querySelector('#primitives');
+  private _zooPrimitivesDOMSelector = document.querySelector('.zoo-selector');
   private readonly _changeZoo;
   private _selectedSpecies: string;
   private _critterList: Promise<string[]>;
@@ -127,25 +127,25 @@ class Main {
     }
     switch (this._selectedMode) {
       case "random":
+        this._drawingToolBox?.hide();
         this._grid?.destroyListener();
-        (<HTMLInputElement>this._zooPrimitivesDOMSelector.previousElementSibling).style.display = "none";
         (<HTMLInputElement>this._zooPrimitivesDOMSelector).style.display = "none";
         (<HTMLElement>this.commentsDOMSelector).innerHTML = "";
         this._grid = new Grid(this._stage, this._canvas, this._selectedMode);
         break;
       case "zoo":
+        this._drawingToolBox?.hide();
         this._grid?.destroyListener();
         if (!this._zooSelector) this._zooSelector = new ZooSelector();
         this._zooSelector.createSelectButton(this._zooPrimitivesDOMSelector, this._changeZoo, this._critterList);
-        (<HTMLInputElement>this._zooPrimitivesDOMSelector.previousElementSibling).style.display = "block";
         (<HTMLInputElement>this._zooPrimitivesDOMSelector).style.display = "block";
         this._grid = new Grid(this._stage, this._canvas, this._selectedMode, this._selectedSpecies);
         break;
       case "drawing":
-        (<HTMLInputElement>this._zooPrimitivesDOMSelector.previousElementSibling).style.display = "none";
         (<HTMLInputElement>this._zooPrimitivesDOMSelector).style.display = "none";
         (<HTMLElement>this.commentsDOMSelector).innerHTML = "";
         this._drawingToolBox = new DrawingToolBox();
+        this._drawingToolBox.show();
         this._grid = new Grid(this._stage, this._canvas, this._selectedMode);
         this._grid.initListener();
         break;

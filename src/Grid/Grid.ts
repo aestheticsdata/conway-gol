@@ -47,7 +47,6 @@ class Grid {
   // ////////////////////////////////////////////////////////////////////
 
   private _drawOnMouseMove = (e) => {
-    console.log('what the fucking fuck ?????');
     this._getCell(e.offsetX, e.offsetY);
   }
 
