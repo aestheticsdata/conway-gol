@@ -8,13 +8,17 @@ import type { Mode } from "../controls/ModeSelector";
 export type CellGrid = Cell[][];
 
 class Grid {
-  private _canvas: HTMLCanvasElement
-  private _cellsMatrix: CellGrid = []
-  public static gridSize: number
+  private _canvas: HTMLCanvasElement;
+  private _cellsMatrix: CellGrid = [];
+  private _mode: Mode;
+  private _ctx: CanvasRenderingContext2D;
+  public static gridSize: number;
 
   constructor(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, mode: Mode, species?: string) {
     this._canvas = canvas;
+    this._ctx = ctx;
     Grid.gridSize = canvas.width / Cell.size;
+    this._mode = mode;
     const data = new Data();
 
     if (mode === 'random') {
@@ -30,6 +34,19 @@ class Grid {
     if (mode === 'drawing') {
       this._createCells(ctx, null, true);
       this._drawGrid(ctx);
+      this._canvas.addEventListener("mousemove", (e) => {
+        this._getCell(e.offsetX, e.offsetY);
+      });
+    }
+  }
+
+  private _getCell(x: number, y:number) {
+    if (x>0 && y>0) {
+      const xPos = (Math.ceil(x/Cell.size) - 1);
+      const yPos = (Math.ceil(y/Cell.size) - 1);
+      const cell: Cell = this._cellsMatrix[yPos][xPos];
+      cell.state = CELL_STATE.ALIVE;
+      this._drawCell(this._ctx, cell, yPos, xPos);
     }
   }
 
@@ -39,17 +56,17 @@ class Grid {
 
     // Vertical lines
     for (let i = 0; i <= this._canvas.width; i++) {
-      ctx.moveTo(i*Cell.size, 0)
-      ctx.lineTo(i*Cell.size, Cell.size*this._canvas.height)
+      ctx.moveTo(i*Cell.size, 0);
+      ctx.lineTo(i*Cell.size, Cell.size*this._canvas.height);
     }
 
     // Horizontal lines
     for (let j = 0; j <= this._canvas.height; j++) {
-      ctx.moveTo(0, j*Cell.size)
-      ctx.lineTo(Cell.size*this._canvas.width, j*Cell.size)
+      ctx.moveTo(0, j*Cell.size);
+      ctx.lineTo(Cell.size*this._canvas.width, j*Cell.size);
     }
 
-    ctx.stroke()
+    ctx.stroke();
   };
 
   private _drawCell(ctx: CanvasRenderingContext2D, cell: Cell, row: number, column: number) {
@@ -69,8 +86,8 @@ class Grid {
         } else {
           tmpCell = new Cell();
         }
-        this._cellsMatrix[i].push(tmpCell)
-        this._drawCell(ctx, tmpCell, i, j)
+        this._cellsMatrix[i].push(tmpCell);
+        this._drawCell(ctx, tmpCell, i, j);
       }
     }
   }

@@ -1,17 +1,20 @@
-import { CELL_STATE } from "./constants"
+import { CELL_STATE } from "./constants";
+import { v1 as uuidv1 } from 'uuid';
 
 type CellState = typeof CELL_STATE.DEAD | typeof CELL_STATE.ALIVE
 
 class Cell {
-  public static size: number = 5
-  private _state: CellState
-  public color: string
+  public static size: number = 5;
+  private _state: CellState;
+  public color: string;
+  public id: string;
 
   constructor(state?: CellState) {
     this._state = state ?? this._randomState()
     if (state !== undefined) {
       this.color = this._getColor(state);
     }
+    this.id = uuidv1();
   }
 
   private _getColor(state: CellState) {
