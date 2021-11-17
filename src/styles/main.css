@@ -112,7 +112,12 @@ button:active {
 .zoo-selector .critter-comments {
 	font-size: 20px;
 	width: 350px;
-	margin: 15px 0 0 3px
+	margin: 15px 0 0 3px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+a {
+	white-space: nowrap;
 }
 a:link {
 	color: #706f6f;

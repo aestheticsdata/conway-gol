@@ -23,12 +23,15 @@ class Data {
       };
 
       let commentsList = critterParsed.comments;
-      let lastCommentLine = commentsList[commentsList.length-1];
-      if (lastCommentLine.includes('http')) {
-        lastCommentLine = `<a href="${lastCommentLine}" target="_blank">${lastCommentLine}</a>`;
-      }
-      commentsList[commentsList.length-1] = lastCommentLine;
-      commentsList = commentsList.map(line => '- '+line);
+      commentsList = commentsList.map(line => {
+        let tmpLine;
+        if (line.includes('http')) {
+          tmpLine = `<a href="${line}" target="_blank" title="${line}">- ${line}</a>`;
+        } else {
+          tmpLine = '- '+line;
+        }
+        return tmpLine;
+      });
       this.commentsDOMSelector.innerHTML = commentsList.join('<br />');
     } catch (err) {
       o = species[entity];
