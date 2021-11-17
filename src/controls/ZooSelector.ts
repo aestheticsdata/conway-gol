@@ -11,8 +11,8 @@ class ZooSelector {
         const option = `<option name="${primitive}" ${primitive === 'canadagoose' && 'selected'}>${primitive}</option>`;
         selector.insertAdjacentHTML('beforeend', option);
       });
-      (selector as HTMLInputElement).style.visibility = "visible";
-      (<HTMLInputElement>selector.previousElementSibling).style.visibility = "visible";
+      (selector as HTMLInputElement).style.display= "block";
+      (<HTMLInputElement>selector.previousElementSibling).style.display = "block";
       selector.addEventListener('change', function (e) {
         e.preventDefault();
         cb((<HTMLSelectElement>e.currentTarget).value);

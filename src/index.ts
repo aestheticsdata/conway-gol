@@ -4,6 +4,7 @@ import type { Mode } from "./controls/ModeSelector"
 import ZooSelector from "./controls/ZooSelector";
 import axios from 'axios';
 import Helpers from "./helpers/Helpers";
+import DrawingToolBox from "./controls/DrawingToolBox";
 
 class Main {
   private readonly _canvas: HTMLCanvasElement;
@@ -29,6 +30,7 @@ class Main {
   private readonly _changeZoo;
   private _selectedSpecies: string;
   private _critterList: Promise<string[]>;
+  private _drawingToolBox: DrawingToolBox;
 
   constructor() {
     this._canvas = document.querySelector('canvas')
@@ -125,23 +127,27 @@ class Main {
     }
     switch (this._selectedMode) {
       case "random":
-        (<HTMLInputElement>this._zooPrimitivesDOMSelector.previousElementSibling).style.visibility = "hidden";
-        (<HTMLInputElement>this._zooPrimitivesDOMSelector).style.visibility = "hidden";
+        this._grid?.destroyListener();
+        (<HTMLInputElement>this._zooPrimitivesDOMSelector.previousElementSibling).style.display = "none";
+        (<HTMLInputElement>this._zooPrimitivesDOMSelector).style.display = "none";
         (<HTMLElement>this.commentsDOMSelector).innerHTML = "";
         this._grid = new Grid(this._stage, this._canvas, this._selectedMode);
         break;
       case "zoo":
+        this._grid?.destroyListener();
         if (!this._zooSelector) this._zooSelector = new ZooSelector();
         this._zooSelector.createSelectButton(this._zooPrimitivesDOMSelector, this._changeZoo, this._critterList);
-        (<HTMLInputElement>this._zooPrimitivesDOMSelector.previousElementSibling).style.visibility = "visible";
-        (<HTMLInputElement>this._zooPrimitivesDOMSelector).style.visibility = "visible";
+        (<HTMLInputElement>this._zooPrimitivesDOMSelector.previousElementSibling).style.display = "block";
+        (<HTMLInputElement>this._zooPrimitivesDOMSelector).style.display = "block";
         this._grid = new Grid(this._stage, this._canvas, this._selectedMode, this._selectedSpecies);
         break;
       case "drawing":
-        (<HTMLInputElement>this._zooPrimitivesDOMSelector.previousElementSibling).style.visibility = "hidden";
-        (<HTMLInputElement>this._zooPrimitivesDOMSelector).style.visibility = "hidden";
+        (<HTMLInputElement>this._zooPrimitivesDOMSelector.previousElementSibling).style.display = "none";
+        (<HTMLInputElement>this._zooPrimitivesDOMSelector).style.display = "none";
         (<HTMLElement>this.commentsDOMSelector).innerHTML = "";
+        this._drawingToolBox = new DrawingToolBox();
         this._grid = new Grid(this._stage, this._canvas, this._selectedMode);
+        this._grid.initListener();
         break;
     }
     this._iterationCounterValue = 0;
@@ -155,6 +161,9 @@ class Main {
     const url = new URLSearchParams(window.location.search)
     if (url.get('autostart') === '1') {
       this._togglePause()
+    }
+    if (url.get('drawing') === '1') {
+      this._changeMode("drawing");
     }
   }
 }

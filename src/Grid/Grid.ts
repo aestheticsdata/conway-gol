@@ -8,10 +8,10 @@ import type { Mode } from "../controls/ModeSelector";
 export type CellGrid = Cell[][];
 
 class Grid {
-  private _canvas: HTMLCanvasElement;
+  private readonly _canvas: HTMLCanvasElement;
+  private readonly _ctx: CanvasRenderingContext2D;
   private _cellsMatrix: CellGrid = [];
   private _mode: Mode;
-  private _ctx: CanvasRenderingContext2D;
   public static gridSize: number;
 
   constructor(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, mode: Mode, species?: string) {
@@ -34,10 +34,21 @@ class Grid {
     if (mode === 'drawing') {
       this._createCells(ctx, null, true);
       this._drawGrid(ctx);
-      this._canvas.addEventListener("mousemove", (e) => {
-        this._getCell(e.offsetX, e.offsetY);
-      });
     }
+  }
+
+  // https://stackoverflow.com/a/56775919/5671836 //////////////////////
+  public initListener() {
+    this._canvas.addEventListener("mousemove", this._drawOnMouseMove);
+  }
+  public destroyListener() {
+    this._canvas.removeEventListener("mousemove", this._drawOnMouseMove);
+  }
+  // ////////////////////////////////////////////////////////////////////
+
+  private _drawOnMouseMove = (e) => {
+    console.log('what the fucking fuck ?????');
+    this._getCell(e.offsetX, e.offsetY);
   }
 
   private _getCell(x: number, y:number) {

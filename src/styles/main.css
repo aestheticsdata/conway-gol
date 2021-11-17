@@ -141,4 +141,24 @@ select, input {
 	width: 150px;
 }
 
+.drawing-toolbox {
+	/*display: flex;*/
+	/*justify-content: space-between;*/
+	width: 120px;
+	border: 1px solid #b0b0b0;
+	border-radius: 3px;
+	padding: 5px;
+}
+.drawing-toolbox .item {
+	display: flex;
+	margin: 0 2px;
+	cursor: pointer;
+	border: 1px solid black;
+	width: 24px;
+	height: 24px;
+}
+.drawing-toolbox .item img:hover {
+	background-color: #ffcc00;
+}
+
 
