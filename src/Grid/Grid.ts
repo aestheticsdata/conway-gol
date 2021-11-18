@@ -13,6 +13,7 @@ class Grid {
   private _cellsMatrix: CellGrid = [];
   private _mode: Mode;
   public static gridSize: number;
+  private _previousCellPos;
 
   constructor(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, mode: Mode, species?: string) {
     this._canvas = canvas;
@@ -47,20 +48,44 @@ class Grid {
   // ////////////////////////////////////////////////////////////////////
 
   private _drawOnMouseMove = (e) => {
-    this._getCell(e.offsetX, e.offsetY);
+    const res = this._getCell(e.offsetX, e.offsetY);
+
+    if (res?.cell) {
+      // first draw, previous cell is null and must be initialized after the first draw
+      if (!this._previousCellPos) {
+        this._drawCell(this._ctx, res.cell, res.yPos, res.xPos);
+        this._previousCellPos = { xPos: res.xPos, yPos: res.yPos };
+      } else {
+        this._drawCell(this._ctx, res.cell, res.yPos, res.xPos);
+        // e.offsetX and e.offsetY are changing at each mouse move but xPos and yPos are
+        // computed with the Cell.size modulo
+        // so we must check that the previous xPos or previous yPos are different than the
+        // current xPos and yPos
+        // if this check is not executed, the cell is written as DEAD event if we are still in this cell
+        if (this._previousCellPos.xPos !== res.xPos || this._previousCellPos.yPos !== res.yPos) {
+          const previousCell = this._cellsMatrix[this._previousCellPos.yPos][this._previousCellPos.xPos];
+          previousCell.state = CELL_STATE.DEAD;
+          this._drawCell(this._ctx, previousCell, this._previousCellPos.yPos, this._previousCellPos.xPos);
+          this._previousCellPos = { xPos: res.xPos, yPos: res.yPos };
+          // this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
+          this._drawGrid(this._ctx);
+        }
+      }
+    }
   }
 
   private _getCell(x: number, y:number) {
     if (x>0 && y>0) {
       const xPos = (Math.ceil(x/Cell.size) - 1);
       const yPos = (Math.ceil(y/Cell.size) - 1);
-      const cell: Cell = this._cellsMatrix[yPos][xPos];
+      let cell: Cell = this._cellsMatrix[yPos][xPos];
       cell.state = CELL_STATE.ALIVE;
-      this._drawCell(this._ctx, cell, yPos, xPos);
+
+      return { cell, xPos, yPos };
     }
   }
 
-  private _drawGrid(ctx: CanvasRenderingContext2D) {
+  private _drawGrid(ctx: CanvasRenderingContext2D, clear?: boolean) {
     ctx.beginPath();
     ctx.strokeStyle = GRID.COLOR;
 
@@ -80,8 +105,8 @@ class Grid {
   };
 
   private _drawCell(ctx: CanvasRenderingContext2D, cell: Cell, row: number, column: number) {
-    ctx.fillStyle = cell.color
-    ctx.fillRect(column*(Cell.size), row*(Cell.size), Cell.size, Cell.size)
+    ctx.fillStyle = cell.color;
+    ctx.fillRect(column*(Cell.size), row*(Cell.size), Cell.size, Cell.size);
   }
 
   private _createCells(ctx: CanvasRenderingContext2D, data?: CellGrid, isBlank: boolean = false) {
