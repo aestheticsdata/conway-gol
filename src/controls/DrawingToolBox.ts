@@ -5,9 +5,11 @@ class DrawingToolBox {
   }
 
   public show() {
+    console.log('show toolbox');
     this.toolboxDOM.style.display = "block";
   }
   public hide() {
+    console.log('hide toolbox');
     this.toolboxDOM.style.display = "none";
   }
 }

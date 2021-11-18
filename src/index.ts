@@ -17,6 +17,7 @@ class Main {
   private _pauseBtn: HTMLButtonElement = document.querySelector('button');
   private _speedSelector: HTMLInputElement = document.querySelector('#speed-input');
   public commentsDOMSelector: HTMLElement = document.querySelector('.critter-comments');
+  private _zooPrimitivesDOMSelector = document.querySelector('.zoo-selector');
   private _modeSelector: ModeSelector;
   private _selectedMode: Mode = "random";
   private _zooSelector: ZooSelector;
@@ -26,7 +27,6 @@ class Main {
   private _now;
   private _lastDrawTime;
   private _elapsed;
-  private _zooPrimitivesDOMSelector = document.querySelector('.zoo-selector');
   private readonly _changeZoo;
   private _selectedSpecies: string;
   private _critterList: Promise<string[]>;

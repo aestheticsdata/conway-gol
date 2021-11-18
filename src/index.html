@@ -1,57 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <link rel="stylesheet" type="text/css" href="styles/main.css">
-  <script type="module" src="index.ts"></script>
-  <title>Conway's game of life</title>
-</head>
-<body>
-  <div class="container">
-    <div class="controls-wrapper">
-      <div class="mode-selector">
-        <div>
-          <input type="radio" id="random" name="mode" value="random" checked>
-          <label for="random">random</label>
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="styles/main.css">
+    <script type="module" src="index.ts"></script>
+    <title>Conway's game of life</title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="controls-wrapper">
+        <div class="right-pane">
+          <div class="mode-selector">
+            <div>
+              <input type="radio" id="random" name="mode" value="random" checked>
+              <label for="random">random</label>
+            </div>
+            <div>
+              <input type="radio" id="zoo" name="mode" value="zoo">
+              <label for="zoo">zoo</label>
+            </div>
+            <div>
+              <input type="radio" id="drawing" name="mode" value="drawing">
+              <label for="drawing">drawing</label>
+            </div>
+          </div>
+          <div class="iteration">
+            <span class="iteration-label">Iteration : </span>
+            <span class="iteration-counter" />
+          </div>
+          <div class="speed-selector">
+            <label for="speed-input">FPS : </label>
+            <input type="text" id="speed-input" min="1" max="60" />
+          </div>
+          <button class="pause">pause</button>
         </div>
-        <div>
-          <input type="radio" id="zoo" name="mode" value="zoo">
-          <label for="zoo">zoo</label>
+      </div>
+      <div class="canvas-wrapper">
+        <canvas id="canvasID" width="780" height="780">canvas not available in this browser</canvas>
+      </div>
+      <div class="right-container">
+        <!-- for an unknow reason drawing-toolbox must be -->
+        <!-- placed before zoo-selector -->
+        <!-- maybe an issue with querySelector -->
+        <!-- another trick is to wrap zoo-selector div in an -->
+        <!-- enclosing div -->
+        <div class="drawing-toolbox" style="display: none">
+          <div class="item pencil">
+            <img src="assets/pencil/icons8-pencil-24.png" alt="pencil" />
+          </div>
+          <div class="item eraser">
+            <img src="assets/eraser/icons8-erase-24.png" alt="eraser" />
+          </div>
         </div>
-        <div>
-          <input type="radio" id="drawing" name="mode" value="drawing">
-          <label for="drawing">drawing</label>
+        <div class="zoo-selector">
+          <div id="selectButton">
+            <label for="primitives">Species : </label>
+            <select id="primitives">
+            </select>
+          </div>
+          <div class="critter-comments" />
         </div>
       </div>
-      <div class="iteration">
-        <span class="iteration-label">Iteration : </span>
-        <span class="iteration-counter" />
-      </div>
-      <div class="speed-selector">
-        <label for="speed-input">FPS : </label>
-        <input type="text" id="speed-input" min="1" max="60" />
-      </div>
-      <button class="pause">pause</button>
     </div>
-    <div class="canvas-wrapper">
-      <canvas id="canvasID" width="780" height="780">canvas not available in this browser</canvas>
-    </div>
-    <div class="zoo-selector">
-      <div id="selectButton">
-        <label for="primitives">Species : </label>
-        <select id="primitives">
-        </select>
-      </div>
-      <div class="critter-comments" />
-    </div>
-  </div>
-  <div class="drawing-toolbox" style="display: none">
-    <div class="item pencil">
-      <img src="assets/pencil/icons8-pencil-24.png" alt="pencil" />
-    </div>
-    <div class="item eraser">
-      <img src="assets/eraser/icons8-erase-24.png" alt="eraser" />
-    </div>
-  </div>
-</body>
+  </body>
 </html>
