@@ -14,10 +14,14 @@ class Grid {
   private _mode: Mode;
   public static gridSize: number;
   private _previousCellPos;
+  private _drawingCanvas: HTMLCanvasElement;
+  private _drawingContext: CanvasRenderingContext2D;
 
   constructor(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, mode: Mode, species?: string) {
     this._canvas = canvas;
     this._ctx = ctx;
+    this._drawingCanvas = document.querySelector('#canvas-drawing');
+    this._drawingContext = this._drawingCanvas.getContext('2d');
     Grid.gridSize = canvas.width / Cell.size;
     this._mode = mode;
     const data = new Data();
@@ -40,35 +44,34 @@ class Grid {
 
   // https://stackoverflow.com/a/56775919/5671836 //////////////////////
   public initListener() {
-    this._canvas.addEventListener("mousemove", this._drawOnMouseMove);
+    this._drawingCanvas.addEventListener("mousemove", this._drawOnMouseMove);
+    this._drawingCanvas.addEventListener("click", this._drawSingleCell);
   }
   public destroyListener() {
-    this._canvas.removeEventListener("mousemove", this._drawOnMouseMove);
+    this._drawingCanvas.removeEventListener("mousemove", this._drawOnMouseMove);
+    this._drawingCanvas.removeEventListener("click", this._drawSingleCell);
   }
   // ////////////////////////////////////////////////////////////////////
 
   private _drawOnMouseMove = (e) => {
     const res = this._getCell(e.offsetX, e.offsetY);
+    const cell = new Cell(CELL_STATE.ALIVE);
 
-    if (res?.cell) {
+    if (res) {
       // first draw, previous cell is null and must be initialized after the first draw
       if (!this._previousCellPos) {
-        this._drawCell(this._ctx, res.cell, res.yPos, res.xPos);
+        this._drawCell(this._drawingContext, cell, res.yPos, res.xPos);
         this._previousCellPos = { xPos: res.xPos, yPos: res.yPos };
       } else {
-        this._drawCell(this._ctx, res.cell, res.yPos, res.xPos);
+        this._drawCell(this._drawingContext, cell, res.yPos, res.xPos);
         // e.offsetX and e.offsetY are changing at each mouse move but xPos and yPos are
         // computed with the Cell.size modulo
         // so we must check that the previous xPos or previous yPos are different than the
         // current xPos and yPos
         // if this check is not executed, the cell is written as DEAD event if we are still in this cell
         if (this._previousCellPos.xPos !== res.xPos || this._previousCellPos.yPos !== res.yPos) {
-          const previousCell = this._cellsMatrix[this._previousCellPos.yPos][this._previousCellPos.xPos];
-          previousCell.state = CELL_STATE.DEAD;
-          this._drawCell(this._ctx, previousCell, this._previousCellPos.yPos, this._previousCellPos.xPos);
+          this._drawingContext.clearRect(0, 0, this._drawingCanvas.width, this._drawingCanvas.height);
           this._previousCellPos = { xPos: res.xPos, yPos: res.yPos };
-          // this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
-          this._drawGrid(this._ctx);
         }
       }
     }
@@ -76,16 +79,20 @@ class Grid {
 
   private _getCell(x: number, y:number) {
     if (x>0 && y>0) {
-      const xPos = (Math.ceil(x/Cell.size) - 1);
-      const yPos = (Math.ceil(y/Cell.size) - 1);
-      let cell: Cell = this._cellsMatrix[yPos][xPos];
-      cell.state = CELL_STATE.ALIVE;
-
-      return { cell, xPos, yPos };
+      const xPos = (Math.floor(x/Cell.size) - 1);
+      const yPos = (Math.floor(y/Cell.size) - 1);
+      return { xPos, yPos };
     }
+  };
+
+  private _drawSingleCell = (e) => {
+    const {xPos, yPos} = this._getCell(e.offsetX, e.offsetY);
+    const cell: Cell = this._cellsMatrix[yPos][xPos];
+    cell.state = CELL_STATE.ALIVE;
+    this._drawCell(this._ctx, cell, yPos, xPos);
   }
 
-  private _drawGrid(ctx: CanvasRenderingContext2D, clear?: boolean) {
+  private _drawGrid(ctx: CanvasRenderingContext2D) {
     ctx.beginPath();
     ctx.strokeStyle = GRID.COLOR;
 

@@ -76,10 +76,23 @@ body {
 
 .canvas-wrapper {
 	height: 100vh;
-	display: flex;
-	justify-content: center;
-	align-items: center;
+	/*display: flex;*/
+	/*justify-content: center;*/
+	/*align-items: center;*/
+	position: relative;
 	cursor: none;
+}
+
+#canvasID {
+	position: relative;
+	top: 80px;
+	/*left: 0;*/
+}
+#canvas-drawing {
+	position: absolute;
+	top: 80px;
+	left: 0;
+	z-index: 120;
 }
 
 button {

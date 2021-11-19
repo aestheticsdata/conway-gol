@@ -33,7 +33,7 @@ class Main {
   private _drawingToolBox: DrawingToolBox;
 
   constructor() {
-    this._canvas = document.querySelector('canvas')
+    this._canvas = document.querySelector('#canvasID')
     this._stage = this._canvas.getContext('2d')
     this._pauseBtn.addEventListener('click', this._togglePause)
     this._setFPS()
