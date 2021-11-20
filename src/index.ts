@@ -9,6 +9,8 @@ import DrawingToolBox from "./controls/DrawingToolBox";
 class Main {
   private readonly _canvas: HTMLCanvasElement;
   private readonly _stage: CanvasRenderingContext2D;
+  private readonly _drawingCanvas: HTMLCanvasElement;
+  private readonly _drawingContext: CanvasRenderingContext2D;
   private _requestAnimationID: number;
   private _isPlaying: boolean = false;
   private _grid: Grid;
@@ -33,16 +35,18 @@ class Main {
   private _drawingToolBox: DrawingToolBox;
 
   constructor() {
-    this._canvas = document.querySelector('#canvasID')
-    this._stage = this._canvas.getContext('2d')
-    this._pauseBtn.addEventListener('click', this._togglePause)
-    this._setFPS()
-    this._pauseBtn.textContent = 'start'
-    this._iterationCounter.textContent = String(this._iterationCounterValue)
-    this._modeSelector = new ModeSelector(this._changeMode)
+    this._canvas = document.querySelector('#canvasID');
+    this._stage = this._canvas.getContext('2d');
+    this._drawingCanvas = document.querySelector('#canvas-drawing');
+    this._drawingContext = this._drawingCanvas.getContext('2d');
+    this._pauseBtn.addEventListener('click', this._togglePause);
+    this._setFPS();
+    this._pauseBtn.textContent = 'start';
+    this._iterationCounter.textContent = String(this._iterationCounterValue);
+    this._modeSelector = new ModeSelector(this._changeMode);
     this._changeZoo = (species) => {
-      this._selectedSpecies = species
-      this._setup()
+      this._selectedSpecies = species;
+      this._setup();
     }
   }
 
@@ -131,6 +135,7 @@ class Main {
         this._grid?.destroyListener();
         (<HTMLInputElement>this._zooPrimitivesDOMSelector).style.display = "none";
         (<HTMLElement>this.commentsDOMSelector).innerHTML = "";
+        (<HTMLCanvasElement>this._drawingCanvas).style.display = "none";
         this._grid = new Grid(this._stage, this._canvas, this._selectedMode);
         break;
       case "zoo":
@@ -139,14 +144,16 @@ class Main {
         if (!this._zooSelector) this._zooSelector = new ZooSelector();
         this._zooSelector.createSelectButton(this._zooPrimitivesDOMSelector, this._changeZoo, this._critterList);
         (<HTMLInputElement>this._zooPrimitivesDOMSelector).style.display = "block";
+        (<HTMLCanvasElement>this._drawingCanvas).style.display = "none";
         this._grid = new Grid(this._stage, this._canvas, this._selectedMode, this._selectedSpecies);
         break;
       case "drawing":
         (<HTMLInputElement>this._zooPrimitivesDOMSelector).style.display = "none";
         (<HTMLElement>this.commentsDOMSelector).innerHTML = "";
+        (<HTMLCanvasElement>this._drawingCanvas).style.display = "block";
         this._drawingToolBox = new DrawingToolBox();
         this._drawingToolBox.show();
-        this._grid = new Grid(this._stage, this._canvas, this._selectedMode);
+        this._grid = new Grid(this._stage, this._canvas, this._selectedMode, "", this._drawingContext, this._drawingCanvas);
         this._grid.initListener();
         break;
     }

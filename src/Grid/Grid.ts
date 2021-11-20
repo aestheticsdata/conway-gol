@@ -10,18 +10,26 @@ export type CellGrid = Cell[][];
 class Grid {
   private readonly _canvas: HTMLCanvasElement;
   private readonly _ctx: CanvasRenderingContext2D;
+  private readonly _drawingCanvas: HTMLCanvasElement;
+  private readonly _drawingContext: CanvasRenderingContext2D;
   private _cellsMatrix: CellGrid = [];
   private _mode: Mode;
   public static gridSize: number;
   private _previousCellPos;
-  private _drawingCanvas: HTMLCanvasElement;
-  private _drawingContext: CanvasRenderingContext2D;
+  private _isDown: boolean = false;
 
-  constructor(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, mode: Mode, species?: string) {
+  constructor(
+    ctx: CanvasRenderingContext2D,
+    canvas: HTMLCanvasElement,
+    mode: Mode,
+    species?: string,
+    drawingContext?:CanvasRenderingContext2D,
+    drawingCanvas?: HTMLCanvasElement
+  ) {
     this._canvas = canvas;
     this._ctx = ctx;
-    this._drawingCanvas = document.querySelector('#canvas-drawing');
-    this._drawingContext = this._drawingCanvas.getContext('2d');
+    this._drawingCanvas = drawingCanvas;
+    this._drawingContext = drawingContext;
     Grid.gridSize = canvas.width / Cell.size;
     this._mode = mode;
     const data = new Data();
@@ -44,12 +52,20 @@ class Grid {
 
   // https://stackoverflow.com/a/56775919/5671836 //////////////////////
   public initListener() {
-    this._drawingCanvas.addEventListener("mousemove", this._drawOnMouseMove);
-    this._drawingCanvas.addEventListener("click", this._drawSingleCell);
+    if (this._drawingCanvas) {
+      this._drawingCanvas.addEventListener("mousemove", this._drawOnMouseMove);
+      // this._drawingCanvas.addEventListener("mousedown", this._drawSingleCell);
+      this._drawingCanvas.addEventListener("mousedown", this._mouseDown);
+      this._drawingCanvas.addEventListener("mouseup", this._mouseUp);
+    }
   }
   public destroyListener() {
-    this._drawingCanvas.removeEventListener("mousemove", this._drawOnMouseMove);
-    this._drawingCanvas.removeEventListener("click", this._drawSingleCell);
+    if (this._drawingCanvas) {
+      this._drawingCanvas.removeEventListener("mousemove", this._drawOnMouseMove);
+      // this._drawingCanvas.removeEventListener("mousedown", this._drawSingleCell);
+      this._drawingCanvas.removeEventListener("mousedown", this._mouseDown);
+      this._drawingCanvas.removeEventListener("mouseup", this._mouseUp);
+    }
   }
   // ////////////////////////////////////////////////////////////////////
 
@@ -70,8 +86,13 @@ class Grid {
         // current xPos and yPos
         // if this check is not executed, the cell is written as DEAD event if we are still in this cell
         if (this._previousCellPos.xPos !== res.xPos || this._previousCellPos.yPos !== res.yPos) {
-          this._drawingContext.clearRect(0, 0, this._drawingCanvas.width, this._drawingCanvas.height);
-          this._previousCellPos = { xPos: res.xPos, yPos: res.yPos };
+          if (this._isDown) {
+            this._drawSingleCell(e);
+            this._previousCellPos = { xPos: res.xPos, yPos: res.yPos };
+          } else {
+            this._drawingContext.clearRect(0, 0, this._drawingCanvas.width, this._drawingCanvas.height);
+            this._previousCellPos = { xPos: res.xPos, yPos: res.yPos };
+          }
         }
       }
     }
@@ -84,6 +105,15 @@ class Grid {
       return { xPos, yPos };
     }
   };
+
+  private _mouseDown = (e) => {
+    this._isDown = true;
+    this._drawSingleCell(e);
+  }
+
+  private _mouseUp = () => {
+    this._isDown = false;
+  }
 
   private _drawSingleCell = (e) => {
     const {xPos, yPos} = this._getCell(e.offsetX, e.offsetY);

@@ -80,7 +80,6 @@ body {
 	/*justify-content: center;*/
 	/*align-items: center;*/
 	position: relative;
-	cursor: none;
 }
 
 #canvasID {
@@ -89,6 +88,8 @@ body {
 	/*left: 0;*/
 }
 #canvas-drawing {
+	display: none;
+	cursor: none;
 	position: absolute;
 	top: 80px;
 	left: 0;
