@@ -4,7 +4,7 @@ import type { Mode } from "./controls/ModeSelector"
 import ZooSelector from "./controls/ZooSelector";
 import axios from 'axios';
 import Helpers from "./helpers/Helpers";
-import DrawingToolBox from "./controls/DrawingToolBox";
+import DrawingToolBox, {DrawingMode} from "./controls/DrawingToolBox";
 
 class Main {
   private readonly _canvas: HTMLCanvasElement;
@@ -153,7 +153,7 @@ class Main {
         (<HTMLCanvasElement>this._drawingCanvas).style.display = "block";
         this._drawingToolBox = new DrawingToolBox();
         this._drawingToolBox.show();
-        this._grid = new Grid(this._stage, this._canvas, this._selectedMode, "", this._drawingContext, this._drawingCanvas);
+        this._grid = new Grid(this._stage, this._canvas, this._selectedMode, "", this._drawingContext, this._drawingCanvas, this._drawingToolBox);
         this._grid.initListener();
         break;
     }

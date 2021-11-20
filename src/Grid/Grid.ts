@@ -4,6 +4,7 @@ import Data from "../data/Data"
 import { CELL_STATE } from "../Cell/constants"
 import { cloneDeep } from "lodash";
 import type { Mode } from "../controls/ModeSelector";
+import DrawingToolBox, {DrawingMode} from "../controls/DrawingToolBox";
 
 export type CellGrid = Cell[][];
 
@@ -17,6 +18,7 @@ class Grid {
   public static gridSize: number;
   private _previousCellPos;
   private _isDown: boolean = false;
+  private _drawingMode: DrawingMode;
 
   constructor(
     ctx: CanvasRenderingContext2D,
@@ -24,7 +26,8 @@ class Grid {
     mode: Mode,
     species?: string,
     drawingContext?:CanvasRenderingContext2D,
-    drawingCanvas?: HTMLCanvasElement
+    drawingCanvas?: HTMLCanvasElement,
+    drawingToolbox?: DrawingToolBox,
   ) {
     this._canvas = canvas;
     this._ctx = ctx;
@@ -45,6 +48,8 @@ class Grid {
       })
     }
     if (mode === 'drawing') {
+      drawingToolbox.register(this._setDrawingMode);
+      this._drawingMode = drawingToolbox.selectedMode;
       this._createCells(ctx, null, true);
       this._drawGrid(ctx);
     }
@@ -69,9 +74,13 @@ class Grid {
   }
   // ////////////////////////////////////////////////////////////////////
 
+  private _setDrawingMode = (drawingMode: DrawingMode) => {
+    this._drawingMode = drawingMode;
+  }
+
   private _drawOnMouseMove = (e) => {
     const res = this._getCell(e.offsetX, e.offsetY);
-    const cell = new Cell(CELL_STATE.ALIVE);
+    const cell = new Cell(this._drawingMode === "pencil" ? CELL_STATE.ALIVE : CELL_STATE.DEAD);
 
     if (res) {
       // first draw, previous cell is null and must be initialized after the first draw
@@ -118,7 +127,7 @@ class Grid {
   private _drawSingleCell = (e) => {
     const {xPos, yPos} = this._getCell(e.offsetX, e.offsetY);
     const cell: Cell = this._cellsMatrix[yPos][xPos];
-    cell.state = CELL_STATE.ALIVE;
+    cell.state = this._drawingMode === "pencil" ? CELL_STATE.ALIVE : CELL_STATE.DEAD;
     this._drawCell(this._ctx, cell, yPos, xPos);
   }
 
