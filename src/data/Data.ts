@@ -5,6 +5,7 @@ import Grid from "../Grid/Grid";
 import { species } from "./species/species";
 import axios from "axios";
 import Helpers from "../helpers/Helpers";
+import { GRID } from "../Grid/constants";
 
 class Data {
   public grid: CellGrid = [];
@@ -17,8 +18,13 @@ class Data {
     try {
       const critter = (await axios.get(`${Helpers.getRequestURL(url)}`)).data;
       const critterParsed = JSON.parse(critter);
+      const position = [
+        Math.floor((GRID.SIZE.Y/Cell.size)/2 - critterParsed.automata.length/2),
+        Math.floor((GRID.SIZE.X/Cell.size)/2 - critterParsed.automata[0].length/2),
+      ];
+      console.log(position);
       o = {
-        position: [5, 5],
+        position,
         content: critterParsed.automata,
       };
 

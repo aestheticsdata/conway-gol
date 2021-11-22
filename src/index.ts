@@ -5,6 +5,7 @@ import ZooSelector from "./controls/ZooSelector";
 import axios from 'axios';
 import Helpers from "./helpers/Helpers";
 import DrawingToolBox, {DrawingMode} from "./controls/DrawingToolBox";
+import {GRID} from "./Grid/constants";
 
 class Main {
   private readonly _canvas: HTMLCanvasElement;
@@ -36,8 +37,12 @@ class Main {
 
   constructor() {
     this._canvas = document.querySelector('#canvasID');
+    this._canvas.width = GRID.SIZE.X;
+    this._canvas.height = GRID.SIZE.Y;
     this._stage = this._canvas.getContext('2d');
     this._drawingCanvas = document.querySelector('#canvas-drawing');
+    this._drawingCanvas.width = GRID.SIZE.X;
+    this._drawingCanvas.height = GRID.SIZE.Y;
     this._drawingContext = this._drawingCanvas.getContext('2d');
     this._pauseBtn.addEventListener('click', this._togglePause);
     this._setFPS();
