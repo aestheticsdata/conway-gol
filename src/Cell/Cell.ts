@@ -18,7 +18,7 @@ class Cell {
   }
 
   private _getColor(state: CellState) {
-    return (state === CELL_STATE.ALIVE ? 'rgb(8,112,168)' : 'rgb(255, 255, 255)')
+    return (state === CELL_STATE.ALIVE ? 'rgb(0,105,159)' : 'rgb(255, 255, 255)')
   }
 
   private _randomState(): number {

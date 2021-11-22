@@ -59,7 +59,6 @@ class Grid {
   public initListener() {
     if (this._drawingCanvas) {
       this._drawingCanvas.addEventListener("mousemove", this._drawOnMouseMove);
-      // this._drawingCanvas.addEventListener("mousedown", this._drawSingleCell);
       this._drawingCanvas.addEventListener("mousedown", this._mouseDown);
       this._drawingCanvas.addEventListener("mouseup", this._mouseUp);
     }
@@ -67,7 +66,6 @@ class Grid {
   public destroyListener() {
     if (this._drawingCanvas) {
       this._drawingCanvas.removeEventListener("mousemove", this._drawOnMouseMove);
-      // this._drawingCanvas.removeEventListener("mousedown", this._drawSingleCell);
       this._drawingCanvas.removeEventListener("mousedown", this._mouseDown);
       this._drawingCanvas.removeEventListener("mouseup", this._mouseUp);
     }
@@ -152,7 +150,7 @@ class Grid {
 
   private _drawCell(ctx: CanvasRenderingContext2D, cell: Cell, row: number, column: number) {
     ctx.fillStyle = cell.color;
-    ctx.fillRect(column*(Cell.size), row*(Cell.size), Cell.size, Cell.size);
+    ctx.fillRect(column*(Cell.size)+1, row*(Cell.size)+1, Cell.size-1, Cell.size-1);
   }
 
   private _createCells(ctx: CanvasRenderingContext2D, data?: CellGrid, isBlank: boolean = false) {
