@@ -8,14 +8,20 @@ class ZoomBox {
   private _html = `
     <div class="zoombox" style="display: none">
       <canvas id="zoombox"></canvas>
+      <div class="coordinates">
+        X: <span class="x-pos">0</span>
+        Y: <span class="y-pos">0</span>
+      </div>
     </div>
   `;
   private _zoombox: HTMLElement;
-  private _zoomCanvas: HTMLCanvasElement;
-  private _zoomContext: CanvasRenderingContext2D;
+  private readonly _zoomCanvas: HTMLCanvasElement;
+  private readonly _zoomContext: CanvasRenderingContext2D;
   private _cellsMatrix: CellGrid = [];
   public static gridSize: number;
   private _zoomLevel: number = 4;
+  private _xPosDisplay;
+  private _yPosDisplay;
 
   constructor() {
     document.querySelector(".zoombox-container").insertAdjacentHTML("afterbegin", this._html);
@@ -27,6 +33,8 @@ class ZoomBox {
     ZoomBox.gridSize = this._zoomCanvas.width / (Cell.size*this._zoomLevel);
     this._createCells(this._zoomContext, null, true);
     this._drawGrid(this._zoomContext);
+    this._xPosDisplay = document.querySelector('.x-pos');
+    this._yPosDisplay = document.querySelector('.y-pos');
   }
 
   public show() {
@@ -37,15 +45,22 @@ class ZoomBox {
     this._zoombox.style.display = "none";
   }
 
-  public displayArea(area) {
+  public displayArea(area, x, y) {
     if (area) {
       this._createCells(this._zoomContext, area);
+      this._xPosDisplay.textContent = x;
+      this._yPosDisplay.textContent = y;
     }
   }
 
   private _drawCell(ctx: CanvasRenderingContext2D, cell: Cell, row: number, column: number) {
     this._zoomContext.fillStyle = cell.color;
-    this._zoomContext.fillRect(column*(Cell.size*this._zoomLevel)+1, row*(Cell.size*this._zoomLevel)+1, (Cell.size*this._zoomLevel)-1, (Cell.size*this._zoomLevel)-1);
+    this._zoomContext.fillRect(
+      column*(Cell.size*this._zoomLevel)+1,
+      row*(Cell.size*this._zoomLevel)+1,
+      (Cell.size*this._zoomLevel)-1,
+      (Cell.size*this._zoomLevel)-1
+    );
     // blue cell at the center of the zoom grid
     // TODO do not hardcode the center of the grid
     this._zoomContext.fillStyle = CELL_STATE.ALIVE_COLOR;

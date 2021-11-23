@@ -160,6 +160,7 @@ select, input {
 	border: 1px solid #b0b0b0;
 	border-radius: 3px;
 	padding: 5px;
+	margin-top: 10px;
 }
 .drawing-toolbox .item {
 	display: flex;
@@ -176,13 +177,16 @@ select, input {
 .zoombox-container {
 	width: 142px;
 	height: 142px;
-	margin-bottom: 10px;
-	border: 1px solid #b0b0b0;
+	margin-bottom: 20px;
 }
 .zoombox-container .zoombox {
+	border: 1px solid #b0b0b0;
 	background-color: #f3f3f3;
-	height: 140px;
-	width: 140px;
+	height: 142px;
+	width: 142px;
 }
-
+.zoombox-container .zoombox .coordinates {
+	font-size: 20px;
+	margin-left: 3px;
+}
 
