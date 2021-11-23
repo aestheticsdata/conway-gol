@@ -118,14 +118,19 @@ class Grid {
 
   private _getZoomArea(x: number, y: number) {
     // TODO do not hardcode values
-    console.log('x', x);
-    if (x>0+3 && y>0+3 && x<155-3 && y<155-3) {
+    let tmpCell;
+    if (x>0 && y>0 && x<155 && y<155) {
       const copyMatrix = [];
       for (let i=0; i<7; i++) {
         copyMatrix.push([]);
         for (let j=0; j<7; j++) {
+          if ((i+y-3 < 0) || (i+y-3 > 155) || !this._cellsMatrix[i+y-3][j+x-3]) {
+            tmpCell = new Cell(CELL_STATE.BORDER);
+          } else {
+            tmpCell = new Cell(this._cellsMatrix[i+y-3][j+x-3].state);
+          }
           // each cell is copied from this._cellMatrix, it's not the ref to the cell
-          copyMatrix[i].push(new Cell(this._cellsMatrix[i+y-3][j+x-3].state));
+          copyMatrix[i].push(tmpCell);
         }
       }
       return copyMatrix;

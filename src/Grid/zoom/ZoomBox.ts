@@ -48,7 +48,7 @@ class ZoomBox {
     this._zoomContext.fillRect(column*(Cell.size*this._zoomLevel)+1, row*(Cell.size*this._zoomLevel)+1, (Cell.size*this._zoomLevel)-1, (Cell.size*this._zoomLevel)-1);
     // blue cell at the center of the zoom grid
     // TODO do not hardcode the center of the grid
-    this._zoomContext.fillStyle = 'rgb(0,105,159)';
+    this._zoomContext.fillStyle = CELL_STATE.ALIVE_COLOR;
     this._zoomContext.fillRect(3*(Cell.size*this._zoomLevel)+1, 3*(Cell.size*this._zoomLevel)+1, (Cell.size*this._zoomLevel)-1, (Cell.size*this._zoomLevel)-1);
 
   }
