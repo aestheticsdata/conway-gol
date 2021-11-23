@@ -14,6 +14,8 @@ body {
 .container .right-container {
 	width: 420px;
 	display: flex;
+	flex-direction: column;
+	margin-left: 40px;
 }
 .controls-wrapper {
 	height: 100vh;
@@ -76,20 +78,16 @@ body {
 
 .canvas-wrapper {
 	height: 100vh;
-	/*display: flex;*/
-	/*justify-content: center;*/
-	/*align-items: center;*/
 	position: relative;
 }
 
 #canvasID {
 	position: relative;
 	top: 80px;
-	/*left: 0;*/
 }
 #canvas-drawing {
 	display: none;
-	cursor: none;
+	cursor: crosshair;
 	position: absolute;
 	top: 80px;
 	left: 0;
@@ -120,11 +118,6 @@ button:active {
 }
 
 .zoo-selector {
-	/*display: flex;*/
-	/*width: 120px;*/
-	/*flex-direction: column;*/
-	/*position: relative;*/
-	margin-left: 40px;
 }
 .zoo-selector label {
 	font-size: 20px;
@@ -163,8 +156,6 @@ select, input {
 }
 
 .drawing-toolbox {
-	/*display: flex;*/
-	/*justify-content: space-between;*/
 	width: 120px;
 	border: 1px solid #b0b0b0;
 	border-radius: 3px;
@@ -180,6 +171,17 @@ select, input {
 }
 .drawing-toolbox .item img:hover {
 	background-color: #ffcc00;
+}
+
+.zoombox-container {
+	width: 140px;
+	height: 140px;
+	margin-bottom: 10px;
+}
+.zoombox-container .zoombox {
+	background-color: #f3f3f3;
+	height: 140px;
+	width: 140px;
 }
 
 

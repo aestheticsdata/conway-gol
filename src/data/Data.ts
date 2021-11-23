@@ -22,7 +22,6 @@ class Data {
         Math.floor((GRID.SIZE.Y/Cell.size)/2 - critterParsed.automata.length/2),
         Math.floor((GRID.SIZE.X/Cell.size)/2 - critterParsed.automata[0].length/2),
       ];
-      console.log(position);
       o = {
         position,
         content: critterParsed.automata,

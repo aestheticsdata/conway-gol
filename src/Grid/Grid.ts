@@ -1,10 +1,11 @@
 import Cell from "../Cell/Cell"
-import { GRID } from "./constants"
 import Data from "../data/Data"
 import { CELL_STATE } from "../Cell/constants"
 import { cloneDeep } from "lodash";
 import type { Mode } from "../controls/ModeSelector";
 import DrawingToolBox, {DrawingMode} from "../controls/DrawingToolBox";
+import Helpers from "../helpers/Helpers";
+import ZoomBox from "./zoom/ZoomBox";
 
 export type CellGrid = Cell[][];
 
@@ -19,6 +20,7 @@ class Grid {
   private _previousCellPos;
   private _isDown: boolean = false;
   private _drawingMode: DrawingMode;
+  public zoombox: ZoomBox;
 
   constructor(
     ctx: CanvasRenderingContext2D,
@@ -81,6 +83,7 @@ class Grid {
     const cell = new Cell(this._drawingMode === "pencil" ? CELL_STATE.ALIVE : CELL_STATE.DEAD);
 
     if (res) {
+      this.zoombox.displayArea(this._getZoomArea(res.xPos, res.yPos));
       // first draw, previous cell is null and must be initialized after the first draw
       if (!this._previousCellPos) {
         this._drawCell(this._drawingContext, cell, res.yPos, res.xPos);
@@ -113,6 +116,19 @@ class Grid {
     }
   };
 
+  private _getZoomArea(x: number, y: number) {
+    if (x>3 && y>3 && x<145 && y<145) {
+      const copyMatrix = [];
+      for (let i=0; i<7; i++) {
+        copyMatrix.push([]);
+        for (let j=0; j<7; j++) {
+          copyMatrix[i].push(new Cell(this._cellsMatrix[i+y][j+x].state));
+        }
+      }
+      return copyMatrix;
+    }
+  }
+
   private _mouseDown = (e) => {
     this._isDown = true;
     this._drawSingleCell(e);
@@ -130,22 +146,7 @@ class Grid {
   }
 
   private _drawGrid(ctx: CanvasRenderingContext2D) {
-    ctx.beginPath();
-    ctx.strokeStyle = GRID.COLOR;
-
-    // Vertical lines
-    for (let i = 0; i <= this._canvas.width; i++) {
-      ctx.moveTo(i*Cell.size, 0);
-      ctx.lineTo(i*Cell.size, Cell.size*this._canvas.height);
-    }
-
-    // Horizontal lines
-    for (let j = 0; j <= this._canvas.height; j++) {
-      ctx.moveTo(0, j*Cell.size);
-      ctx.lineTo(Cell.size*this._canvas.width, j*Cell.size);
-    }
-
-    ctx.stroke();
+    Helpers.drawGrid(ctx, this._canvas)
   };
 
   private _drawCell(ctx: CanvasRenderingContext2D, cell: Cell, row: number, column: number) {

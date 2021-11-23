@@ -6,6 +6,7 @@ import axios from 'axios';
 import Helpers from "./helpers/Helpers";
 import DrawingToolBox, {DrawingMode} from "./controls/DrawingToolBox";
 import {GRID} from "./Grid/constants";
+import ZoomBox from "./Grid/zoom/ZoomBox";
 
 class Main {
   private readonly _canvas: HTMLCanvasElement;
@@ -34,6 +35,7 @@ class Main {
   private _selectedSpecies: string;
   private _critterList: Promise<string[]>;
   private _drawingToolBox: DrawingToolBox;
+  private _zoomBox: ZoomBox;
 
   constructor() {
     this._canvas = document.querySelector('#canvasID');
@@ -141,6 +143,7 @@ class Main {
         (<HTMLInputElement>this._zooPrimitivesDOMSelector).style.display = "none";
         (<HTMLElement>this.commentsDOMSelector).innerHTML = "";
         (<HTMLCanvasElement>this._drawingCanvas).style.display = "none";
+        this._zoomBox?.hide();
         this._grid = new Grid(this._stage, this._canvas, this._selectedMode);
         break;
       case "zoo":
@@ -150,6 +153,7 @@ class Main {
         this._zooSelector.createSelectButton(this._zooPrimitivesDOMSelector, this._changeZoo, this._critterList);
         (<HTMLInputElement>this._zooPrimitivesDOMSelector).style.display = "block";
         (<HTMLCanvasElement>this._drawingCanvas).style.display = "none";
+        this._zoomBox?.hide();
         this._grid = new Grid(this._stage, this._canvas, this._selectedMode, this._selectedSpecies);
         break;
       case "drawing":
@@ -158,7 +162,10 @@ class Main {
         (<HTMLCanvasElement>this._drawingCanvas).style.display = "block";
         this._drawingToolBox = new DrawingToolBox();
         this._drawingToolBox.show();
+        this._zoomBox = new ZoomBox();
+        this._zoomBox.show();
         this._grid = new Grid(this._stage, this._canvas, this._selectedMode, "", this._drawingContext, this._drawingCanvas, this._drawingToolBox);
+        this._grid.zoombox = this._zoomBox;
         this._grid.initListener();
         break;
     }
