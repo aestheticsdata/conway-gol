@@ -46,6 +46,11 @@ class ZoomBox {
   private _drawCell(ctx: CanvasRenderingContext2D, cell: Cell, row: number, column: number) {
     this._zoomContext.fillStyle = cell.color;
     this._zoomContext.fillRect(column*(Cell.size*this._zoomLevel)+1, row*(Cell.size*this._zoomLevel)+1, (Cell.size*this._zoomLevel)-1, (Cell.size*this._zoomLevel)-1);
+    // blue cell at the center of the zoom grid
+    // TODO do not hardcode the center of the grid
+    this._zoomContext.fillStyle = 'rgb(0,105,159)';
+    this._zoomContext.fillRect(3*(Cell.size*this._zoomLevel)+1, 3*(Cell.size*this._zoomLevel)+1, (Cell.size*this._zoomLevel)-1, (Cell.size*this._zoomLevel)-1);
+
   }
 
   private _createCells(ctx: CanvasRenderingContext2D, data?: CellGrid, isBlank: boolean = false) {
