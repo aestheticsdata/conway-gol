@@ -3,6 +3,7 @@ import { GRID } from "../constants";
 import Cell from "../../Cell/Cell";
 import { CELL_STATE } from "../../Cell/constants";
 import { CellGrid } from "../Grid";
+import {DrawingMode} from "../../controls/DrawingToolBox";
 
 class ZoomBox {
   private _html = `
@@ -33,7 +34,7 @@ class ZoomBox {
     this._zoomCanvas.height = 140;
     this._zoomContext = this._zoomCanvas.getContext("2d");
     ZoomBox.gridSize = this._zoomCanvas.width / (Cell.size*this._zoomLevel);
-    this._createCells(this._zoomContext, null, true);
+    this._createCells("pencil", this._zoomContext, null, true);
     this._drawGrid(this._zoomContext);
     this._xPosDisplay = document.querySelector('.x-pos');
     this._yPosDisplay = document.querySelector('.y-pos');
@@ -47,15 +48,15 @@ class ZoomBox {
     this._zoombox.style.display = "none";
   }
 
-  public displayArea(area, x=0, y=0) {
+  public displayArea(area, drawingMode: DrawingMode, x=0, y=0) {
     if (area) {
-      this._createCells(this._zoomContext, area);
+      this._createCells(drawingMode, this._zoomContext, area);
       this._xPosDisplay.textContent = x;
       this._yPosDisplay.textContent = y;
     }
   }
 
-  private _drawCell(ctx: CanvasRenderingContext2D, cell: Cell, row: number, column: number) {
+  private _drawCell(drawingMode: DrawingMode, ctx: CanvasRenderingContext2D, cell: Cell, row: number, column: number) {
     if (cell.state === CELL_STATE.OUTSIDE) {
       // this._cellsMAtric[3][3] is the center cell in the zoom grid
       if (this._cellsMatrix[this._gridCenterCell.y][this._gridCenterCell.x].state === CELL_STATE.ALIVE) {
@@ -74,14 +75,16 @@ class ZoomBox {
       );
       // blue cell at the center of the zoom grid
       // TODO do not hardcode the center of the grid
-      this._zoomContext.fillStyle = CELL_STATE.ALIVE_COLOR;
+      this._zoomContext.fillStyle = drawingMode === "pencil" ? CELL_STATE.ALIVE_COLOR : CELL_STATE.DEAD_COLOR;
       this._zoomContext.fillRect(this._gridCenterCell.x*(Cell.size*this._zoomLevel)+1, this._gridCenterCell.y*(Cell.size*this._zoomLevel)+1, (Cell.size*this._zoomLevel)-1, (Cell.size*this._zoomLevel)-1);
+      this._zoomContext.strokeStyle = 'rgba(255,204,0,1)';
+      this._zoomContext.strokeRect(this._gridCenterCell.x*(Cell.size*this._zoomLevel), this._gridCenterCell.y*(Cell.size*this._zoomLevel), (Cell.size*this._zoomLevel)+1, (Cell.size*this._zoomLevel)+1)
     }
   }
 
-  private _createCells(ctx: CanvasRenderingContext2D, data?: CellGrid, isBlank: boolean = false) {
+  private _createCells(drawingMode: DrawingMode, ctx: CanvasRenderingContext2D, data?: CellGrid, isBlank: boolean = false) {
     if (data && data[0][0].state === CELL_STATE.OUTSIDE) {
-      this._drawCell(ctx, data[0][0], -1, -1);
+      this._drawCell(drawingMode, ctx, data[0][0], -1, -1);
     } else {
       let tmpCell: Cell;
       // flush this._cellMatrix at each mousemove to prevent to grow undefinitey in size
@@ -97,7 +100,7 @@ class ZoomBox {
             tmpCell = new Cell();
           }
           this._cellsMatrix[i].push(tmpCell);
-          this._drawCell(ctx, tmpCell, i, j);
+          this._drawCell(drawingMode, ctx, tmpCell, i, j);
         }
       }
     }

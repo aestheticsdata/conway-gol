@@ -83,7 +83,7 @@ class Grid {
     const cell = new Cell(this._drawingMode === "pencil" ? CELL_STATE.ALIVE : CELL_STATE.DEAD);
 
     if (res) {
-      this.zoombox.displayArea(this._getZoomArea(res.xPos, res.yPos), res.xPos, res.yPos);
+      this.zoombox.displayArea(this._getZoomArea(res.xPos, res.yPos), this._drawingMode, res.xPos, res.yPos);
       // first draw, previous cell is null and must be initialized after the first draw
       if (!this._previousCellPos) {
         this._drawCell(this._drawingContext, cell, res.yPos, res.xPos);
@@ -144,7 +144,7 @@ class Grid {
     this._drawSingleCell(e);
     const res = this._getCell(e.offsetX, e.offsetY);
     if (res) {
-      this.zoombox.displayArea(this._getZoomArea(res.xPos, res.yPos));
+      this.zoombox.displayArea(this._getZoomArea(res.xPos, res.yPos), this._drawingMode);
     }
   }
 
