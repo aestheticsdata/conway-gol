@@ -118,6 +118,8 @@ button:active {
 }
 
 .zoo-selector {
+	position: absolute;
+	top: 300px;
 }
 .zoo-selector label {
 	font-size: 20px;
