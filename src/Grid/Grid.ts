@@ -134,6 +134,8 @@ class Grid {
         }
       }
       return copyMatrix;
+    } else {
+      return [[new Cell(CELL_STATE.OUTSIDE)]];
     }
   }
 

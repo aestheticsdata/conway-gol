@@ -22,6 +22,8 @@ class ZoomBox {
   private _zoomLevel: number = 4;
   private _xPosDisplay;
   private _yPosDisplay;
+  // TODO remove hardcoded _gridCenterCell
+  private _gridCenterCell = {x: 3, y: 3};
 
   constructor() {
     document.querySelector(".zoombox-container").insertAdjacentHTML("afterbegin", this._html);
@@ -54,34 +56,49 @@ class ZoomBox {
   }
 
   private _drawCell(ctx: CanvasRenderingContext2D, cell: Cell, row: number, column: number) {
-    this._zoomContext.fillStyle = cell.color;
-    this._zoomContext.fillRect(
-      column*(Cell.size*this._zoomLevel)+1,
-      row*(Cell.size*this._zoomLevel)+1,
-      (Cell.size*this._zoomLevel)-1,
-      (Cell.size*this._zoomLevel)-1
-    );
-    // blue cell at the center of the zoom grid
-    // TODO do not hardcode the center of the grid
-    this._zoomContext.fillStyle = CELL_STATE.ALIVE_COLOR;
-    this._zoomContext.fillRect(3*(Cell.size*this._zoomLevel)+1, 3*(Cell.size*this._zoomLevel)+1, (Cell.size*this._zoomLevel)-1, (Cell.size*this._zoomLevel)-1);
-
+    if (cell.state === CELL_STATE.OUTSIDE) {
+      // this._cellsMAtric[3][3] is the center cell in the zoom grid
+      if (this._cellsMatrix[this._gridCenterCell.y][this._gridCenterCell.x].state === CELL_STATE.ALIVE) {
+        this._zoomContext.fillStyle = CELL_STATE.ALIVE_COLOR;
+      } else {
+        this._zoomContext.fillStyle = CELL_STATE.DEAD_COLOR;
+      }
+      this._zoomContext.fillRect(this._gridCenterCell.x*(Cell.size*this._zoomLevel)+1, this._gridCenterCell.y*(Cell.size*this._zoomLevel)+1, (Cell.size*this._zoomLevel)-1, (Cell.size*this._zoomLevel)-1);
+    } else {
+      this._zoomContext.fillStyle = cell.color;
+      this._zoomContext.fillRect(
+        column*(Cell.size*this._zoomLevel)+1,
+        row*(Cell.size*this._zoomLevel)+1,
+        (Cell.size*this._zoomLevel)-1,
+        (Cell.size*this._zoomLevel)-1
+      );
+      // blue cell at the center of the zoom grid
+      // TODO do not hardcode the center of the grid
+      this._zoomContext.fillStyle = CELL_STATE.ALIVE_COLOR;
+      this._zoomContext.fillRect(this._gridCenterCell.x*(Cell.size*this._zoomLevel)+1, this._gridCenterCell.y*(Cell.size*this._zoomLevel)+1, (Cell.size*this._zoomLevel)-1, (Cell.size*this._zoomLevel)-1);
+    }
   }
 
   private _createCells(ctx: CanvasRenderingContext2D, data?: CellGrid, isBlank: boolean = false) {
-    let tmpCell: Cell;
-    for (let i = 0; i < ZoomBox.gridSize; i++) {
-      this._cellsMatrix.push([]);
-      for (let j = 0; j < ZoomBox.gridSize; j++) {
-        if (data) {
-          tmpCell = data[i][j];
-        } else if (isBlank) {
-          tmpCell = new Cell(CELL_STATE.DEAD);
-        } else {
-          tmpCell = new Cell();
+    if (data && data[0][0].state === CELL_STATE.OUTSIDE) {
+      this._drawCell(ctx, data[0][0], -1, -1);
+    } else {
+      let tmpCell: Cell;
+      // flush this._cellMatrix at each mousemove to prevent to grow undefinitey in size
+      if (this._cellsMatrix.length > 0) this._cellsMatrix = [];
+      for (let i = 0; i < ZoomBox.gridSize; i++) {
+        this._cellsMatrix.push([]);
+        for (let j = 0; j < ZoomBox.gridSize; j++) {
+          if (data) {
+            tmpCell = data[i][j];
+          } else if (isBlank) {
+            tmpCell = new Cell(CELL_STATE.DEAD);
+          } else {
+            tmpCell = new Cell();
+          }
+          this._cellsMatrix[i].push(tmpCell);
+          this._drawCell(ctx, tmpCell, i, j);
         }
-        this._cellsMatrix[i].push(tmpCell);
-        this._drawCell(ctx, tmpCell, i, j);
       }
     }
   }

@@ -1,7 +1,7 @@
 import { CELL_STATE } from "./constants";
 import { v1 as uuidv1 } from 'uuid';
 
-type CellState = typeof CELL_STATE.DEAD | typeof CELL_STATE.ALIVE | typeof CELL_STATE.BORDER;
+type CellState = typeof CELL_STATE.DEAD | typeof CELL_STATE.ALIVE | typeof CELL_STATE.BORDER | typeof CELL_STATE.OUTSIDE;
 
 class Cell {
   public static size: number = 5;
@@ -28,6 +28,9 @@ class Cell {
         break;
       case CELL_STATE.BORDER:
         color = CELL_STATE.BORDER_COLOR;
+        break;
+      case CELL_STATE.OUTSIDE:
+        color = CELL_STATE.DEAD_COLOR;
         break;
     }
     return color;
