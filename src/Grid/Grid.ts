@@ -119,7 +119,7 @@ class Grid {
   private _getZoomArea(x: number, y: number) {
     // TODO do not hardcode values
     let tmpCell;
-    if (x>0 && y>0 && x<155 && y<155) {
+    if (x>=0 && y>=0 && x<=155 && y<=155) {
       const copyMatrix = [];
       for (let i=0; i<7; i++) {
         copyMatrix.push([]);

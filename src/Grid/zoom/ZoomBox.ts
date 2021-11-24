@@ -45,7 +45,7 @@ class ZoomBox {
     this._zoombox.style.display = "none";
   }
 
-  public displayArea(area, x, y) {
+  public displayArea(area, x=0, y=0) {
     if (area) {
       this._createCells(this._zoomContext, area);
       this._xPosDisplay.textContent = x;
