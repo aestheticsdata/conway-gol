@@ -10,8 +10,8 @@ class ZoomBox {
     <div class="zoombox" style="display: none">
       <canvas id="zoombox"></canvas>
       <div class="coordinates">
-        X: <span class="x-pos">0</span>
-        Y: <span class="y-pos">0</span>
+        <span class="x-pos-label">X: </span><span class="x-pos">0</span>
+        <span class="y-pos-label">Y: </span><span class="y-pos">0</span>
       </div>
     </div>
   `;

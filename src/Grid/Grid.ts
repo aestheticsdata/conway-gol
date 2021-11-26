@@ -6,6 +6,7 @@ import type { Mode } from "../controls/ModeSelector";
 import DrawingToolBox, {DrawingMode} from "../controls/DrawingToolBox";
 import Helpers from "../helpers/Helpers";
 import ZoomBox from "./zoom/ZoomBox";
+import UserCustomSelector from "../controls/UserCustomSelector";
 
 export type CellGrid = Cell[][];
 
@@ -21,6 +22,7 @@ class Grid {
   private _isDown: boolean = false;
   private _drawingMode: DrawingMode;
   public zoombox: ZoomBox;
+  private readonly _userCustomSelector: UserCustomSelector;
 
   constructor(
     ctx: CanvasRenderingContext2D,
@@ -30,6 +32,7 @@ class Grid {
     drawingContext?:CanvasRenderingContext2D,
     drawingCanvas?: HTMLCanvasElement,
     drawingToolbox?: DrawingToolBox,
+    userCustomSelector?: UserCustomSelector,
   ) {
     this._canvas = canvas;
     this._ctx = ctx;
@@ -50,6 +53,8 @@ class Grid {
       })
     }
     if (mode === 'drawing') {
+      this._userCustomSelector = userCustomSelector;
+      this._userCustomSelector.gridData = this._cellsMatrix;
       drawingToolbox.register(this._setDrawingMode);
       this._drawingMode = drawingToolbox.selectedMode;
       this._createCells(ctx, null, true);
@@ -108,6 +113,19 @@ class Grid {
     }
   }
 
+  private _mouseDown = (e) => {
+    this._isDown = true;
+    this._drawSingleCell(e);
+    const res = this._getCell(e.offsetX, e.offsetY);
+    if (res) {
+      this.zoombox.displayArea(this._getZoomArea(res.xPos, res.yPos), this._drawingMode);
+    }
+  }
+
+  private _mouseUp = () => {
+    this._isDown = false;
+  }
+
   private _getCell(x: number, y:number) {
     if (x>0 && y>0) {
       const xPos = (Math.floor(x/Cell.size) - 1);
@@ -137,19 +155,6 @@ class Grid {
     } else {
       return [[new Cell(CELL_STATE.OUTSIDE)]];
     }
-  }
-
-  private _mouseDown = (e) => {
-    this._isDown = true;
-    this._drawSingleCell(e);
-    const res = this._getCell(e.offsetX, e.offsetY);
-    if (res) {
-      this.zoombox.displayArea(this._getZoomArea(res.xPos, res.yPos), this._drawingMode);
-    }
-  }
-
-  private _mouseUp = () => {
-    this._isDown = false;
   }
 
   private _drawSingleCell = (e) => {

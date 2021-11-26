@@ -23,6 +23,7 @@
   "dependencies": {
     "axios": "^0.24.0",
     "lodash": "^4.17.21",
+    "sweetalert2": "^11.2.1",
     "uuid": "^8.3.2"
   }
 }

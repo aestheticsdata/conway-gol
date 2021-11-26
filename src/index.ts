@@ -4,9 +4,11 @@ import type { Mode } from "./controls/ModeSelector"
 import ZooSelector from "./controls/ZooSelector";
 import axios from 'axios';
 import Helpers from "./helpers/Helpers";
-import DrawingToolBox, {DrawingMode} from "./controls/DrawingToolBox";
-import {GRID} from "./Grid/constants";
+import DrawingToolBox from "./controls/DrawingToolBox";
+import { GRID } from "./Grid/constants";
 import ZoomBox from "./Grid/zoom/ZoomBox";
+import UserCustomSelector from "./controls/UserCustomSelector";
+import { URLS } from "./helpers/constants";
 
 class Main {
   private readonly _canvas: HTMLCanvasElement;
@@ -36,6 +38,7 @@ class Main {
   private _critterList: Promise<string[]>;
   private _drawingToolBox: DrawingToolBox;
   private _zoomBox: ZoomBox;
+  private _userCustomSelector: UserCustomSelector;
 
   constructor() {
     this._canvas = document.querySelector('#canvasID');
@@ -125,9 +128,8 @@ class Main {
   }
 
   private async _setup() {
-    const url = 'list';
     try {
-      this._critterList = (await axios.get(`${Helpers.getRequestURL(url)}`)).data;
+      this._critterList = (await axios.get(`${Helpers.getRequestURL(URLS.critterList)}`)).data;
     } catch (err) {
       console.log(err);
     }
@@ -144,6 +146,7 @@ class Main {
         (<HTMLElement>this.commentsDOMSelector).innerHTML = "";
         (<HTMLCanvasElement>this._drawingCanvas).style.display = "none";
         this._zoomBox?.hide();
+        this._userCustomSelector?.hide();
         this._grid = new Grid(this._stage, this._canvas, this._selectedMode);
         break;
       case "zoo":
@@ -154,6 +157,7 @@ class Main {
         (<HTMLInputElement>this._zooPrimitivesDOMSelector).style.display = "block";
         (<HTMLCanvasElement>this._drawingCanvas).style.display = "none";
         this._zoomBox?.hide();
+        this._userCustomSelector?.hide();
         this._grid = new Grid(this._stage, this._canvas, this._selectedMode, this._selectedSpecies);
         break;
       case "drawing":
@@ -164,7 +168,9 @@ class Main {
         this._drawingToolBox.show();
         this._zoomBox = new ZoomBox();
         this._zoomBox.show();
-        this._grid = new Grid(this._stage, this._canvas, this._selectedMode, "", this._drawingContext, this._drawingCanvas, this._drawingToolBox);
+        this._userCustomSelector = new UserCustomSelector();
+        this._userCustomSelector.show();
+        this._grid = new Grid(this._stage, this._canvas, this._selectedMode, "", this._drawingContext, this._drawingCanvas, this._drawingToolBox, this._userCustomSelector);
         this._grid.zoombox = this._zoomBox;
         this._grid.initListener();
         break;
