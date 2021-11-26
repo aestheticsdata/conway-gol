@@ -8,6 +8,7 @@ class UserCustomSelector {
   public  saveBtn: HTMLButtonElement = document.querySelector('.custom-drawing-files .save');
   private _userCustomService: UserCustomService;
   public gridData: CellGrid;
+  private _created: boolean = false
 
   constructor() {
     this.saveBtn.style.display = "block";
@@ -47,6 +48,14 @@ class UserCustomSelector {
         timer: 3000,
       });
     }
+  }
+
+  public getCustomList = async () => {
+    return await this._userCustomService.getCustomdrawingList();
+  }
+
+  public createSelectButton() {
+    
   }
 }
 

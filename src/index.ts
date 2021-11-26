@@ -169,6 +169,7 @@ class Main {
         this._zoomBox = new ZoomBox();
         this._zoomBox.show();
         this._userCustomSelector = new UserCustomSelector();
+        await this._userCustomSelector.getCustomList();
         this._userCustomSelector.show();
         this._grid = new Grid(this._stage, this._canvas, this._selectedMode, "", this._drawingContext, this._drawingCanvas, this._drawingToolBox, this._userCustomSelector);
         this._grid.zoombox = this._zoomBox;

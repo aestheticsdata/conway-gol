@@ -3,6 +3,14 @@ import Helpers from "../helpers/Helpers";
 import { URLS } from "../helpers/constants";
 
 class UserCustomService {
+  public async getCustomdrawingList() {
+    try {
+      return await axios.get(`${Helpers.getRequestURL(URLS.critterList)}?subdir=user-custom`);
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
   public async postCustomDrawing(data, filename: string) {
     const transformedData = data.map(row => row.map(cell => cell.state));
     const o = {
