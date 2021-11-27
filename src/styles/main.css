@@ -22,6 +22,10 @@ body {
 	outline: 0;
 }
 
+.right-container .user-select-container {
+	margin: 10px 0 10px 0;
+}
+
 .controls-wrapper {
 	height: 100vh;
 	display: flex;

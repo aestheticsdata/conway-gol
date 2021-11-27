@@ -5,14 +5,15 @@ import type { CellGrid } from "../Grid/Grid";
 
 class UserCustomSelector {
   private _customDrawingDOMSelector: HTMLSelectElement = document.querySelector('.custom-drawing-files');
-  public  saveBtn: HTMLButtonElement = document.querySelector('.custom-drawing-files .save');
   private _userListSelector: HTMLSelectElement = document.querySelector('.user-select-container');
   private _userCustomService: UserCustomService;
-  public gridData: CellGrid;
-  private _created: boolean = false;
   private _userCustomList;
+  public  saveBtn: HTMLButtonElement = document.querySelector('.custom-drawing-files .save');
+  public gridData: CellGrid;
+  private _cb;
 
-  constructor() {
+  constructor(cb) {
+    this._cb = cb;
     this.saveBtn.style.display = "block";
     this._userCustomService = new UserCustomService();
     this.saveBtn.addEventListener("click", this._save);
@@ -64,10 +65,16 @@ class UserCustomSelector {
   }
 
   private _createSelectButton() {
+    this._userListSelector.children[0].children[1].innerHTML = "";
     this._userCustomList.forEach(userCritter => {
       const option = `<option name="${userCritter}">${userCritter}</option>`;
       this._userListSelector.children[0].children[1].insertAdjacentHTML('beforeend', option);
     });
+
+    this._userListSelector.addEventListener('change', (e) => {
+      e.preventDefault();
+      this._cb((<HTMLSelectElement>e.target).value);
+    })
   }
 }
 

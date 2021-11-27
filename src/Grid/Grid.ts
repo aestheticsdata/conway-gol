@@ -57,7 +57,15 @@ class Grid {
       this._userCustomSelector.gridData = this._cellsMatrix;
       drawingToolbox.register(this._setDrawingMode);
       this._drawingMode = drawingToolbox.selectedMode;
-      this._createCells(ctx, null, true);
+
+      if (species) {
+        data.factory(species , [0, 0], "custom").then(() => {
+          this._createCells(ctx, data.grid);
+        });
+      } else {
+        this._createCells(ctx, null, true);
+      }
+
       this._drawGrid(ctx);
     }
   }

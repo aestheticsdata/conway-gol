@@ -13,15 +13,15 @@ class Data {
   public comments: string[];
   public commentsDOMSelector: HTMLElement = document.querySelector('.critter-comments');
 
-  private async makeEntity(entity: string, startIndex: number[]) {
+  private async makeEntity(entity: string, startIndex: number[], custom?: string) {
     let o;
-    const url = `${URLS.critter}/${entity}`;
+    const url = custom ? `${URLS.critter}${entity}-custom` : `${URLS.critter}${entity}`;
     try {
       const critter = (await axios.get(`${Helpers.getRequestURL(url)}`)).data;
       const critterParsed = JSON.parse(critter);
       const position = [
-        Math.floor((GRID.SIZE.Y/Cell.size)/2 - critterParsed.automata.length/2),
-        Math.floor((GRID.SIZE.X/Cell.size)/2 - critterParsed.automata[0].length/2),
+        Math.floor(((GRID.SIZE.Y/Cell.size) >> 1) - (critterParsed.automata.length >> 1)),
+        Math.floor(((GRID.SIZE.X/Cell.size) >> 1) - (critterParsed.automata[0].length >> 1)),
       ];
       o = {
         position,
@@ -53,14 +53,14 @@ class Data {
     }
   }
 
-  public async factory(entity, startIndex: number[]) {
+  public async factory(entity, startIndex: number[], custom?: string) {
     for (let i=0; i<Grid.gridSize; i++) {
-      this.grid.push([])
+      this.grid.push([]);
       for (let j=0; j<Grid.gridSize; j++) {
-        this.grid[i].push(new Cell(CELL_STATE.DEAD))
+        this.grid[i].push(new Cell(CELL_STATE.DEAD));
       }
     }
-    await this.makeEntity(entity, startIndex)
+    await this.makeEntity(entity, startIndex, custom);
   }
 }
 

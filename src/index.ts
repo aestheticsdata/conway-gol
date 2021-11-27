@@ -62,6 +62,7 @@ class Main {
   }
 
   private _changeMode = (mode: Mode) => {
+      this._selectedSpecies = null;
       this._selectedMode = mode;
       this._setup();
   }
@@ -167,13 +168,15 @@ class Main {
         (<HTMLInputElement>this._zooPrimitivesDOMSelector).style.display = "none";
         (<HTMLElement>this.commentsDOMSelector).innerHTML = "";
         (<HTMLCanvasElement>this._drawingCanvas).style.display = "block";
-        this._drawingToolBox = new DrawingToolBox();
-        this._drawingToolBox.show();
-        this._zoomBox = new ZoomBox();
-        this._zoomBox.show();
-        this._userCustomSelector = new UserCustomSelector();
-        this._userCustomSelector.show();
-        this._grid = new Grid(this._stage, this._canvas, this._selectedMode, "", this._drawingContext, this._drawingCanvas, this._drawingToolBox, this._userCustomSelector);
+        if (!this._selectedSpecies) {
+          this._drawingToolBox = new DrawingToolBox();
+          this._drawingToolBox.show();
+          this._zoomBox = new ZoomBox();
+          this._zoomBox.show();
+          this._userCustomSelector = new UserCustomSelector(this._changeZoo);
+          this._userCustomSelector.show();
+        }
+        this._grid = new Grid(this._stage, this._canvas, this._selectedMode, this._selectedSpecies, this._drawingContext, this._drawingCanvas, this._drawingToolBox, this._userCustomSelector);
         this._grid.zoombox = this._zoomBox;
         this._grid.initListener();
         break;
