@@ -26,6 +26,10 @@ body {
 	margin: 10px 0 10px 0;
 }
 
+.right-container .custom-cursor {
+	position: absolute;
+}
+
 .controls-wrapper {
 	height: 100vh;
 	display: flex;
@@ -96,7 +100,7 @@ body {
 }
 #canvas-drawing {
 	display: none;
-	cursor: crosshair;
+	cursor: none;
 	position: absolute;
 	top: 80px;
 	left: 0;

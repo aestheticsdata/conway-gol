@@ -23,6 +23,7 @@ class Grid {
   private _drawingMode: DrawingMode;
   public zoombox: ZoomBox;
   private readonly _userCustomSelector: UserCustomSelector;
+  private _cursor: HTMLElement = document.querySelector('.custom-cursor');
 
   constructor(
     ctx: CanvasRenderingContext2D,
@@ -74,6 +75,8 @@ class Grid {
   public initListener() {
     if (this._drawingCanvas) {
       this._drawingCanvas.addEventListener("mousemove", this._drawOnMouseMove);
+      this._drawingCanvas.addEventListener("mouseenter", this._mouseenter);
+      this._drawingCanvas.addEventListener("mouseleave", this._mouseLeave);
       this._drawingCanvas.addEventListener("mousedown", this._mouseDown);
       this._drawingCanvas.addEventListener("mouseup", this._mouseUp);
     }
@@ -81,6 +84,8 @@ class Grid {
   public destroyListener() {
     if (this._drawingCanvas) {
       this._drawingCanvas.removeEventListener("mousemove", this._drawOnMouseMove);
+      this._drawingCanvas.removeEventListener("mouseenter", this._mouseenter);
+      this._drawingCanvas.removeEventListener("mouseleave", this._mouseLeave);
       this._drawingCanvas.removeEventListener("mousedown", this._mouseDown);
       this._drawingCanvas.removeEventListener("mouseup", this._mouseUp);
     }
@@ -91,7 +96,24 @@ class Grid {
     this._drawingMode = drawingMode;
   }
 
+  private _mouseenter = (_e) => {
+    this._cursor.style.display = "block";
+    if (this._drawingMode === "pencil") {
+      (<HTMLElement>this._cursor.querySelector('.cursor.pencil')).style.display = "block";
+      (<HTMLElement>this._cursor.querySelector('.cursor.eraser')).style.display = "none";
+    } else {
+      (<HTMLElement>this._cursor.querySelector('.cursor.pencil')).style.display = "none";
+      (<HTMLElement>this._cursor.querySelector('.cursor.eraser')).style.display = "block";
+    }
+  }
+
+  private _mouseLeave = (_e) => {
+    this._cursor.style.display = "none";
+  }
+
   private _drawOnMouseMove = (e) => {
+    this._cursor.style.left = e.clientX + "px";
+    this._cursor.style.top = e.clientY - 27 + "px";
     const res = this._getCell(e.offsetX, e.offsetY);
     const cell = new Cell(this._drawingMode === "pencil" ? CELL_STATE.ALIVE : CELL_STATE.DEAD);
 
