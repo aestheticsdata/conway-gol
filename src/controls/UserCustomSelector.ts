@@ -6,14 +6,19 @@ import type { CellGrid } from "../Grid/Grid";
 class UserCustomSelector {
   private _customDrawingDOMSelector: HTMLSelectElement = document.querySelector('.custom-drawing-files');
   public  saveBtn: HTMLButtonElement = document.querySelector('.custom-drawing-files .save');
+  private _userListSelector: HTMLSelectElement = document.querySelector('.user-select-container');
   private _userCustomService: UserCustomService;
   public gridData: CellGrid;
-  private _created: boolean = false
+  private _created: boolean = false;
+  private _userCustomList;
 
   constructor() {
     this.saveBtn.style.display = "block";
     this._userCustomService = new UserCustomService();
     this.saveBtn.addEventListener("click", this._save);
+    if (!this._userCustomList) {
+      this.getCustomList();
+    }
   }
 
   public show() {
@@ -39,6 +44,8 @@ class UserCustomSelector {
     });
     if (filename) {
       await this._userCustomService.postCustomDrawing(this.gridData, filename);
+      this._userListSelector.children[0].children[1].innerHTML = "";
+      await this.getCustomList();
       await Swal.fire({
         toast: true,
         icon: 'success',
@@ -51,11 +58,16 @@ class UserCustomSelector {
   }
 
   public getCustomList = async () => {
-    return await this._userCustomService.getCustomdrawingList();
+    const { data } = await this._userCustomService.getCustomdrawingList();
+    this._userCustomList = data;
+    this._createSelectButton();
   }
 
-  public createSelectButton() {
-    
+  private _createSelectButton() {
+    this._userCustomList.forEach(userCritter => {
+      const option = `<option name="${userCritter}">${userCritter}</option>`;
+      this._userListSelector.children[0].children[1].insertAdjacentHTML('beforeend', option);
+    });
   }
 }
 

@@ -1,9 +1,9 @@
-import axios from 'axios';
+import axios, {AxiosResponse} from 'axios';
 import Helpers from "../helpers/Helpers";
 import { URLS } from "../helpers/constants";
 
 class UserCustomService {
-  public async getCustomdrawingList() {
+  public async getCustomdrawingList(): Promise<AxiosResponse> {
     try {
       return await axios.get(`${Helpers.getRequestURL(URLS.critterList)}?subdir=user-custom`);
     } catch (err) {
