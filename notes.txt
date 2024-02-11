@@ -3,3 +3,7 @@ Je me suis aperçu que le build ne marchait pas en prod,c ar des "/" étaient aj
 dans le package.json, une prop de config de Parcel (le bundler) est publicUrl. Elle était à "./", je l'ai passé à ".". Mais parfois avec ".", le index.html n'est pas généré, parfois il est généré. Et avec "./", parfois le slash n'est pas rajouté dans les imports dans l'index.html, parfois il est ajouté...
 En tout cas en prod, il ne faut pas le slash devant les imports.
 voir la doc de Parcel : https://parceljs.org/features/targets/
+
+voir aussi :
+- https://stackoverflow.com/questions/56369297/parceljs-add-extra-before-all-files-link
+- https://github.com/parcel-bundler/parcel/issues/2629
