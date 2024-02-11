@@ -18,11 +18,12 @@
   "license": "MIT",
   "devDependencies": {
     "@types/lodash": "^4.14.176",
-    "parcel": "^2.0.1"
+    "buffer": "^5.5.0||^6.0.0"
   },
   "dependencies": {
-    "axios": "^0.24.0",
+    "axios": "^1.6.7",
     "lodash": "^4.17.21",
+    "parcel": "^2.11.0",
     "sweetalert2": "^11.2.1",
     "uuid": "^8.3.2"
   }

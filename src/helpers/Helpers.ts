@@ -2,7 +2,7 @@ import { GRID } from "../Grid/constants";
 import Cell from "../Cell/Cell";
 
 class Helpers {
-  public static getRequestURL = (url: string) => window.location.pathname.search('conway-gol') !== -1 ? `http://1991computer.com/conway-gol/api/${url}` : `http://localhost:5030/${url}`;
+  public static getRequestURL = (url: string) => window.location.pathname.search('conway-gol') !== -1 ? `https://1991computer.com/conway-gol/api/${url}` : `http://localhost:5030/${url}`;
   public static drawGrid = (ctx, canvas, zoom=1, color?) => {
     ctx.beginPath();
     ctx.strokeStyle = color ?? GRID.COLOR;
