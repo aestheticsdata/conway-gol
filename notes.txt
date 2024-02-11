@@ -1,0 +1,5 @@
+il y a un problème au build qui a l'air aléatoire.
+Je me suis aperçu que le build ne marchait pas en prod,c ar des "/" étaient ajoutés pour les imports de css ou d'icones.
+dans le package.json, une prop de config de Parcel (le bundler) est publicUrl. Elle était à "./", je l'ai passé à ".". Mais parfois avec ".", le index.html n'est pas généré, parfois il est généré. Et avec "./", parfois le slash n'est pas rajouté dans les imports dans l'index.html, parfois il est ajouté...
+En tout cas en prod, il ne faut pas le slash devant les imports.
+voir la doc de Parcel : https://parceljs.org/features/targets/
