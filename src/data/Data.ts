@@ -11,52 +11,83 @@ import { URLS } from "../helpers/constants";
 class Data {
   public grid: CellGrid = [];
   public comments: string[];
-  public commentsDOMSelector: HTMLElement = document.querySelector('.critter-comments');
+  public commentsDOMSelector: HTMLElement =
+    document.querySelector(".critter-comments");
 
-  private async makeEntity(entity: string, startIndex: number[], custom?: string) {
+  private async makeEntity(
+    entity: string,
+    startIndex: number[],
+    custom?: string
+  ) {
     let o;
-    const url = custom ? `${URLS.critter}${entity}-custom` : `${URLS.critter}${entity}`;
+    const url = custom
+      ? `${URLS.critter}${entity}-custom`
+      : `${URLS.critter}${entity}`;
     try {
       const critter = (await axios.get(`${Helpers.getRequestURL(url)}`)).data;
-      const critterParsed = JSON.parse(critter);
+      // Handle both cases: if axios already parsed JSON or if it's still a string
+      const critterParsed = typeof critter === 'string' ? JSON.parse(critter) : critter;
+      console.log("critterParsed", critterParsed);
       const position = [
-        Math.floor(((GRID.SIZE.Y/Cell.size) >> 1) - (critterParsed.automata.length >> 1)),
-        Math.floor(((GRID.SIZE.X/Cell.size) >> 1) - (critterParsed.automata[0].length >> 1)),
+        Math.floor(
+          ((GRID.SIZE.Y / Cell.size) >> 1) -
+            (critterParsed.automata.length >> 1)
+        ),
+        Math.floor(
+          ((GRID.SIZE.X / Cell.size) >> 1) -
+            (critterParsed.automata[0].length >> 1)
+        ),
       ];
+      console.log("position", position);
       o = {
         position,
         content: critterParsed.automata,
       };
+      console.log("o", o);
 
       let commentsList = critterParsed.comments;
-      commentsList = commentsList.map(line => {
+      commentsList = commentsList.map((line) => {
         let tmpLine;
-        if (line.includes('http')) {
+        if (line.includes("http")) {
           tmpLine = `<a href="${line}" target="_blank" title="${line}">- ${line}</a>`;
         } else {
-          tmpLine = '- '+line;
+          tmpLine = "- " + line;
         }
         return tmpLine;
       });
-      this.commentsDOMSelector.innerHTML = commentsList.join('<br />');
+      this.commentsDOMSelector.innerHTML = commentsList.join("<br />");
     } catch (err) {
+      console.error("Error fetching critter:", err);
       o = species[entity];
+      if (!o) {
+        console.error(`Species "${entity}" not found in API or local species`);
+        return;
+      }
+    }
+
+    if (!o || !o.content) {
+      console.error("Invalid critter data:", o);
+      return;
     }
 
     const startPosition = o.position ?? startIndex;
-    for (let j=0; j<o.content.length; j++) {
-      for (let i=0; i<o.content[0].length; i++) {
+    for (let j = 0; j < o.content.length; j++) {
+      for (let i = 0; i < o.content[0].length; i++) {
         if (o.content[j][i] === 1) {
-          this.grid[j+startPosition[0]][i+startPosition[1]].state = CELL_STATE.ALIVE
+          this.grid[j + startPosition[0]][i + startPosition[1]].state =
+            CELL_STATE.ALIVE;
         }
       }
     }
   }
 
   public async factory(entity, startIndex: number[], custom?: string) {
-    for (let i=0; i<Grid.gridSize; i++) {
+    console.log("entity", entity);
+    console.log("startIndex", startIndex);
+    console.log("custom", custom);
+    for (let i = 0; i < Grid.gridSize; i++) {
       this.grid.push([]);
-      for (let j=0; j<Grid.gridSize; j++) {
+      for (let j = 0; j < Grid.gridSize; j++) {
         this.grid[i].push(new Cell(CELL_STATE.DEAD));
       }
     }
@@ -64,4 +95,4 @@ class Data {
   }
 }
 
-export default Data
+export default Data;
