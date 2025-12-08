@@ -8,17 +8,39 @@ REMOTE_ROOT="/var/www/1991computer"
 APP_NAME="conway-gol"
 REMOTE_FRONT="$REMOTE_ROOT/$APP_NAME/front"
 
-TIMESTAMP=$(date +"%Y-%m-%d-%Hh%M%S")
-RELEASE_DIR="$REMOTE_FRONT/releases/$TIMESTAMP"
-
 GREEN="\033[0;32m"
-BLUE="\033[0;34m"
+BLUE="\033[38;5;81m"
 RED="\033[0;31m"
 RESET="\033[0m"
 
 log() { printf "${BLUE}%s${RESET}\n" "$1"; }
 ok() { printf "${GREEN}%s${RESET}\n" "$1"; }
 err() { printf "${RED}%s${RESET}\n" "$1"; }
+
+manual_rollback() {
+  log "Searching releases..."
+  RELEASES=$(ssh "$SERVER_USER@$SERVER_HOST" "ls -1t '$REMOTE_FRONT/releases'")
+  CURRENT=$(ssh "$SERVER_USER@$SERVER_HOST" "readlink '$REMOTE_FRONT/current' | xargs basename")
+
+  PREVIOUS=$(echo "$RELEASES" | grep -v "$CURRENT" | head -n 1)
+
+  if [ -z "$PREVIOUS" ]; then
+    err "No previous release available."
+    exit 1
+  fi
+
+  log "Rolling back to: $PREVIOUS"
+  ssh "$SERVER_USER@$SERVER_HOST" "rm -rf '$REMOTE_FRONT/current' && ln -s '$REMOTE_FRONT/releases/$PREVIOUS' '$REMOTE_FRONT/current'"
+  ok "Rollback complete. Reload nginx manually when ready."
+  exit 0
+}
+
+if [ "${1:-}" = "rollback" ]; then
+  manual_rollback
+fi
+
+TIMESTAMP=$(date +"%Y-%m-%d-%Hh%M%S")
+RELEASE_DIR="$REMOTE_FRONT/releases/$TIMESTAMP"
 
 if [ ! -d "src" ]; then
   err "src/ directory not found. Run this script from the front/ folder."
@@ -29,18 +51,36 @@ log "Building project..."
 pnpm build
 ok "Build complete."
 
-log "Preparing release folder on server..."
+log "Preparing release folder..."
 ssh "$SERVER_USER@$SERVER_HOST" "mkdir -p '$REMOTE_FRONT/releases'"
 
-log "Uploading build to server..."
-rsync -az dist/ "$SERVER_USER@$SERVER_HOST:$RELEASE_DIR/"
+CURRENT_RELEASE=$(ssh "$SERVER_USER@$SERVER_HOST" "readlink '$REMOTE_FRONT/current' || true")
+
+log "Uploading new release..."
+rsync -az dist/ "$SERVER_USER@$SERVER_HOST:$RELEASE_DIR/" || {
+  err "Upload failed."
+  exit 1
+}
 ok "Upload complete."
 
-log "Removing existing symlink..."
-ssh "$SERVER_USER@$SERVER_HOST" "rm -rf '$REMOTE_FRONT/current'"
+rollback_auto() {
+  err "Deploy failed. Rolling back..."
+  if [ -n "$CURRENT_RELEASE" ]; then
+    ssh "$SERVER_USER@$SERVER_HOST" "rm -rf '$REMOTE_FRONT/current' && ln -s '$CURRENT_RELEASE' '$REMOTE_FRONT/current'"
+    ok "Rollback restored previous release."
+  else
+    err "No previous release to restore."
+  fi
+  ssh "$SERVER_USER@$SERVER_HOST" "rm -rf '$RELEASE_DIR'"
+  exit 1
+}
 
 log "Switching active release..."
-ssh "$SERVER_USER@$SERVER_HOST" "ln -s '$RELEASE_DIR' '$REMOTE_FRONT/current'"
+ssh "$SERVER_USER@$SERVER_HOST" "rm -rf '$REMOTE_FRONT/current' && ln -s '$RELEASE_DIR' '$REMOTE_FRONT/current'" || rollback_auto
 ok "Active release set to $TIMESTAMP."
 
-ok "Deployment complete. Reload nginx manually when ready."
+log "Cleaning old releases..."
+ssh "$SERVER_USER@$SERVER_HOST" "cd '$REMOTE_FRONT/releases' && ls -1t | tail -n +4 | xargs -r rm -rf"
+ok "Cleanup complete."
+
+ok "Deployment successful. Reload nginx manually when ready."
