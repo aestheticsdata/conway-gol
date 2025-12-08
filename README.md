@@ -3,6 +3,6 @@
 Conway's Game Of Life
 
 - front: 100% TypeScript OOP
-- Parcel bundler
+- Vite bundler
 
 http://1991computer.com/conway-gol/
