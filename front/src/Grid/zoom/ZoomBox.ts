@@ -1,7 +1,8 @@
 import Helpers from "../../helpers/Helpers";
 import { GRID, CELL_COLORS, CELL_SIZE, ZOOM_CANVAS_PX, ZOOM_CENTER, ZOOM_LEVEL, ZOOM_SIZE } from "../constants";
 import { CELL_STATE } from "../../Cell/constants";
-import { DrawingMode } from "../../controls/DrawingToolBox";
+import type { DrawingMode } from "../../controls/DrawingToolBox";
+import { getRequiredContext2D, queryRequired } from "../../helpers/dom";
 
 /**
  * ZoomBox — 4× magnified 7×7 neighbourhood view around the drawing cursor.
@@ -25,26 +26,26 @@ class ZoomBox {
   private _zoombox: HTMLElement;
   private readonly _zoomCanvas: HTMLCanvasElement;
   private readonly _zoomContext: CanvasRenderingContext2D;
-  private _xPosDisplay: Element;
-  private _yPosDisplay: Element;
+  private readonly _xPosDisplay: HTMLElement;
+  private readonly _yPosDisplay: HTMLElement;
 
   constructor() {
-    document.querySelector(".zoombox-container").insertAdjacentHTML("afterbegin", this._html);
-    this._zoombox = document.querySelector(".zoombox");
-    this._zoomCanvas = <HTMLCanvasElement>this._zoombox.children[0];
+    queryRequired<HTMLElement>(".zoombox-container").insertAdjacentHTML("afterbegin", this._html);
+    this._zoombox = queryRequired<HTMLElement>(".zoombox");
+    this._zoomCanvas = queryRequired<HTMLCanvasElement>("#zoombox", this._zoombox);
     this._zoomCanvas.width = ZOOM_CANVAS_PX;
     this._zoomCanvas.height = ZOOM_CANVAS_PX;
-    this._zoomContext = this._zoomCanvas.getContext("2d");
+    this._zoomContext = getRequiredContext2D(this._zoomCanvas);
     this._renderBlank();
-    this._xPosDisplay = document.querySelector('.x-pos');
-    this._yPosDisplay = document.querySelector('.y-pos');
+    this._xPosDisplay = queryRequired<HTMLElement>('.x-pos', this._zoombox);
+    this._yPosDisplay = queryRequired<HTMLElement>('.y-pos', this._zoombox);
   }
 
-  public show() {
+  public show(): void {
     this._zoombox.style.display = "block";
   }
 
-  public hide() {
+  public hide(): void {
     this._zoombox.style.display = "none";
   }
 
@@ -55,7 +56,12 @@ class ZoomBox {
    * @param x  Column coordinate (displayed in the HUD).
    * @param y  Row coordinate (displayed in the HUD).
    */
-  public displayArea(area: number[][], drawingMode: DrawingMode, x = 0, y = 0) {
+  public displayArea(
+    area: number[][],
+    drawingMode: DrawingMode,
+    x = 0,
+    y = 0,
+  ): void {
     if (!area) return;
     this._renderArea(drawingMode, area);
     this._xPosDisplay.textContent = String(x);

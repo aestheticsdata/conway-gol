@@ -1,13 +1,19 @@
-import Grid from "./Grid/Grid"
-import ModeSelector from "./controls/ModeSelector"
-import type { Mode } from "./controls/ModeSelector"
-import ZooSelector from "./controls/ZooSelector";
-import axios from 'axios';
-import Helpers from "./helpers/Helpers";
-import DrawingToolBox from "./controls/DrawingToolBox";
+import axios from "axios";
+import Grid from "./Grid/Grid";
 import { GRID } from "./Grid/constants";
+import {
+  DEFAULT_RANDOM_PRESET,
+  RANDOM_PRESETS,
+  isRandomPresetId,
+  type RandomPresetId,
+} from "./Grid/randomPresets";
 import ZoomBox from "./Grid/zoom/ZoomBox";
+import DrawingToolBox from "./controls/DrawingToolBox";
+import ModeSelector, { type Mode } from "./controls/ModeSelector";
 import UserCustomSelector from "./controls/UserCustomSelector";
+import ZooSelector from "./controls/ZooSelector";
+import { getRequiredContext2D, queryRequired } from "./helpers/dom";
+import Helpers from "./helpers/Helpers";
 import { URLS } from "./helpers/constants";
 
 class Main {
@@ -15,188 +21,307 @@ class Main {
   private readonly _stage: CanvasRenderingContext2D;
   private readonly _drawingCanvas: HTMLCanvasElement;
   private readonly _drawingContext: CanvasRenderingContext2D;
-  private _requestAnimationID: number;
-  private _isPlaying: boolean = false;
-  private _grid: Grid;
-  private _iterationCounterValue: number = 0;
-  private _iterationCounter: HTMLElement = document.querySelector('.iteration-counter');
-  private _pauseBtn: HTMLButtonElement = document.querySelector('button');
-  private _speedSelector: HTMLInputElement = document.querySelector('#speed-input');
-  public commentsDOMSelector: HTMLElement = document.querySelector('.critter-comments');
-  private _zooPrimitivesDOMSelector = document.querySelector('.zoo-selector');
-  private _modeSelector: ModeSelector;
+  private readonly _iterationCounter: HTMLElement;
+  private readonly _pauseBtn: HTMLButtonElement;
+  private readonly _speedSelector: HTMLInputElement;
+  private readonly _commentsDOMSelector: HTMLElement;
+  private readonly _zooPrimitivesDOMSelector: HTMLElement;
+  private readonly _randomPresetContainer: HTMLElement;
+  private readonly _randomPresetSelect: HTMLSelectElement;
+  private readonly _randomGenerateBtn: HTMLButtonElement;
+  private readonly _customCursor: HTMLElement;
+  private readonly _changeZoo: (species: string) => void;
+  private _requestAnimationID = 0;
+  private _isPlaying = false;
+  private _grid: Grid | null = null;
+  private _iterationCounterValue = 0;
   private _selectedMode: Mode = "random";
-  private _zooSelector: ZooSelector;
+  private _zooSelector?: ZooSelector;
   private _fps = 12;
-  private _fpsInterval;
-  private _startTime;
-  private _now;
-  private _lastDrawTime;
-  private _elapsed;
-  private readonly _changeZoo;
-  private _selectedSpecies: string;
-  private _critterList: Promise<string[]>;
-  private _drawingToolBox: DrawingToolBox;
-  private _zoomBox: ZoomBox;
-  private _userCustomSelector: UserCustomSelector;
-
+  private _fpsInterval = 0;
+  private _now = 0;
+  private _lastDrawTime = 0;
+  private _elapsed = 0;
+  private _selectedSpecies: string | null = null;
+  private _critterList?: string[];
+  private _drawingToolBox?: DrawingToolBox;
+  private _zoomBox?: ZoomBox;
+  private _userCustomSelector?: UserCustomSelector;
 
   constructor() {
-    this._canvas = document.querySelector('#canvasID');
+    this._canvas = queryRequired<HTMLCanvasElement>("#canvasID");
     this._canvas.width = GRID.SIZE.X;
     this._canvas.height = GRID.SIZE.Y;
-    this._stage = this._canvas.getContext('2d');
-    this._drawingCanvas = document.querySelector('#canvas-drawing');
+    this._stage = getRequiredContext2D(this._canvas);
+
+    this._drawingCanvas = queryRequired<HTMLCanvasElement>("#canvas-drawing");
     this._drawingCanvas.width = GRID.SIZE.X;
     this._drawingCanvas.height = GRID.SIZE.Y;
-    this._drawingContext = this._drawingCanvas.getContext('2d');
-    this._pauseBtn.addEventListener('click', this._togglePause);
-    this._setFPS();
-    this._pauseBtn.textContent = 'start';
-    this._iterationCounter.textContent = String(this._iterationCounterValue);
-    this._modeSelector = new ModeSelector(this._changeMode);
-    this._changeZoo = (species) => {
+    this._drawingContext = getRequiredContext2D(this._drawingCanvas);
+
+    this._iterationCounter = queryRequired<HTMLElement>(".iteration-counter");
+    this._pauseBtn = queryRequired<HTMLButtonElement>("button.pause");
+    this._speedSelector = queryRequired<HTMLInputElement>("#speed-input");
+    this._commentsDOMSelector = queryRequired<HTMLElement>(".critter-comments");
+    this._zooPrimitivesDOMSelector = queryRequired<HTMLElement>(".zoo-selector");
+    this._randomPresetContainer = queryRequired<HTMLElement>(".random-preset-selector");
+    this._randomPresetSelect = queryRequired<HTMLSelectElement>("#random-preset");
+    this._randomGenerateBtn = queryRequired<HTMLButtonElement>(".random-generate");
+    this._customCursor = queryRequired<HTMLElement>(".custom-cursor");
+
+    this._changeZoo = (species: string) => {
       this._selectedSpecies = species;
-      this._setup();
+      void this._setup();
+    };
+
+    this._renderRandomPresetOptions();
+    this._pauseBtn.addEventListener("click", this._togglePause);
+    this._setFPS();
+    this._pauseBtn.textContent = "start";
+    this._resetIterationCounter();
+
+    new ModeSelector(this._changeMode);
+    this._randomPresetSelect.addEventListener("change", this._onRandomPresetChange);
+    this._randomGenerateBtn.addEventListener("click", this._onRandomPresetGenerate);
+  }
+
+  private _changeMode = (mode: Mode): void => {
+    this._selectedSpecies = null;
+    this._selectedMode = mode;
+    void this._setup();
+  };
+
+  private _renderRandomPresetOptions(): void {
+    this._randomPresetSelect.replaceChildren(
+      ...RANDOM_PRESETS.map(({ id, label }) => {
+        const option = document.createElement("option");
+        option.value = id;
+        option.textContent = label;
+        option.selected = id === DEFAULT_RANDOM_PRESET;
+        return option;
+      }),
+    );
+  }
+
+  private _currentRandomPreset(): RandomPresetId {
+    const value = this._randomPresetSelect.value;
+    return isRandomPresetId(value) ? value : DEFAULT_RANDOM_PRESET;
+  }
+
+  private _resetIterationCounter(): void {
+    this._iterationCounterValue = 0;
+    this._iterationCounter.textContent = "0";
+  }
+
+  private _resetPlaybackControls(): void {
+    this._resetIterationCounter();
+    this._fps = 12;
+    this._speedSelector.value = String(this._fps);
+  }
+
+  private _onRandomPresetChange = (): void => {
+    if (this._selectedMode !== "random" || !this._grid) {
+      return;
     }
-  }
 
-  private _changeMode = (mode: Mode) => {
-      this._selectedSpecies = null;
-      this._selectedMode = mode;
-      this._setup();
-  }
+    this._resetIterationCounter();
+    this._grid.reseedRandomPreset(this._currentRandomPreset(), false);
+  };
 
-  private _setFPS() {
-    this._speedSelector.value = String(this._fps)
-    this._speedSelector.addEventListener('keypress', this._handleEnterKey)
-    this._speedSelector.addEventListener('change', (e: Event) => {
-      this._fps = parseInt((e.currentTarget as HTMLInputElement).value)
-    })
-  }
-
-  private _handleEnterKey = (e: KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      if (Number((e.currentTarget as HTMLInputElement).value) > 60) {
-        this._fps = 60
-        this._speedSelector.value = String(this._fps)
-      }
-      if (Number((e.currentTarget as HTMLInputElement).value) < 1) {
-        this._fps = 1
-        this._speedSelector.value = String(this._fps)
-      }
-      (e.currentTarget as HTMLInputElement).blur();
+  private _onRandomPresetGenerate = (): void => {
+    if (this._selectedMode !== "random" || !this._grid) {
+      return;
     }
+
+    this._resetIterationCounter();
+    this._grid.reseedRandomPreset(this._currentRandomPreset(), true);
+  };
+
+  private _setFPS(): void {
+    this._speedSelector.value = String(this._fps);
+    this._speedSelector.addEventListener("keypress", this._handleEnterKey);
+    this._speedSelector.addEventListener("change", (e: Event) => {
+      const nextValue = Number.parseInt(
+        (e.currentTarget as HTMLInputElement).value,
+        10,
+      );
+      if (!Number.isNaN(nextValue)) {
+        this._fps = nextValue;
+      }
+    });
   }
 
-  private _renderGeneration() {
-    this._grid.processNextGeneration(this._stage)
+  private _handleEnterKey = (e: KeyboardEvent): void => {
+    if (e.key !== "Enter") {
+      return;
+    }
+
+    e.preventDefault();
+    const input = e.currentTarget as HTMLInputElement;
+    const requestedFps = Number(input.value);
+
+    if (requestedFps > 60) {
+      this._fps = 60;
+      this._speedSelector.value = String(this._fps);
+    } else if (requestedFps < 1) {
+      this._fps = 1;
+      this._speedSelector.value = String(this._fps);
+    } else if (!Number.isNaN(requestedFps)) {
+      this._fps = requestedFps;
+    }
+
+    input.blur();
+  };
+
+  private _renderGeneration(): void {
+    this._grid?.processNextGeneration();
   }
 
-  private _togglePause = () => {
-    if (this._isPlaying){
-      this._stop()
-      this._pauseBtn.textContent = 'start'
+  private _togglePause = (): void => {
+    if (this._isPlaying) {
+      this._stop();
+      this._pauseBtn.textContent = "start";
     } else {
-      this._pauseBtn.textContent = 'pause'
-      this._start()
+      this._pauseBtn.textContent = "pause";
+      this._start();
     }
-    this._isPlaying = !this._isPlaying
-  }
+    this._isPlaying = !this._isPlaying;
+  };
 
-  private _step = (_timestamp) => {
-    this._fpsInterval = 1000 / this._fps
+  private _step = (_timestamp: number): void => {
+    this._fpsInterval = 1000 / this._fps;
     this._now = Date.now();
-    this._elapsed = this._now - this._lastDrawTime
+    this._elapsed = this._now - this._lastDrawTime;
+
     if (this._elapsed > this._fpsInterval) {
-      this._lastDrawTime = this._now - (this._elapsed % this._fpsInterval)
-      this._iterationCounterValue++
-      this._iterationCounter.textContent = String(this._iterationCounterValue)
-      this._renderGeneration()
+      this._lastDrawTime = this._now - (this._elapsed % this._fpsInterval);
+      this._iterationCounterValue++;
+      this._iterationCounter.textContent = String(this._iterationCounterValue);
+      this._renderGeneration();
     }
-    this._requestAnimationID = window.requestAnimationFrame(this._step)
-  }
 
-  private _start = () => {
+    this._requestAnimationID = window.requestAnimationFrame(this._step);
+  };
+
+  private _start = (): void => {
     // https://stackoverflow.com/questions/19764018/controlling-fps-with-requestanimationframe
-    this._lastDrawTime = Date.now()
-    this._startTime = this._lastDrawTime
-    this._requestAnimationID = window.requestAnimationFrame(this._step)
+    this._lastDrawTime = Date.now();
+    this._requestAnimationID = window.requestAnimationFrame(this._step);
+  };
+
+  private _stop = (): void => {
+    cancelAnimationFrame(this._requestAnimationID);
+  };
+
+  private _setDisplay(element: HTMLElement, visible: boolean): void {
+    element.style.display = visible ? "block" : "none";
   }
 
-  private _stop = () => {
-    cancelAnimationFrame(this._requestAnimationID)
-  }
-
-  private async _setup() {
-    // call togglePause only if switching from one mode to another
-    // not the first time start is clicked
-    if (this._isPlaying === true) {
-      this._togglePause()
+  private async _loadCritterList(): Promise<string[] | undefined> {
+    if (this._critterList) {
+      return this._critterList;
     }
+
+    try {
+      this._critterList = (await axios.get<string[]>(
+        `${Helpers.getRequestURL(URLS.critterList)}`,
+      )).data;
+      return this._critterList;
+    } catch (err) {
+      console.error(err);
+      return undefined;
+    }
+  }
+
+  private async _setup(): Promise<void> {
+    if (this._isPlaying) {
+      this._togglePause();
+    }
+
+    this._grid?.destroyListener();
+
     switch (this._selectedMode) {
       case "random":
         this._drawingToolBox?.hide();
-        this._grid?.destroyListener();
-        (<HTMLInputElement>this._zooPrimitivesDOMSelector).style.display = "none";
-        (<HTMLElement>this.commentsDOMSelector).innerHTML = "";
-        (<HTMLCanvasElement>this._drawingCanvas).style.display = "none";
+        this._setDisplay(this._zooPrimitivesDOMSelector, false);
+        this._setDisplay(this._randomPresetContainer, true);
+        this._commentsDOMSelector.innerHTML = "";
+        this._setDisplay(this._drawingCanvas, false);
         this._zoomBox?.hide();
         this._userCustomSelector?.hide();
-        this._grid = new Grid(this._stage, this._canvas, this._selectedMode);
+        this._grid = new Grid({
+          canvas: this._canvas,
+          ctx: this._stage,
+          mode: "random",
+          randomPreset: this._currentRandomPreset(),
+        });
         break;
-      case "zoo":
-        try {
-          if (!this._critterList) {
-            this._critterList = (await axios.get(`${Helpers.getRequestURL(URLS.critterList)}`)).data;
-          }
-        } catch (err) {
-          console.log(err);
-        }
+
+      case "zoo": {
+        const critterList = await this._loadCritterList();
         this._drawingToolBox?.hide();
-        this._grid?.destroyListener();
-        if (!this._zooSelector) this._zooSelector = new ZooSelector();
-        this._zooSelector.createSelectButton(this._zooPrimitivesDOMSelector, this._changeZoo, this._critterList);
-        (<HTMLInputElement>this._zooPrimitivesDOMSelector).style.display = "block";
-        (<HTMLCanvasElement>this._drawingCanvas).style.display = "none";
+        this._setDisplay(this._randomPresetContainer, false);
+        this._zooSelector ??= new ZooSelector();
+        this._zooSelector.createSelectButton(
+          this._zooPrimitivesDOMSelector,
+          this._changeZoo,
+          critterList,
+        );
+        this._setDisplay(this._zooPrimitivesDOMSelector, true);
+        this._setDisplay(this._drawingCanvas, false);
         this._zoomBox?.hide();
         this._userCustomSelector?.hide();
-        this._grid = new Grid(this._stage, this._canvas, this._selectedMode, this._selectedSpecies);
+        this._grid = new Grid({
+          canvas: this._canvas,
+          ctx: this._stage,
+          mode: "zoo",
+          species: this._selectedSpecies ?? undefined,
+        });
         break;
+      }
+
       case "drawing":
-        (<HTMLInputElement>this._zooPrimitivesDOMSelector).style.display = "none";
-        (<HTMLElement>this.commentsDOMSelector).innerHTML = "";
-        (<HTMLCanvasElement>this._drawingCanvas).style.display = "block";
-        if (!this._selectedSpecies) {
-          this._drawingToolBox = new DrawingToolBox();
-          this._drawingToolBox.show();
-          this._zoomBox = new ZoomBox();
-          this._zoomBox.show();
-          this._userCustomSelector = new UserCustomSelector(this._changeZoo);
-          this._userCustomSelector.show();
-        }
-        this._grid = new Grid(this._stage, this._canvas, this._selectedMode, this._selectedSpecies, this._drawingContext, this._drawingCanvas, this._drawingToolBox, this._userCustomSelector);
-        this._grid.zoombox = this._zoomBox;
+        this._setDisplay(this._randomPresetContainer, false);
+        this._setDisplay(this._zooPrimitivesDOMSelector, false);
+        this._commentsDOMSelector.innerHTML = "";
+        this._setDisplay(this._drawingCanvas, true);
+        this._drawingToolBox ??= new DrawingToolBox();
+        this._zoomBox ??= new ZoomBox();
+        this._userCustomSelector ??= new UserCustomSelector(this._changeZoo);
+        this._drawingToolBox.show();
+        this._zoomBox.show();
+        this._userCustomSelector.show();
+        this._grid = new Grid({
+          canvas: this._canvas,
+          ctx: this._stage,
+          cursor: this._customCursor,
+          drawingCanvas: this._drawingCanvas,
+          drawingContext: this._drawingContext,
+          drawingToolbox: this._drawingToolBox,
+          mode: "drawing",
+          species: this._selectedSpecies ?? undefined,
+          userCustomSelector: this._userCustomSelector,
+          zoombox: this._zoomBox,
+        });
         this._grid.initListener();
         break;
     }
-    this._iterationCounterValue = 0;
-    this._fps = 12;
-    this._speedSelector.value = String(this._fps);
-    this._iterationCounter.textContent = String(this._iterationCounterValue);
+
+    this._resetPlaybackControls();
   }
 
-  init() {
-    this._setup()
-    const url = new URLSearchParams(window.location.search)
-    if (url.get('autostart') === '1') {
-      this._togglePause()
+  public async init(): Promise<void> {
+    const url = new URLSearchParams(window.location.search);
+    if (url.get("drawing") === "1") {
+      this._selectedMode = "drawing";
     }
-    if (url.get('drawing') === '1') {
-      this._changeMode("drawing");
+
+    await this._setup();
+
+    if (url.get("autostart") === "1") {
+      this._togglePause();
     }
   }
 }
 
-(new Main()).init()
+void (new Main()).init();

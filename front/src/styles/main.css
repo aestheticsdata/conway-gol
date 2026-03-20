@@ -132,6 +132,21 @@ button:active {
 	background-color: rgba(255,204,0,.7);
 }
 
+.random-preset-selector {
+	margin-top: 80px;
+}
+.random-preset-selector label {
+	font-size: 20px;
+	margin-right: 6px;
+}
+
+.random-preset-selector .random-generate {
+	display: block;
+	margin-top: 10px;
+	width: auto;
+	min-width: 100px;
+}
+
 .zoo-selector {
 	position: absolute;
 	top: 300px;
@@ -168,7 +183,8 @@ select, input {
 	padding: 3px;
 }
 
-#primitives {
+#primitives,
+#random-preset {
 	width: 150px;
 }
 

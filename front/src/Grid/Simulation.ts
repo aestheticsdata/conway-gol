@@ -1,5 +1,10 @@
 import { CELL_STATE } from "../Cell/constants";
-import { GRID_COLS, GRID_ROWS, INITIAL_DENSITY } from "./constants";
+import { GRID_COLS, GRID_ROWS } from "./constants";
+import type { RandomPresetId } from "./randomPresets";
+import {
+  RandomPresetSeeder,
+  type IRandomPresetSeeder,
+} from "./seeding/RandomPresetSeeder";
 
 /**
  * Pure Conway's Game of Life simulation engine.
@@ -22,12 +27,18 @@ class Simulation {
   private _next: Uint8Array;
   public readonly rows: number;
   public readonly cols: number;
+  private readonly _randomPresetSeeder: IRandomPresetSeeder;
 
-  constructor(rows: number = GRID_ROWS, cols: number = GRID_COLS) {
+  constructor(
+    rows: number = GRID_ROWS,
+    cols: number = GRID_COLS,
+    randomPresetSeeder?: IRandomPresetSeeder,
+  ) {
     this.rows = rows;
     this.cols = cols;
     this._current = new Uint8Array(rows * cols);
     this._next = new Uint8Array(rows * cols);
+    this._randomPresetSeeder = randomPresetSeeder ?? new RandomPresetSeeder();
   }
 
   // ── State accessors ────────────────────────────────────────────────────────
@@ -44,9 +55,22 @@ class Simulation {
 
   /** Fill the grid randomly according to INITIAL_DENSITY. */
   public seedRandom(): void {
-    for (let i = 0; i < this._current.length; i++) {
-      this._current[i] = Math.random() < INITIAL_DENSITY ? CELL_STATE.ALIVE : CELL_STATE.DEAD;
-    }
+    this.seedByPreset("noise", true);
+  }
+
+  /**
+   * Initialise the grid from a named random-mode preset.
+   * @param randomVariation — `false`: stable default for that preset (select / mode entry).
+   *                          `true`: new random instance of the same family (Generate button).
+   */
+  public seedByPreset(preset: RandomPresetId, randomVariation = false): void {
+    this._randomPresetSeeder.seedInto(
+      this._current,
+      this.rows,
+      this.cols,
+      preset,
+      randomVariation,
+    );
   }
 
   /** Fill the grid with all DEAD cells (blank canvas). */

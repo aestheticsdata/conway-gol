@@ -1,0 +1,27 @@
+/**
+ * Random-mode presets, used as the single source of truth for ids and labels.
+ */
+export const RANDOM_PRESETS = [
+  { id: "stars", label: "Étoiles" },
+  { id: "circles", label: "Cercles (sin×cos)" },
+  { id: "sinus", label: "Sinusoïdes (↔)" },
+  { id: "rings", label: "Anneaux" },
+  { id: "stripes", label: "Rayures" },
+  { id: "checker", label: "Damier" },
+  { id: "clusters", label: "Îlots" },
+  { id: "diagonal", label: "Diagonales" },
+  { id: "cross", label: "Croix" },
+  { id: "noise", label: "Bruit classique" },
+] as const;
+
+export type RandomPresetId = (typeof RANDOM_PRESETS)[number]["id"];
+
+export const RANDOM_PRESET_IDS: readonly RandomPresetId[] = RANDOM_PRESETS.map(
+  (preset) => preset.id,
+);
+
+export const DEFAULT_RANDOM_PRESET: RandomPresetId = RANDOM_PRESETS[0].id;
+
+export function isRandomPresetId(value: string): value is RandomPresetId {
+  return RANDOM_PRESET_IDS.includes(value as RandomPresetId);
+}

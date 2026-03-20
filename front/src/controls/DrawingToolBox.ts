@@ -1,19 +1,23 @@
+import { queryRequired } from "../helpers/dom";
+
 export type DrawingMode = "pencil" | "eraser";
 type Observer = (drawingMode: DrawingMode) => void;
 
 class DrawingToolBox {
-  public toolboxDOM: HTMLElement = document.querySelector('.drawing-toolbox');
-  private _selectedMode: DrawingMode;
-  private _tools: { [tool: string]: HTMLElement } = {};
+  public readonly toolboxDOM: HTMLElement;
+  private _selectedMode: DrawingMode = "pencil";
+  private readonly _tools: Record<DrawingMode, HTMLElement>;
   private _activeColor: string = 'rgba(255,204,0,1)';
-  private _observer: Observer;
+  private _observer?: Observer;
 
   constructor() {
-    this._selectedMode = "pencil";
-    const tools = document.querySelectorAll('.drawing-toolbox .item');
-    tools.forEach(tool => {
-      this._tools[tool.classList[1]] = <HTMLElement>tool;
-      this._tools[tool.classList[1]].addEventListener("click", this._onToolClick);
+    this.toolboxDOM = queryRequired<HTMLElement>('.drawing-toolbox');
+    this._tools = {
+      pencil: queryRequired<HTMLElement>('.item.pencil', this.toolboxDOM),
+      eraser: queryRequired<HTMLElement>('.item.eraser', this.toolboxDOM),
+    };
+    (Object.values(this._tools) as HTMLElement[]).forEach((tool) => {
+      tool.addEventListener("click", this._onToolClick);
     });
     this._selectMode(this._tools.pencil);
   }
@@ -26,38 +30,38 @@ class DrawingToolBox {
     this._selectedMode = value;
   }
 
-  public register(cb: Observer) {
+  public register(cb: Observer): void {
     this._observer = cb;
   }
 
-  public show() {
+  public show(): void {
     this.toolboxDOM.style.display = "block";
   }
 
-  public hide() {
+  public hide(): void {
     this.toolboxDOM.style.display = "none";
   }
 
-  private _selectMode(el) {
-    for (const item in this._tools) {
-      if(el.className.includes(item)) {
-        el.style.backgroundColor = this._activeColor;
-        this._selectedMode = <DrawingMode>item;
-        // not clean, selected drawing mode initialization sequence
-        // to be refactored
-        // for now, at init this._observer is undefined
-        // so the check below
-        this._observer && this._observer(this.selectedMode);
-      } else {
-        (<HTMLElement>this._tools[item]).style.backgroundColor = 'transparent';
-      }
-    }
+  private _selectMode(el: HTMLElement): void {
+    (Object.entries(this._tools) as [DrawingMode, HTMLElement][]).forEach(
+      ([mode, tool]) => {
+        if (tool === el) {
+          tool.style.backgroundColor = this._activeColor;
+          this._selectedMode = mode;
+          this._observer?.(this.selectedMode);
+        } else {
+          tool.style.backgroundColor = 'transparent';
+        }
+      },
+    );
   }
 
-  private _onToolClick = (e: Event) => {
-    const el = <HTMLElement>e.currentTarget;
+  private _onToolClick = (e: Event): void => {
+    const el = e.currentTarget;
+    if (!(el instanceof HTMLElement)) {
+      return;
+    }
     this._selectMode(el);
-
   }
 }
 

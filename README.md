@@ -10,6 +10,7 @@ A full-stack implementation of [Conway's Game of Life](https://en.wikipedia.org/
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
 - [Architecture](#architecture)
+- [Frontend Code Map](#frontend-code-map)
 - [Running Locally](#running-locally)
 - [Deployment](#deployment)
 - [API Endpoints](#api-endpoints)
@@ -18,7 +19,7 @@ A full-stack implementation of [Conway's Game of Life](https://en.wikipedia.org/
 
 ## Features
 
-- Random mode with automatic startup seeding
+- Random mode with named presets and a `Generate` action for a new variation
 - Zoo mode with 1,400+ catalog patterns
 - Drawing mode with save/load for custom patterns
 - Zoom view around the cursor
@@ -58,32 +59,105 @@ conway-gol/
 │   │   ├── index.ts
 │   │   ├── index.html
 │   │   ├── Cell/
+│   │   │   └── constants.ts
 │   │   ├── Grid/
+│   │   │   ├── Grid.ts
+│   │   │   ├── Simulation.ts
+│   │   │   ├── constants.ts
+│   │   │   ├── randomPresets.ts
+│   │   │   ├── seeding/
+│   │   │   │   └── RandomPresetSeeder.ts
+│   │   │   └── zoom/
+│   │   │       └── ZoomBox.ts
 │   │   ├── controls/
+│   │   │   ├── DrawingToolBox.ts
+│   │   │   ├── ModeSelector.ts
+│   │   │   ├── UserCustomSelector.ts
+│   │   │   └── ZooSelector.ts
 │   │   ├── data/
+│   │   │   ├── Data.ts
+│   │   │   └── species/
 │   │   ├── helpers/
+│   │   │   ├── Helpers.ts
+│   │   │   ├── constants.ts
+│   │   │   └── dom.ts
 │   │   ├── services/
+│   │   │   └── UserCustomService.ts
 │   │   └── styles/
+│   ├── tsconfig.json
 │   ├── vite.config.ts
 │   └── package.json
 ├── deploy-api.sh
 ├── deploy-front.sh
-└── notes.txt
+└── README.md
 ```
 
 ## Architecture
 
 ### Frontend
 
-`Main` owns the animation loop and wires together the simulation, rendering, and UI controls.
+The frontend is split between orchestration, simulation, rendering, and DOM-facing controls.
 
-`Simulation` is the pure Conway engine. It uses two flat `Uint8Array` buffers and swaps them on each tick, so a generation step runs without per-frame allocation.
+#### Entry point and app wiring
 
-`Grid` renders the simulation to the canvas and handles drawing-mode mouse interaction.
+`Main` in `front/src/index.ts` is the composition root. It:
 
-`Data` fetches patterns from the API, centers them on the 156x156 grid, and returns a plain `number[][]` seed.
+- resolves required DOM nodes and canvas contexts up front
+- owns the animation loop and FPS control
+- switches between `random`, `zoo`, and `drawing` modes
+- shows or hides mode-specific UI blocks
+- instantiates `Grid` with typed mode-specific options instead of a long positional constructor
+- populates the random preset selector from shared preset metadata
 
-`ZoomBox` renders a 4x magnified 7x7 area around the cursor.
+#### Simulation and seeding
+
+`Simulation` in `front/src/Grid/Simulation.ts` is the pure Conway engine. It:
+
+- owns the current and next `Uint8Array` buffers
+- applies Conway rules and toroidal neighbour wrapping
+- exposes read/write methods for cells
+- delegates random-mode initialization to a seeding strategy
+
+`RandomPresetSeeder` in `front/src/Grid/seeding/RandomPresetSeeder.ts` owns random-mode initial states. It receives a flat cell buffer plus grid dimensions and fills the buffer for named families such as `stars`, `rings`, `checker`, or `noise`.
+
+Each preset supports two behaviours:
+
+- a stable deterministic default when entering random mode or switching preset
+- a random variation when the user clicks `Generate`
+
+`front/src/Grid/randomPresets.ts` is the source of truth for preset ids, labels, and the default preset. The UI and engine both read from this file, so the preset list is not duplicated.
+
+#### Rendering and drawing interaction
+
+`Grid` in `front/src/Grid/Grid.ts` owns one `Simulation` and does two things:
+
+- render simulation state to the main canvas
+- translate drawing-mode mouse events into simulation edits
+
+Mode-specific initialization is split into private methods:
+
+- `_initializeRandom()` seeds the selected random preset
+- `_initializeZoo()` loads a catalog pattern through `Data`
+- `_initializeDrawing()` wires the toolbox, zoom box, and custom save selector
+
+This keeps Conway logic out of the renderer and keeps DOM event handling out of `Simulation`.
+
+#### UI helpers and data access
+
+`front/src/controls/` contains DOM-facing UI components:
+
+- `ModeSelector.ts`: radio-button mode switching
+- `DrawingToolBox.ts`: pencil/eraser selection
+- `ZooSelector.ts`: pattern selection in zoo mode
+- `UserCustomSelector.ts`: save/load of custom drawings
+
+`Data` in `front/src/data/Data.ts` fetches catalog or custom patterns, centers them on the 156x156 grid, and exposes a plain `number[][]` seed for the simulation.
+
+`ZoomBox` in `front/src/Grid/zoom/ZoomBox.ts` renders the magnified 7x7 area around the cursor in drawing mode.
+
+`UserCustomService` in `front/src/services/UserCustomService.ts` handles HTTP calls for listing and saving custom patterns.
+
+`front/src/helpers/dom.ts` centralizes strict DOM lookup helpers such as `queryRequired()` and `getRequiredContext2D()`. This removes scattered nullable DOM assumptions from the rest of the frontend code.
 
 ### API
 
@@ -102,6 +176,30 @@ Custom patterns are stored in SQL through Prisma.
 The frontend always calls the same-origin API prefix `/conway-gol/api`.
 
 In local development, Vite proxies that prefix to `http://localhost:6300`, so frontend code does not need separate dev vs prod URLs.
+
+## Frontend Code Map
+
+Main dependency direction in the frontend:
+
+```text
+Main (index.ts)
+  ├── Grid
+  │   ├── Simulation
+  │   │   └── IRandomPresetSeeder -> RandomPresetSeeder
+  │   ├── Data
+  │   └── ZoomBox (drawing mode only)
+  ├── ModeSelector
+  ├── DrawingToolBox
+  ├── ZooSelector
+  └── UserCustomSelector -> UserCustomService
+```
+
+Design rules used by the current frontend:
+
+- `Simulation` and random seeding stay free of DOM and canvas logic.
+- `Grid` reads simulation state and handles canvas interaction, but does not implement Conway rules.
+- `Main` orchestrates mode transitions and shared UI state, but does not manipulate cell state directly.
+- Required DOM access should go through `front/src/helpers/dom.ts`.
 
 ## Running Locally
 
@@ -135,10 +233,13 @@ Default local API port is `6300`.
 ```bash
 cd front
 pnpm install
+pnpm typecheck
 pnpm dev
 ```
 
 Open the Vite URL shown in the terminal, usually `http://localhost:5173`.
+
+Use `pnpm build` to verify the production bundle locally.
 
 ## Deployment
 
@@ -230,6 +331,18 @@ Catalog patterns are stored as JSON with the `.hxf` extension:
 Custom patterns are submitted in the same JSON shape through `POST /usercustom/:filename`, but are persisted in the database rather than the filesystem.
 
 ## Refactoring History
+
+### Phase 3 - Random preset seeding split (2026-03)
+
+The random-mode feature was separated into explicit layers:
+
+- `randomPresets.ts` defines preset metadata in one place
+- `RandomPresetSeeder` owns preset-specific generation rules
+- `Simulation` delegates seeding instead of implementing preset logic inline
+- `Main` renders the preset selector from shared metadata
+- `Grid` now uses typed per-mode options instead of a long positional constructor
+
+This made the random mode easier to extend without pushing more UI concerns into the simulation engine.
 
 ### Phase 2 - Simulation / Renderer split (2026-03)
 

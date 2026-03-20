@@ -1,41 +1,47 @@
 import Swal from "sweetalert2";
 import UserCustomService from "../services/UserCustomService";
+import { queryRequired } from "../helpers/dom";
 
 class UserCustomSelector {
-  private _customDrawingDOMSelector: HTMLSelectElement = document.querySelector('.custom-drawing-files');
-  private _userListSelector: HTMLSelectElement = document.querySelector('.user-select-container');
-  private _userCustomService: UserCustomService;
-  private _userCustomList;
-  public saveBtn: HTMLButtonElement = document.querySelector('.custom-drawing-files .save');
-  private _cb;
+  private readonly _customDrawingDOMSelector: HTMLElement;
+  private readonly _userListSelect: HTMLSelectElement;
+  private readonly _userCustomService: UserCustomService;
+  private _userCustomList: string[] = [];
+  public readonly saveBtn: HTMLButtonElement;
+  private readonly _cb: (speciesName: string) => void;
 
   /**
    * Injected by Grid in drawing mode.
    * Called at save time to get a fresh snapshot of the simulation state.
    * Returns the full 156×156 grid as a number[][] (0=DEAD, 1=ALIVE).
    */
-  public getGridData: () => number[][];
+  public getGridData: () => number[][] = () => [];
 
-  constructor(cb) {
+  constructor(cb: (speciesName: string) => void) {
+    this._customDrawingDOMSelector = queryRequired<HTMLElement>('.custom-drawing-files');
+    this._userListSelect = queryRequired<HTMLSelectElement>('#custom-file');
+    this.saveBtn = queryRequired<HTMLButtonElement>('.custom-drawing-files .save');
     this._cb = cb;
     this.saveBtn.style.display = "block";
     this._userCustomService = new UserCustomService();
     this.saveBtn.addEventListener("click", this._save);
-    if (!this._userCustomList) {
-      this.getCustomList();
-    }
+    this._userListSelect.addEventListener("change", this._onSelectChange);
+    void this.getCustomList();
   }
 
-  public show() {
+  public show(): void {
     this._customDrawingDOMSelector.style.display = "block";
   }
-  public hide() {
+
+  public hide(): void {
     this._customDrawingDOMSelector.style.display = "none";
   }
-  public showSaveBtn() {
+
+  public showSaveBtn(): void {
     this.saveBtn.style.display = "block";
   }
-  public hideSaveBtn() {
+
+  public hideSaveBtn(): void {
     this.saveBtn.style.display = "none";
   }
 
@@ -49,7 +55,6 @@ class UserCustomSelector {
     });
     if (filename) {
       await this._userCustomService.postCustomDrawing(this.getGridData(), filename);
-      this._userListSelector.children[0].children[1].innerHTML = "";
       await this.getCustomList();
       await Swal.fire({
         toast: true,
@@ -62,23 +67,25 @@ class UserCustomSelector {
     }
   }
 
-  public getCustomList = async () => {
+  public getCustomList = async (): Promise<void> => {
     const { data } = await this._userCustomService.getCustomdrawingList();
     this._userCustomList = data;
     this._createSelectButton();
   }
 
-  private _createSelectButton() {
-    this._userListSelector.children[0].children[1].innerHTML = "";
-    this._userCustomList.forEach(userCritter => {
-      const option = `<option name="${userCritter}">${userCritter}</option>`;
-      this._userListSelector.children[0].children[1].insertAdjacentHTML('beforeend', option);
-    });
+  private _createSelectButton(): void {
+    this._userListSelect.replaceChildren(
+      ...this._userCustomList.map((userCritter) => {
+        const option = document.createElement("option");
+        option.value = userCritter;
+        option.textContent = userCritter;
+        return option;
+      }),
+    );
+  }
 
-    this._userListSelector.addEventListener('change', (e) => {
-      e.preventDefault();
-      this._cb((<HTMLSelectElement>e.target).value);
-    })
+  private _onSelectChange = (e: Event): void => {
+    this._cb((e.currentTarget as HTMLSelectElement).value);
   }
 }
 

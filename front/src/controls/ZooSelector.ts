@@ -1,27 +1,29 @@
 import { species } from "../data/species/species";
+import { queryRequired } from "../helpers/dom";
 
 class ZooSelector {
-  private _created: boolean = false;
+  public createSelectButton(
+    selector: HTMLElement,
+    cb: (speciesName: string) => void,
+    list?: string[],
+  ): void {
+    const zoo = list ?? Object.keys(species);
+    const select = queryRequired<HTMLSelectElement>("#primitives", selector);
+    select.replaceChildren(
+      ...zoo.map((primitive) => {
+        const option = document.createElement("option");
+        option.value = primitive;
+        option.textContent = primitive;
+        option.selected = primitive === "canadagoose";
+        return option;
+      }),
+    );
 
-  public createSelectButton(selector, cb, list?) {
-    const zoo = (list ? list : Object.keys(species));
-
-    if (!this._created) {
-      // https://stackoverflow.com/a/49461484/5671836
-      zoo.forEach(primitive => {
-        const option = `<option name="${primitive}" ${primitive === 'canadagoose' && 'selected'}>${primitive}</option>`;
-        selector.children[0].children[1].insertAdjacentHTML('beforeend', option);
-      });
-
-      (<HTMLInputElement>selector).style.display = "block";
-
-      selector.addEventListener('change', function (e) {
-        e.preventDefault();
-        cb((<HTMLSelectElement>e.target).value);
-      });
-      this._created = true;
-    }
-  };
+    select.onchange = (e: Event) => {
+      cb((e.currentTarget as HTMLSelectElement).value);
+    };
+    selector.style.display = "block";
+  }
 }
 
 export default ZooSelector;

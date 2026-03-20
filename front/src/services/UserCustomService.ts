@@ -3,28 +3,25 @@ import Helpers from "../helpers/Helpers";
 import { URLS } from "../helpers/constants";
 
 class UserCustomService {
-  public async getCustomdrawingList(): Promise<AxiosResponse> {
-    try {
-      return await axios.get(`${Helpers.getRequestURL(URLS.critterList)}?subdir=user-custom`);
-    } catch (err) {
-      console.log(err);
-    }
+  public getCustomdrawingList(): Promise<AxiosResponse<string[]>> {
+    return axios.get<string[]>(
+      `${Helpers.getRequestURL(URLS.critterList)}?subdir=user-custom`,
+    );
   }
 
   /**
    * Save a custom drawing to the server.
    * @param data  Full grid state as number[][] (0=DEAD, 1=ALIVE) from Simulation.toGrid().
    */
-  public async postCustomDrawing(data: number[][], filename: string) {
+  public postCustomDrawing(
+    data: number[][],
+    filename: string,
+  ): Promise<AxiosResponse> {
     const o = {
       comments: [""],
       automata: data,
     };
-    try {
-      return await axios.post(`${Helpers.getRequestURL(URLS.usercustom + filename)}`, o);
-    } catch (err) {
-      console.log(err);
-    }
+    return axios.post(`${Helpers.getRequestURL(URLS.usercustom + filename)}`, o);
   }
 }
 

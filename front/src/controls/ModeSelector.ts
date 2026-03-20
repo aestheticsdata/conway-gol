@@ -1,12 +1,14 @@
+import { queryAll } from "../helpers/dom";
+
 export type Mode = 'random' | 'zoo' | 'drawing';
 
 class ModeSelector {
-  constructor(setMode) {
-    document.querySelectorAll('input[name="mode"]').forEach(el => {
-      el.addEventListener("change", e => {
-        setMode((e.currentTarget as HTMLInputElement).value)
-      })
-    })
+  constructor(setMode: (mode: Mode) => void) {
+    queryAll<HTMLInputElement>('input[name="mode"]').forEach((el) => {
+      el.addEventListener("change", (e: Event) => {
+        setMode((e.currentTarget as HTMLInputElement).value as Mode);
+      });
+    });
   }
 }
 
