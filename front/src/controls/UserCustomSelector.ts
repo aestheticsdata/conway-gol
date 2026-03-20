@@ -1,16 +1,20 @@
 import Swal from "sweetalert2";
 import UserCustomService from "../services/UserCustomService";
-import type { CellGrid } from "../Grid/Grid";
-
 
 class UserCustomSelector {
   private _customDrawingDOMSelector: HTMLSelectElement = document.querySelector('.custom-drawing-files');
   private _userListSelector: HTMLSelectElement = document.querySelector('.user-select-container');
   private _userCustomService: UserCustomService;
   private _userCustomList;
-  public  saveBtn: HTMLButtonElement = document.querySelector('.custom-drawing-files .save');
-  public gridData: CellGrid;
+  public saveBtn: HTMLButtonElement = document.querySelector('.custom-drawing-files .save');
   private _cb;
+
+  /**
+   * Injected by Grid in drawing mode.
+   * Called at save time to get a fresh snapshot of the simulation state.
+   * Returns the full 156×156 grid as a number[][] (0=DEAD, 1=ALIVE).
+   */
+  public getGridData: () => number[][];
 
   constructor(cb) {
     this._cb = cb;
@@ -44,7 +48,7 @@ class UserCustomSelector {
       inputValidator: (value) => { if (!value) { return 'filename required' } },
     });
     if (filename) {
-      await this._userCustomService.postCustomDrawing(this.gridData, filename);
+      await this._userCustomService.postCustomDrawing(this.getGridData(), filename);
       this._userListSelector.children[0].children[1].innerHTML = "";
       await this.getCustomList();
       await Swal.fire({
@@ -79,4 +83,3 @@ class UserCustomSelector {
 }
 
 export default UserCustomSelector;
-

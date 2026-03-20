@@ -1,10 +1,17 @@
 import Helpers from "../../helpers/Helpers";
-import { GRID } from "../constants";
-import Cell from "../../Cell/Cell";
+import { GRID, CELL_COLORS, CELL_SIZE, ZOOM_CANVAS_PX, ZOOM_CENTER, ZOOM_LEVEL, ZOOM_SIZE } from "../constants";
 import { CELL_STATE } from "../../Cell/constants";
-import { CellGrid } from "../Grid";
-import {DrawingMode} from "../../controls/DrawingToolBox";
+import { DrawingMode } from "../../controls/DrawingToolBox";
 
+/**
+ * ZoomBox — 4× magnified 7×7 neighbourhood view around the drawing cursor.
+ *
+ * Receives a plain number[][] area from Grid._getZoomArea() and renders it
+ * directly — no Cell objects, no internal state matrix.
+ *
+ * State values: 0=DEAD, 1=ALIVE, 2=BORDER (out-of-bounds), 3=OUTSIDE (cursor
+ * outside valid grid range — area is [[3]], ZoomBox skips the render).
+ */
 class ZoomBox {
   private _html = `
     <div class="zoombox" style="display: none">
@@ -18,24 +25,17 @@ class ZoomBox {
   private _zoombox: HTMLElement;
   private readonly _zoomCanvas: HTMLCanvasElement;
   private readonly _zoomContext: CanvasRenderingContext2D;
-  private _cellsMatrix: CellGrid = [];
-  public static gridSize: number;
-  private _zoomLevel: number = 4;
-  private _xPosDisplay;
-  private _yPosDisplay;
-  // TODO remove hardcoded _gridCenterCell
-  private _gridCenterCell = {x: 3, y: 3};
+  private _xPosDisplay: Element;
+  private _yPosDisplay: Element;
 
   constructor() {
     document.querySelector(".zoombox-container").insertAdjacentHTML("afterbegin", this._html);
     this._zoombox = document.querySelector(".zoombox");
     this._zoomCanvas = <HTMLCanvasElement>this._zoombox.children[0];
-    this._zoomCanvas.width = 140;
-    this._zoomCanvas.height = 140;
+    this._zoomCanvas.width = ZOOM_CANVAS_PX;
+    this._zoomCanvas.height = ZOOM_CANVAS_PX;
     this._zoomContext = this._zoomCanvas.getContext("2d");
-    ZoomBox.gridSize = this._zoomCanvas.width / (Cell.size*this._zoomLevel);
-    this._createCells("pencil", this._zoomContext, null, true);
-    this._drawGrid(this._zoomContext);
+    this._renderBlank();
     this._xPosDisplay = document.querySelector('.x-pos');
     this._yPosDisplay = document.querySelector('.y-pos');
   }
@@ -48,68 +48,63 @@ class ZoomBox {
     this._zoombox.style.display = "none";
   }
 
-  public displayArea(area, drawingMode: DrawingMode, x=0, y=0) {
-    if (area) {
-      this._createCells(drawingMode, this._zoomContext, area);
-      this._xPosDisplay.textContent = x;
-      this._yPosDisplay.textContent = y;
-    }
+  /**
+   * Render the 7×7 area around the cursor.
+   * @param area  number[][] from Grid._getZoomArea(). [[OUTSIDE]] when out of range.
+   * @param drawingMode  Current pencil/eraser mode, controls center cell highlight color.
+   * @param x  Column coordinate (displayed in the HUD).
+   * @param y  Row coordinate (displayed in the HUD).
+   */
+  public displayArea(area: number[][], drawingMode: DrawingMode, x = 0, y = 0) {
+    if (!area) return;
+    this._renderArea(drawingMode, area);
+    this._xPosDisplay.textContent = String(x);
+    this._yPosDisplay.textContent = String(y);
   }
 
-  private _drawCell(drawingMode: DrawingMode, ctx: CanvasRenderingContext2D, cell: Cell, row: number, column: number) {
-    if (cell.state === CELL_STATE.OUTSIDE) {
-      // this._cellsMAtric[3][3] is the center cell in the zoom grid
-      if (this._cellsMatrix[this._gridCenterCell.y][this._gridCenterCell.x].state === CELL_STATE.ALIVE) {
-        this._zoomContext.fillStyle = CELL_STATE.ALIVE_COLOR;
-      } else {
-        this._zoomContext.fillStyle = CELL_STATE.DEAD_COLOR;
-      }
-      this._zoomContext.fillRect(this._gridCenterCell.x*(Cell.size*this._zoomLevel)+1, this._gridCenterCell.y*(Cell.size*this._zoomLevel)+1, (Cell.size*this._zoomLevel)-1, (Cell.size*this._zoomLevel)-1);
-    } else {
-      this._zoomContext.fillStyle = cell.color;
-      this._zoomContext.fillRect(
-        column*(Cell.size*this._zoomLevel)+1,
-        row*(Cell.size*this._zoomLevel)+1,
-        (Cell.size*this._zoomLevel)-1,
-        (Cell.size*this._zoomLevel)-1
-      );
-      // blue cell at the center of the zoom grid
-      // TODO do not hardcode the center of the grid
-      this._zoomContext.fillStyle = drawingMode === "pencil" ? CELL_STATE.ALIVE_COLOR : CELL_STATE.DEAD_COLOR;
-      this._zoomContext.fillRect(this._gridCenterCell.x*(Cell.size*this._zoomLevel)+1, this._gridCenterCell.y*(Cell.size*this._zoomLevel)+1, (Cell.size*this._zoomLevel)-1, (Cell.size*this._zoomLevel)-1);
-      this._zoomContext.strokeStyle = 'rgba(255,204,0,1)';
-      this._zoomContext.strokeRect(this._gridCenterCell.x*(Cell.size*this._zoomLevel), this._gridCenterCell.y*(Cell.size*this._zoomLevel), (Cell.size*this._zoomLevel)+1, (Cell.size*this._zoomLevel)+1)
-    }
-  }
+  // ── Private ────────────────────────────────────────────────────────────────
 
-  private _createCells(drawingMode: DrawingMode, ctx: CanvasRenderingContext2D, data?: CellGrid, isBlank: boolean = false) {
-    if (data && data[0][0].state === CELL_STATE.OUTSIDE) {
-      this._drawCell(drawingMode, ctx, data[0][0], -1, -1);
-    } else {
-      let tmpCell: Cell;
-      // flush this._cellMatrix at each mousemove to prevent to grow undefinitey in size
-      if (this._cellsMatrix.length > 0) this._cellsMatrix = [];
-      for (let i = 0; i < ZoomBox.gridSize; i++) {
-        this._cellsMatrix.push([]);
-        for (let j = 0; j < ZoomBox.gridSize; j++) {
-          if (data) {
-            tmpCell = data[i][j];
-          } else if (isBlank) {
-            tmpCell = new Cell(CELL_STATE.DEAD);
-          } else {
-            tmpCell = new Cell();
-          }
-          this._cellsMatrix[i].push(tmpCell);
-          this._drawCell(drawingMode, ctx, tmpCell, i, j);
-        }
+  /** Render the full area, then overlay the center-cell highlight. */
+  private _renderArea(drawingMode: DrawingMode, area: number[][]): void {
+    // [[OUTSIDE]]: cursor is outside the valid cell range — skip render.
+    if (area[0][0] === CELL_STATE.OUTSIDE) return;
+
+    const cellPx = CELL_SIZE * ZOOM_LEVEL;
+
+    for (let row = 0; row < ZOOM_SIZE; row++) {
+      for (let col = 0; col < ZOOM_SIZE; col++) {
+        this._zoomContext.fillStyle = CELL_COLORS[area[row][col]];
+        this._zoomContext.fillRect(
+          col * cellPx + 1,
+          row * cellPx + 1,
+          cellPx - 1,
+          cellPx - 1,
+        );
       }
     }
+
+    // Overlay center cell with the drawing-mode color + gold border.
+    const cx = ZOOM_CENTER.x;
+    const cy = ZOOM_CENTER.y;
+    this._zoomContext.fillStyle =
+      drawingMode === "pencil" ? CELL_COLORS[CELL_STATE.ALIVE] : CELL_COLORS[CELL_STATE.DEAD];
+    this._zoomContext.fillRect(cx * cellPx + 1, cy * cellPx + 1, cellPx - 1, cellPx - 1);
+    this._zoomContext.strokeStyle = 'rgba(255,204,0,1)';
+    this._zoomContext.strokeRect(cx * cellPx, cy * cellPx, cellPx + 1, cellPx + 1);
+
+    this._drawGrid(this._zoomContext);
   }
 
-  private _drawGrid(ctx: CanvasRenderingContext2D) {
-    Helpers.drawGrid(ctx, this._zoomCanvas, this._zoomLevel, GRID.COLORZOOM);
-  };
+  /** Fill the zoom canvas with DEAD color on first render. */
+  private _renderBlank(): void {
+    this._zoomContext.fillStyle = CELL_COLORS[CELL_STATE.DEAD];
+    this._zoomContext.fillRect(0, 0, this._zoomCanvas.width, this._zoomCanvas.height);
+    this._drawGrid(this._zoomContext);
+  }
+
+  private _drawGrid(ctx: CanvasRenderingContext2D): void {
+    Helpers.drawGrid(ctx, this._zoomCanvas, ZOOM_LEVEL, GRID.COLORZOOM);
+  }
 }
 
 export default ZoomBox;
-

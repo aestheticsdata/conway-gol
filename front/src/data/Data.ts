@@ -1,59 +1,50 @@
-import Cell from "../Cell/Cell";
 import { CELL_STATE } from "../Cell/constants";
-import type { CellGrid } from "../Grid/Grid";
-import Grid from "../Grid/Grid";
+import { GRID_COLS, GRID_ROWS, CELL_SIZE } from "../Grid/constants";
 import { species } from "./species/species";
 import axios from "axios";
 import Helpers from "../helpers/Helpers";
 import { GRID } from "../Grid/constants";
 import { URLS } from "../helpers/constants";
 
+/**
+ * Data — factory for loading pattern files (.hxf) and building the initial
+ * grid state as a plain number[][].
+ *
+ * After factory() resolves, Data.grid is a GRID_ROWS×GRID_COLS array of
+ * integers (0=DEAD, 1=ALIVE) ready to be passed to Simulation.seedFromGrid().
+ *
+ * No Cell objects are created here. Centering logic is preserved as-is.
+ */
 class Data {
-  public grid: CellGrid = [];
+  /** Full-grid state: number[GRID_ROWS][GRID_COLS], values 0 or 1. */
+  public grid: number[][] = [];
   public comments: string[];
-  public commentsDOMSelector: HTMLElement =
-    document.querySelector(".critter-comments");
+  public commentsDOMSelector: HTMLElement = document.querySelector(".critter-comments");
 
-  private async makeEntity(
-    entity: string,
-    startIndex: number[],
-    custom?: string
-  ) {
+  private async _makeEntity(entity: string, startIndex: number[], custom?: string) {
     let o;
     const url = custom
       ? `${URLS.critter}${entity}-custom`
       : `${URLS.critter}${entity}`;
+
     try {
       const critter = (await axios.get(`${Helpers.getRequestURL(url)}`)).data;
-      // Handle both cases: if axios already parsed JSON or if it's still a string
       const critterParsed = typeof critter === 'string' ? JSON.parse(critter) : critter;
-      console.log("critterParsed", critterParsed);
+
+      // Center the pattern on the grid
       const position = [
-        Math.floor(
-          ((GRID.SIZE.Y / Cell.size) >> 1) -
-            (critterParsed.automata.length >> 1)
-        ),
-        Math.floor(
-          ((GRID.SIZE.X / Cell.size) >> 1) -
-            (critterParsed.automata[0].length >> 1)
-        ),
+        Math.floor(((GRID.SIZE.Y / CELL_SIZE) >> 1) - (critterParsed.automata.length >> 1)),
+        Math.floor(((GRID.SIZE.X / CELL_SIZE) >> 1) - (critterParsed.automata[0].length >> 1)),
       ];
-      console.log("position", position);
-      o = {
-        position,
-        content: critterParsed.automata,
-      };
-      console.log("o", o);
+
+      o = { position, content: critterParsed.automata };
 
       let commentsList = critterParsed.comments;
-      commentsList = commentsList.map((line) => {
-        let tmpLine;
+      commentsList = commentsList.map((line: string) => {
         if (line.includes("http")) {
-          tmpLine = `<a href="${line}" target="_blank" title="${line}">- ${line}</a>`;
-        } else {
-          tmpLine = "- " + line;
+          return `<a href="${line}" target="_blank" title="${line}">- ${line}</a>`;
         }
-        return tmpLine;
+        return "- " + line;
       });
       this.commentsDOMSelector.innerHTML = commentsList.join("<br />");
     } catch (err) {
@@ -71,27 +62,29 @@ class Data {
     }
 
     const startPosition = o.position ?? startIndex;
-    for (let j = 0; j < o.content.length; j++) {
-      for (let i = 0; i < o.content[0].length; i++) {
-        if (o.content[j][i] === 1) {
-          this.grid[j + startPosition[0]][i + startPosition[1]].state =
-            CELL_STATE.ALIVE;
+    for (let row = 0; row < o.content.length; row++) {
+      for (let col = 0; col < o.content[0].length; col++) {
+        if (o.content[row][col] === 1) {
+          this.grid[row + startPosition[0]][col + startPosition[1]] = CELL_STATE.ALIVE;
         }
       }
     }
   }
 
-  public async factory(entity, startIndex: number[], custom?: string) {
-    console.log("entity", entity);
-    console.log("startIndex", startIndex);
-    console.log("custom", custom);
-    for (let i = 0; i < Grid.gridSize; i++) {
-      this.grid.push([]);
-      for (let j = 0; j < Grid.gridSize; j++) {
-        this.grid[i].push(new Cell(CELL_STATE.DEAD));
-      }
-    }
-    await this.makeEntity(entity, startIndex, custom);
+  /**
+   * Build a blank GRID_ROWS×GRID_COLS grid, fetch the given pattern from the
+   * server (or fall back to local species), and write alive cells into the grid.
+   *
+   * @param entity     Pattern name (maps to a .hxf file on the server).
+   * @param startIndex Fallback offset [row, col] if the pattern has no position.
+   * @param custom     Pass "custom" to look in the user-custom subdirectory.
+   */
+  public async factory(entity: string, startIndex: number[], custom?: string) {
+    // Build a blank grid first, then overlay the pattern cells.
+    this.grid = Array.from({ length: GRID_ROWS }, () =>
+      new Array(GRID_COLS).fill(CELL_STATE.DEAD)
+    );
+    await this._makeEntity(entity, startIndex, custom);
   }
 }
 

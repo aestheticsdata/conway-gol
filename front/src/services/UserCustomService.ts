@@ -1,4 +1,4 @@
-import axios, {AxiosResponse} from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import Helpers from "../helpers/Helpers";
 import { URLS } from "../helpers/constants";
 
@@ -11,11 +11,14 @@ class UserCustomService {
     }
   }
 
-  public async postCustomDrawing(data, filename: string) {
-    const transformedData = data.map(row => row.map(cell => cell.state));
+  /**
+   * Save a custom drawing to the server.
+   * @param data  Full grid state as number[][] (0=DEAD, 1=ALIVE) from Simulation.toGrid().
+   */
+  public async postCustomDrawing(data: number[][], filename: string) {
     const o = {
       comments: [""],
-      automata: transformedData,
+      automata: data,
     };
     try {
       return await axios.post(`${Helpers.getRequestURL(URLS.usercustom + filename)}`, o);
