@@ -1,6 +1,6 @@
-import { CELL_STATE } from "../../Cell/constants";
-import { INITIAL_DENSITY } from "../constants";
-import type { RandomPresetId } from "../randomPresets";
+import { CELL_STATE } from "@cell/constants";
+import { INITIAL_DENSITY } from "@grid/constants";
+import type { RandomPresetId } from "@grid/randomPresets";
 
 /** Writes random-mode initial states into a flat cell buffer (ALIVE/DEAD). */
 export interface IRandomPresetSeeder {

@@ -1,5 +1,5 @@
-import { species } from "../data/species/species";
-import { queryRequired } from "../helpers/dom";
+import { species } from "@data/species/species";
+import { queryRequired } from "@helpers/dom";
 
 class ZooSelector {
   public createSelectButton(

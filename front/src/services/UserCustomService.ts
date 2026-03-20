@@ -1,11 +1,11 @@
 import axios, { AxiosResponse } from 'axios';
-import Helpers from "../helpers/Helpers";
-import { URLS } from "../helpers/constants";
+import { getRequestURL } from "@helpers/api";
+import { URLS } from "@helpers/constants";
 
 class UserCustomService {
   public getCustomdrawingList(): Promise<AxiosResponse<string[]>> {
     return axios.get<string[]>(
-      `${Helpers.getRequestURL(URLS.critterList)}?subdir=user-custom`,
+      `${getRequestURL(URLS.critterList)}?subdir=user-custom`,
     );
   }
 
@@ -21,7 +21,7 @@ class UserCustomService {
       comments: [""],
       automata: data,
     };
-    return axios.post(`${Helpers.getRequestURL(URLS.usercustom + filename)}`, o);
+    return axios.post(`${getRequestURL(URLS.usercustom + filename)}`, o);
   }
 }
 

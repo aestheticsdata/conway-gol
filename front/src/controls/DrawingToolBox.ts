@@ -1,4 +1,4 @@
-import { queryRequired } from "../helpers/dom";
+import { queryRequired } from "@helpers/dom";
 
 export type DrawingMode = "pencil" | "eraser";
 type Observer = (drawingMode: DrawingMode) => void;

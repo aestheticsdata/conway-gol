@@ -1,6 +1,6 @@
 import Swal from "sweetalert2";
-import UserCustomService from "../services/UserCustomService";
-import { queryRequired } from "../helpers/dom";
+import UserCustomService from "@services/UserCustomService";
+import { queryRequired } from "@helpers/dom";
 
 class UserCustomSelector {
   private readonly _customDrawingDOMSelector: HTMLElement;

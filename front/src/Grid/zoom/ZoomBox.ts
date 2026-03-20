@@ -1,8 +1,8 @@
-import Helpers from "../../helpers/Helpers";
-import { GRID, CELL_COLORS, CELL_SIZE, ZOOM_CANVAS_PX, ZOOM_CENTER, ZOOM_LEVEL, ZOOM_SIZE } from "../constants";
-import { CELL_STATE } from "../../Cell/constants";
-import type { DrawingMode } from "../../controls/DrawingToolBox";
-import { getRequiredContext2D, queryRequired } from "../../helpers/dom";
+import { drawGrid } from "@helpers/canvas";
+import { GRID, CELL_COLORS, CELL_SIZE, ZOOM_CANVAS_PX, ZOOM_CENTER, ZOOM_LEVEL, ZOOM_SIZE } from "@grid/constants";
+import { CELL_STATE } from "@cell/constants";
+import type { DrawingMode } from "@controls/DrawingToolBox";
+import { getRequiredContext2D, queryRequired } from "@helpers/dom";
 
 /**
  * ZoomBox — 4× magnified 7×7 neighbourhood view around the drawing cursor.
@@ -109,7 +109,7 @@ class ZoomBox {
   }
 
   private _drawGrid(ctx: CanvasRenderingContext2D): void {
-    Helpers.drawGrid(ctx, this._zoomCanvas, ZOOM_LEVEL, GRID.COLORZOOM);
+    drawGrid(ctx, this._zoomCanvas, ZOOM_LEVEL, GRID.COLORZOOM);
   }
 }
 

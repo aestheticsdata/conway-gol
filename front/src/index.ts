@@ -1,20 +1,20 @@
 import axios from "axios";
-import Grid from "./Grid/Grid";
-import { GRID } from "./Grid/constants";
+import Grid from "@grid/Grid";
+import { GRID } from "@grid/constants";
 import {
   DEFAULT_RANDOM_PRESET,
   RANDOM_PRESETS,
   isRandomPresetId,
   type RandomPresetId,
-} from "./Grid/randomPresets";
-import ZoomBox from "./Grid/zoom/ZoomBox";
-import DrawingToolBox from "./controls/DrawingToolBox";
-import ModeSelector, { type Mode } from "./controls/ModeSelector";
-import UserCustomSelector from "./controls/UserCustomSelector";
-import ZooSelector from "./controls/ZooSelector";
-import { getRequiredContext2D, queryRequired } from "./helpers/dom";
-import Helpers from "./helpers/Helpers";
-import { URLS } from "./helpers/constants";
+} from "@grid/randomPresets";
+import ZoomBox from "@grid/zoom/ZoomBox";
+import DrawingToolBox from "@controls/DrawingToolBox";
+import ModeSelector, { type Mode } from "@controls/ModeSelector";
+import UserCustomSelector from "@controls/UserCustomSelector";
+import ZooSelector from "@controls/ZooSelector";
+import { getRequiredContext2D, queryRequired } from "@helpers/dom";
+import { getRequestURL } from "@helpers/api";
+import { URLS } from "@helpers/constants";
 
 class Main {
   private readonly _canvas: HTMLCanvasElement;
@@ -224,7 +224,7 @@ class Main {
 
     try {
       this._critterList = (await axios.get<string[]>(
-        `${Helpers.getRequestURL(URLS.critterList)}`,
+        `${getRequestURL(URLS.critterList)}`,
       )).data;
       return this._critterList;
     } catch (err) {
@@ -245,7 +245,7 @@ class Main {
         this._drawingToolBox?.hide();
         this._setDisplay(this._zooPrimitivesDOMSelector, false);
         this._setDisplay(this._randomPresetContainer, true);
-        this._commentsDOMSelector.innerHTML = "";
+        this._commentsDOMSelector.replaceChildren();
         this._setDisplay(this._drawingCanvas, false);
         this._zoomBox?.hide();
         this._userCustomSelector?.hide();
@@ -276,6 +276,7 @@ class Main {
           ctx: this._stage,
           mode: "zoo",
           species: this._selectedSpecies ?? undefined,
+          onLoad: (comments) => { this._renderComments(comments); },
         });
         break;
       }
@@ -283,7 +284,7 @@ class Main {
       case "drawing":
         this._setDisplay(this._randomPresetContainer, false);
         this._setDisplay(this._zooPrimitivesDOMSelector, false);
-        this._commentsDOMSelector.innerHTML = "";
+        this._commentsDOMSelector.replaceChildren();
         this._setDisplay(this._drawingCanvas, true);
         this._drawingToolBox ??= new DrawingToolBox();
         this._zoomBox ??= new ZoomBox();
@@ -302,12 +303,32 @@ class Main {
           species: this._selectedSpecies ?? undefined,
           userCustomSelector: this._userCustomSelector,
           zoombox: this._zoomBox,
+          onLoad: (comments) => { this._renderComments(comments); },
         });
         this._grid.initListener();
         break;
     }
 
     this._resetPlaybackControls();
+  }
+
+  private _renderComments(comments: string[]): void {
+    const nodes: Node[] = [];
+    comments.forEach((line, i) => {
+      if (i > 0) nodes.push(document.createElement("br"));
+      if (line.startsWith("http://") || line.startsWith("https://")) {
+        const a = document.createElement("a");
+        a.href = line;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        a.title = line;
+        a.textContent = `- ${line}`;
+        nodes.push(a);
+      } else {
+        nodes.push(document.createTextNode(`- ${line}`));
+      }
+    });
+    this._commentsDOMSelector.replaceChildren(...nodes);
   }
 
   public async init(): Promise<void> {

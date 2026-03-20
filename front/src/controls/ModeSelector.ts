@@ -1,4 +1,4 @@
-import { queryAll } from "../helpers/dom";
+import { queryAll } from "@helpers/dom";
 
 export type Mode = 'random' | 'zoo' | 'drawing';
 

@@ -8,7 +8,16 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
-    "noEmit": true
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@cell/*": ["src/Cell/*"],
+      "@controls/*": ["src/controls/*"],
+      "@data/*": ["src/data/*"],
+      "@grid/*": ["src/Grid/*"],
+      "@helpers/*": ["src/helpers/*"],
+      "@services/*": ["src/services/*"]
+    }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"]
 }

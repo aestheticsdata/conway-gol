@@ -1,4 +1,4 @@
-import { CELL_STATE } from "../Cell/constants";
+import { CELL_STATE } from "@cell/constants";
 import { GRID_COLS, GRID_ROWS } from "./constants";
 import type { RandomPresetId } from "./randomPresets";
 import {

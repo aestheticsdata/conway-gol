@@ -1,11 +1,9 @@
-import { CELL_STATE } from "../Cell/constants";
-import { GRID_COLS, GRID_ROWS, CELL_SIZE } from "../Grid/constants";
+import { CELL_STATE } from "@cell/constants";
+import { GRID_COLS, GRID_ROWS, CELL_SIZE, GRID } from "@grid/constants";
 import { species } from "./species/species";
 import axios from "axios";
-import Helpers from "../helpers/Helpers";
-import { GRID } from "../Grid/constants";
-import { URLS } from "../helpers/constants";
-import { queryRequired } from "../helpers/dom";
+import { getRequestURL } from "@helpers/api";
+import { URLS } from "@helpers/constants";
 
 type PatternContent = {
   position?: number[];
@@ -21,20 +19,16 @@ type RemotePattern = {
  * Data — factory for loading pattern files (.hxf) and building the initial
  * grid state as a plain number[][].
  *
- * After factory() resolves, Data.grid is a GRID_ROWS×GRID_COLS array of
+ * After load() resolves, Data.grid is a GRID_ROWS×GRID_COLS array of
  * integers (0=DEAD, 1=ALIVE) ready to be passed to Simulation.seedFromGrid().
+ * Data.comments holds the pattern's comment lines for display by the caller.
  *
- * No Cell objects are created here. Centering logic is preserved as-is.
+ * No Cell objects are created here. No DOM manipulation happens here.
  */
 class Data {
   /** Full-grid state: number[GRID_ROWS][GRID_COLS], values 0 or 1. */
   public grid: number[][] = [];
   public comments: string[] = [];
-  private readonly _commentsDOMSelector: HTMLElement;
-
-  constructor() {
-    this._commentsDOMSelector = queryRequired<HTMLElement>(".critter-comments");
-  }
 
   private async _makeEntity(
     entity: string,
@@ -48,7 +42,7 @@ class Data {
 
     try {
       const critter = (await axios.get<RemotePattern | string>(
-        `${Helpers.getRequestURL(url)}`,
+        `${getRequestURL(url)}`,
       )).data;
       const critterParsed: RemotePattern =
         typeof critter === 'string' ? JSON.parse(critter) : critter;
@@ -61,14 +55,6 @@ class Data {
 
       pattern = { position, content: critterParsed.automata };
       this.comments = critterParsed.comments;
-
-      const commentsList = critterParsed.comments.map((line: string) => {
-        if (line.includes("http")) {
-          return `<a href="${line}" target="_blank" title="${line}">- ${line}</a>`;
-        }
-        return "- " + line;
-      });
-      this._commentsDOMSelector.innerHTML = commentsList.join("<br />");
     } catch (err) {
       console.error("Error fetching critter:", err);
       pattern = (species[entity] as PatternContent | undefined) ?? null;
@@ -96,12 +82,13 @@ class Data {
   /**
    * Build a blank GRID_ROWS×GRID_COLS grid, fetch the given pattern from the
    * server (or fall back to local species), and write alive cells into the grid.
+   * After resolution, read Data.grid and Data.comments.
    *
    * @param entity     Pattern name (maps to a .hxf file on the server).
    * @param startIndex Fallback offset [row, col] if the pattern has no position.
    * @param custom     Pass "custom" to look in the user-custom subdirectory.
    */
-  public async factory(
+  public async load(
     entity: string,
     startIndex: number[],
     custom?: string,

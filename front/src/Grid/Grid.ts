@@ -1,8 +1,8 @@
-import Data from "../data/Data";
-import { CELL_STATE } from "../Cell/constants";
-import DrawingToolBox, { type DrawingMode } from "../controls/DrawingToolBox";
-import Helpers from "../helpers/Helpers";
-import type UserCustomSelector from "../controls/UserCustomSelector";
+import Data from "@data/Data";
+import { CELL_STATE } from "@cell/constants";
+import DrawingToolBox, { type DrawingMode } from "@controls/DrawingToolBox";
+import { drawGrid } from "@helpers/canvas";
+import type UserCustomSelector from "@controls/UserCustomSelector";
 import Simulation from "./Simulation";
 import {
   CELL_COLORS,
@@ -22,6 +22,7 @@ type GridBaseOptions = {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
   species?: string;
+  onLoad?: (comments: string[]) => void;
 };
 
 type RandomGridOptions = GridBaseOptions & {
@@ -82,7 +83,7 @@ class Grid {
         this._initializeRandom(options.randomPreset ?? DEFAULT_RANDOM_PRESET);
         break;
       case "zoo":
-        this._initializeZoo(options.species);
+        this._initializeZoo(options.species, options.onLoad);
         break;
       case "drawing":
         this._drawing = {
@@ -93,7 +94,7 @@ class Grid {
           userCustomSelector: options.userCustomSelector,
           zoombox: options.zoombox,
         };
-        this._initializeDrawing(options.species);
+        this._initializeDrawing(options.species, options.onLoad);
         break;
     }
   }
@@ -156,16 +157,23 @@ class Grid {
     this._drawGrid();
   }
 
-  private _initializeZoo(species?: string): void {
+  private _initializeZoo(
+    species?: string,
+    onLoad?: (comments: string[]) => void,
+  ): void {
     const data = new Data();
-    void data.factory(species ?? "canadagoose", [10, 10]).then(() => {
+    void data.load(species ?? "canadagoose", [10, 10]).then(() => {
       this._simulation.seedFromGrid(data.grid);
       this._render();
       this._drawGrid();
+      onLoad?.(data.comments);
     });
   }
 
-  private _initializeDrawing(species?: string): void {
+  private _initializeDrawing(
+    species?: string,
+    onLoad?: (comments: string[]) => void,
+  ): void {
     if (!this._drawing) {
       return;
     }
@@ -176,9 +184,10 @@ class Grid {
 
     if (species) {
       const data = new Data();
-      void data.factory(species, [0, 0], "custom").then(() => {
+      void data.load(species, [0, 0], "custom").then(() => {
         this._simulation.seedFromGrid(data.grid);
         this._render();
+        onLoad?.(data.comments);
       });
     } else {
       this._simulation.seedDead();
@@ -390,7 +399,7 @@ class Grid {
   }
 
   private _drawGrid(): void {
-    Helpers.drawGrid(this._ctx, this._canvas);
+    drawGrid(this._ctx, this._canvas);
   }
 }
 

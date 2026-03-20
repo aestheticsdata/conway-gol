@@ -78,7 +78,8 @@ conway-gol/
 │   │   │   ├── Data.ts
 │   │   │   └── species/
 │   │   ├── helpers/
-│   │   │   ├── Helpers.ts
+│   │   │   ├── api.ts
+│   │   │   ├── canvas.ts
 │   │   │   ├── constants.ts
 │   │   │   └── dom.ts
 │   │   ├── services/
@@ -151,13 +152,17 @@ This keeps Conway logic out of the renderer and keeps DOM event handling out of 
 - `ZooSelector.ts`: pattern selection in zoo mode
 - `UserCustomSelector.ts`: save/load of custom drawings
 
-`Data` in `front/src/data/Data.ts` fetches catalog or custom patterns, centers them on the 156x156 grid, and exposes a plain `number[][]` seed for the simulation.
+`Data` in `front/src/data/Data.ts` fetches catalog or custom patterns, centers them on the 156x156 grid, and exposes a plain `number[][]` seed for the simulation. After `load()` resolves, `Data.comments` holds the pattern's metadata lines for the caller to display.
 
 `ZoomBox` in `front/src/Grid/zoom/ZoomBox.ts` renders the magnified 7x7 area around the cursor in drawing mode.
 
 `UserCustomService` in `front/src/services/UserCustomService.ts` handles HTTP calls for listing and saving custom patterns.
 
 `front/src/helpers/dom.ts` centralizes strict DOM lookup helpers such as `queryRequired()` and `getRequiredContext2D()`. This removes scattered nullable DOM assumptions from the rest of the frontend code.
+
+`front/src/helpers/api.ts` exposes `getRequestURL()`, which constructs absolute API URLs from the shared `API_BASE_PATH` constant in `helpers/constants.ts`.
+
+`front/src/helpers/canvas.ts` exposes `drawGrid()`, a standalone canvas utility used by both `Grid` and `ZoomBox`.
 
 ### API
 
@@ -200,6 +205,8 @@ Design rules used by the current frontend:
 - `Grid` reads simulation state and handles canvas interaction, but does not implement Conway rules.
 - `Main` orchestrates mode transitions and shared UI state, but does not manipulate cell state directly.
 - Required DOM access should go through `front/src/helpers/dom.ts`.
+- Data loading (`Data`) does not touch the DOM. Pattern comments are returned to the caller via `Data.comments` and rendered by `Main._renderComments()`.
+- Cross-module imports use path aliases (`@cell`, `@controls`, `@data`, `@grid`, `@helpers`, `@services`). Intra-module imports (same folder or immediate subfolder) use relative `./` paths.
 
 ## Running Locally
 
@@ -343,6 +350,16 @@ The random-mode feature was separated into explicit layers:
 - `Grid` now uses typed per-mode options instead of a long positional constructor
 
 This made the random mode easier to extend without pushing more UI concerns into the simulation engine.
+
+### Phase 4 - Service layer cleanup and path aliases (2026-03)
+
+Several concerns that had been mixed together were separated and the import graph was made explicit:
+
+- `Helpers.ts` was split into two focused modules: `helpers/api.ts` (`getRequestURL`) and `helpers/canvas.ts` (`drawGrid`). The `API_BASE_PATH` constant was moved to `helpers/constants.ts` alongside `URLS`.
+- `Data.factory()` was renamed to `Data.load()`. DOM manipulation (rendering pattern comments) was removed from `Data` entirely. `Data.comments` is now read by the caller after the promise resolves, and `Main._renderComments()` handles display using safe DOM APIs (`createElement`, `createTextNode`, `replaceChildren`) instead of `innerHTML`.
+- `Grid` gained an optional `onLoad` callback in its options. It is called with `data.comments` after a zoo or drawing pattern finishes loading, letting `Main` display comments without `Grid` or `Data` knowing about the DOM.
+- `ZoomBox` was updated to import `drawGrid` from `@helpers/canvas` (it was still using the old `Helpers` class).
+- Path aliases were added to `tsconfig.json` and `vite.config.ts`: `@cell`, `@controls`, `@data`, `@grid`, `@helpers`, `@services`. All cross-module imports across the frontend now use these aliases.
 
 ### Phase 2 - Simulation / Renderer split (2026-03)
 
