@@ -1,0 +1,67 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider            = "prisma-client"
+  output              = "../generated/prisma"
+  moduleFormat        = "cjs"
+  importFileExtension = ""
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum PatternVisibility {
+  PRIVATE
+  PUBLIC
+}
+
+model User {
+  id                   String                    @id @default(uuid()) @db.Char(36)
+  email                String                    @unique @db.VarChar(191)
+  username             String                    @unique @db.VarChar(191)
+  passwordHash         String?                   @db.VarChar(255)
+  createdAt            DateTime                  @default(now())
+  updatedAt            DateTime                  @updatedAt
+  deletedAt            DateTime?
+  customPatterns       CustomPattern[]
+  catalogPatternStates UserCatalogPatternState[]
+
+  @@index([deletedAt])
+}
+
+model CustomPattern {
+  id         String            @id @default(uuid()) @db.Char(36)
+  ownerId    String            @db.Char(36)
+  name       String            @db.VarChar(191)
+  visibility PatternVisibility @default(PRIVATE)
+  comments   Json
+  automata   Json
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+  deletedAt  DateTime?
+  owner      User              @relation(fields: [ownerId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([ownerId, name])
+  @@index([ownerId, deletedAt])
+  @@index([visibility, deletedAt])
+  @@index([deletedAt])
+}
+
+model UserCatalogPatternState {
+  id          String   @id @default(uuid()) @db.Char(36)
+  userId      String   @db.Char(36)
+  catalogName String   @db.VarChar(191)
+  firstSeenAt DateTime?
+  lastSeenAt  DateTime?
+  favoritedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([userId, catalogName])
+  @@index([catalogName])
+}

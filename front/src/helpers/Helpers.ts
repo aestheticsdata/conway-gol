@@ -1,11 +1,13 @@
 import { GRID } from "../Grid/constants";
 import { CELL_SIZE } from "../Grid/constants";
 
+const API_BASE_PATH = "/conway-gol/api";
+
 class Helpers {
-  public static getRequestURL = (url: string) =>
-    window.location.pathname.search('conway-gol') !== -1
-      ? `https://1991computer.com/conway-gol/api/${url}`
-      : `http://localhost:5030/${url}`;
+  public static getRequestURL = (url: string) => {
+    const normalizedUrl = url.replace(/^\/+/, "");
+    return `${window.location.origin}${API_BASE_PATH}/${normalizedUrl}`;
+  };
 
   public static drawGrid = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, zoom = 1, color?: string) => {
     ctx.beginPath();

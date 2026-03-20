@@ -1,5 +1,5 @@
 export const URLS = {
-  critter: "critter/",
+  pattern: "pattern/",
   critterList: "list/",
   usercustom: "usercustom/",
 }

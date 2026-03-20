@@ -24,8 +24,8 @@ class Data {
   private async _makeEntity(entity: string, startIndex: number[], custom?: string) {
     let o;
     const url = custom
-      ? `${URLS.critter}${entity}-custom`
-      : `${URLS.critter}${entity}`;
+      ? `${URLS.pattern}${entity}-custom`
+      : `${URLS.pattern}${entity}`;
 
     try {
       const critter = (await axios.get(`${Helpers.getRequestURL(url)}`)).data;

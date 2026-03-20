@@ -1,14 +1,29 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 
-export default defineConfig({
-  root: "src",
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), "");
+  const apiProxyTarget = env.VITE_API_PROXY_TARGET || "http://localhost:6300";
 
-  base: "/conway-gol/",
+  return {
+    root: "src",
 
-  publicDir: "../public",
+    base: "/conway-gol/",
 
-  build: {
-    outDir: "../dist",
-    emptyOutDir: true,
-  },
+    publicDir: "../public",
+
+    server: {
+      proxy: {
+        "/conway-gol/api": {
+          target: apiProxyTarget,
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/conway-gol\/api/, ""),
+        },
+      },
+    },
+
+    build: {
+      outDir: "../dist",
+      emptyOutDir: true,
+    },
+  };
 });
