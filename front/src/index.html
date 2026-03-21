@@ -10,39 +10,54 @@
     <div class="container">
       <div class="controls-wrapper">
         <div class="right-pane">
-          <div class="mode-selector">
-            <div>
-              <input type="radio" id="random" name="mode" value="random" checked>
-              <label for="random"></label>
-            </div>
-            <div>
-              <input type="radio" id="zoo" name="mode" value="zoo">
-              <label for="zoo"></label>
-            </div>
-            <div>
-              <input type="radio" id="drawing" name="mode" value="drawing">
-              <label for="drawing"></label>
-            </div>
-          </div>
-          <div class="iteration">
-            <span class="iteration-label"></span>
-            <span class="iteration-counter" />
-          </div>
-          <div class="cell-stats">
-            <div class="cell-stat">
-              <span class="cell-stat-label alive-cells-label"></span>
-              <span class="alive-cells-counter"></span>
-            </div>
-            <div class="cell-stat">
-              <span class="cell-stat-label dead-cells-label"></span>
-              <span class="dead-cells-counter"></span>
+          <div class="left-section">
+            <div class="mode-selector">
+              <div>
+                <input type="radio" id="random" name="mode" value="random" checked>
+                <label for="random"></label>
+              </div>
+              <div>
+                <input type="radio" id="zoo" name="mode" value="zoo">
+                <label for="zoo"></label>
+              </div>
+              <div>
+                <input type="radio" id="drawing" name="mode" value="drawing">
+                <label for="drawing"></label>
+              </div>
             </div>
           </div>
-          <div class="speed-selector">
-            <label for="speed-input"></label>
-            <input type="text" id="speed-input" min="1" max="60" />
+          <div class="left-section left-section--separated">
+            <div class="iteration">
+              <span class="iteration-label"></span>
+              <span class="iteration-counter" />
+            </div>
           </div>
-          <button class="pause"></button>
+          <div class="left-section left-section--separated">
+            <div class="cell-stats">
+              <div class="cell-stat">
+                <span class="cell-stat-label alive-cells-label"></span>
+                <span class="alive-cells-counter"></span>
+              </div>
+              <div class="cell-stat">
+                <span class="cell-stat-label dead-cells-label"></span>
+                <span class="dead-cells-counter"></span>
+              </div>
+            </div>
+            <canvas class="alive-variation-chart"></canvas>
+            <div class="alive-variation-legend"></div>
+          </div>
+          <div class="left-section left-section--separated">
+            <div class="speed-selector">
+              <div class="speed-header">
+                <label for="speed-slider" class="speed-label"></label>
+                <span class="speed-value"></span>
+              </div>
+              <input type="range" id="speed-slider" min="0" max="60" value="12" step="1" />
+            </div>
+          </div>
+          <div class="left-section left-section--separated playback-controls">
+            <button class="pause"></button>
+          </div>
         </div>
       </div>
       <div class="canvas-wrapper">

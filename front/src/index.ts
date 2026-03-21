@@ -8,6 +8,7 @@ import {
   type RandomPresetId,
 } from "@grid/randomPresets";
 import ZoomBox from "@grid/zoom/ZoomBox";
+import AliveVariationChart from "@controls/AliveVariationChart";
 import DrawingToolBox from "@controls/DrawingToolBox";
 import ModeSelector, { type Mode } from "@controls/ModeSelector";
 import UserCustomSelector from "@controls/UserCustomSelector";
@@ -30,8 +31,10 @@ class Main {
   private readonly _iterationCounter: HTMLElement;
   private readonly _aliveCellsCounter: HTMLElement;
   private readonly _deadCellsCounter: HTMLElement;
+  private readonly _aliveVariationChart: AliveVariationChart;
   private readonly _pauseBtn: HTMLButtonElement;
-  private readonly _speedSelector: HTMLInputElement;
+  private readonly _speedSlider: HTMLInputElement;
+  private readonly _speedValue: HTMLElement;
   private readonly _commentsDOMSelector: HTMLElement;
   private readonly _zooPrimitivesDOMSelector: HTMLElement;
   private readonly _randomPresetContainer: HTMLElement;
@@ -80,8 +83,12 @@ class Main {
     this._iterationCounter = queryRequired<HTMLElement>(".iteration-counter");
     this._aliveCellsCounter = queryRequired<HTMLElement>(".alive-cells-counter");
     this._deadCellsCounter = queryRequired<HTMLElement>(".dead-cells-counter");
+    this._aliveVariationChart = new AliveVariationChart(
+      queryRequired<HTMLCanvasElement>(".alive-variation-chart"),
+    );
     this._pauseBtn = queryRequired<HTMLButtonElement>("button.pause");
-    this._speedSelector = queryRequired<HTMLInputElement>("#speed-input");
+    this._speedSlider = queryRequired<HTMLInputElement>("#speed-slider");
+    this._speedValue = queryRequired<HTMLElement>(".speed-value");
     this._commentsDOMSelector = queryRequired<HTMLElement>(".critter-comments");
     this._zooPrimitivesDOMSelector = queryRequired<HTMLElement>(".zoo-selector");
     this._randomPresetContainer = queryRequired<HTMLElement>(".random-preset-selector");
@@ -145,7 +152,8 @@ class Main {
     queryRequired<HTMLElement>(".iteration-label").textContent = `${APP_TEXTS.playback.iteration} `;
     queryRequired<HTMLElement>(".alive-cells-label").textContent = `${APP_TEXTS.playback.aliveCells} `;
     queryRequired<HTMLElement>(".dead-cells-label").textContent = `${APP_TEXTS.playback.deadCells} `;
-    queryRequired<HTMLLabelElement>('label[for="speed-input"]').textContent = `${APP_TEXTS.playback.fps} `;
+    queryRequired<HTMLLabelElement>('label[for="speed-slider"]').textContent = `${APP_TEXTS.playback.fps} `;
+    queryRequired<HTMLElement>(".alive-variation-legend").textContent = APP_TEXTS.playback.aliveVariation;
     queryRequired<HTMLLabelElement>('label[for="random-preset"]').textContent = APP_TEXTS.random.preset;
     queryRequired<HTMLElement>("#random-density-label").textContent = `${APP_TEXTS.random.density} `;
     queryRequired<HTMLElement>("#random-noise-type-label").textContent = APP_TEXTS.random.noiseType;
@@ -201,6 +209,7 @@ class Main {
     }
     if (this._selectedMode !== "random" || !this._grid) return;
     this._resetIterationCounter();
+    this._aliveVariationChart.reset();
     this._grid.reseedRandomPreset(
       this._currentRandomPreset(),
       this._randomPresetVariation,
@@ -218,10 +227,16 @@ class Main {
     this._deadCellsCounter.textContent = String(stats.dead);
   };
 
+  private _handleStateChange = (stats: { alive: number; dead: number }): void => {
+    this._updateCellStats(stats);
+    this._aliveVariationChart.push(stats.alive);
+  };
+
   private _resetPlaybackControls(): void {
     this._resetIterationCounter();
     this._fps = 12;
-    this._speedSelector.value = String(this._fps);
+    this._speedSlider.value = String(this._fps);
+    this._speedValue.textContent = String(this._fps);
   }
 
   private _onRandomPresetChange = (): void => {
@@ -232,6 +247,7 @@ class Main {
     this._randomPresetVariation = false;
     this._randomAutoSeed = null;
     this._resetIterationCounter();
+    this._aliveVariationChart.reset();
     this._grid.reseedRandomPreset(
       this._currentRandomPreset(),
       false,
@@ -247,6 +263,7 @@ class Main {
     this._randomPresetVariation = true;
     this._randomAutoSeed = this._randomSeedAuto.checked ? this._nextRandomSeed() : null;
     this._resetIterationCounter();
+    this._aliveVariationChart.reset();
     this._grid.reseedRandomPreset(
       this._currentRandomPreset(),
       true,
@@ -255,40 +272,16 @@ class Main {
   };
 
   private _setFPS(): void {
-    this._speedSelector.value = String(this._fps);
-    this._speedSelector.addEventListener("keypress", this._handleEnterKey);
-    this._speedSelector.addEventListener("change", (e: Event) => {
-      const nextValue = Number.parseInt(
-        (e.currentTarget as HTMLInputElement).value,
-        10,
-      );
+    this._speedSlider.value = String(this._fps);
+    this._speedValue.textContent = String(this._fps);
+    this._speedSlider.addEventListener("input", (e: Event) => {
+      const nextValue = Number((e.currentTarget as HTMLInputElement).value);
       if (!Number.isNaN(nextValue)) {
-        this._fps = nextValue;
+        this._fps = Math.max(0, Math.min(60, nextValue));
+        this._speedValue.textContent = String(this._fps);
       }
     });
   }
-
-  private _handleEnterKey = (e: KeyboardEvent): void => {
-    if (e.key !== "Enter") {
-      return;
-    }
-
-    e.preventDefault();
-    const input = e.currentTarget as HTMLInputElement;
-    const requestedFps = Number(input.value);
-
-    if (requestedFps > 60) {
-      this._fps = 60;
-      this._speedSelector.value = String(this._fps);
-    } else if (requestedFps < 1) {
-      this._fps = 1;
-      this._speedSelector.value = String(this._fps);
-    } else if (!Number.isNaN(requestedFps)) {
-      this._fps = requestedFps;
-    }
-
-    input.blur();
-  };
 
   private _renderGeneration(): void {
     this._grid?.processNextGeneration();
@@ -357,6 +350,7 @@ class Main {
 
     this._grid?.destroyListener();
     this._updateCellStats({ alive: 0, dead: GRID_COLS * GRID_ROWS });
+    this._aliveVariationChart.reset();
 
     switch (this._selectedMode) {
       case "random":
@@ -375,7 +369,7 @@ class Main {
           mode: "random",
           randomPreset: this._currentRandomPreset(),
           randomParams: this._currentRandomParams(),
-          onStateChange: this._updateCellStats,
+          onStateChange: this._handleStateChange,
         });
         break;
 
@@ -399,7 +393,7 @@ class Main {
           ctx: this._stage,
           mode: "zoo",
           species: this._selectedSpecies ?? undefined,
-          onStateChange: this._updateCellStats,
+          onStateChange: this._handleStateChange,
           onLoad: (comments) => { this._renderComments(comments); },
         });
         break;
@@ -425,7 +419,7 @@ class Main {
           drawingToolbox: this._drawingToolBox,
           mode: "drawing",
           species: this._selectedSpecies ?? undefined,
-          onStateChange: this._updateCellStats,
+          onStateChange: this._handleStateChange,
           userCustomSelector: this._userCustomSelector,
           zoombox: this._zoomBox,
           onLoad: (comments) => { this._renderComments(comments); },

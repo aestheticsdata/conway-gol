@@ -12,6 +12,7 @@ export const APP_TEXTS = {
     aliveCells: "Alive cells:",
     deadCells: "Dead cells:",
     fps: "FPS:",
+    aliveVariation: "Alive cell variation",
     start: "start",
     pause: "pause",
   },

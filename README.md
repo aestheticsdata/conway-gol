@@ -23,7 +23,8 @@ A full-stack implementation of [Conway's Game of Life](https://en.wikipedia.org/
 - Zoo mode with 1,400+ catalog patterns
 - Drawing mode with save/load for custom patterns
 - Zoom view around the cursor
-- Adjustable FPS from 1 to 60
+- Left-side playback telemetry with iteration count, live/dead cell counts, and a real-time alive-cell variation graph
+- Adjustable FPS from 0 to 60 via slider
 - Toroidal grid with wraparound edges
 
 ## Tech Stack
@@ -70,6 +71,8 @@ conway-gol/
 │   │   │   └── zoom/
 │   │   │       └── ZoomBox.ts
 │   │   ├── controls/
+│   │   │   ├── AliveVariationChart.ts
+│   │   │   ├── AliveVariationChart.constants.ts
 │   │   │   ├── DrawingToolBox.ts
 │   │   │   ├── ModeSelector.ts
 │   │   │   ├── UserCustomSelector.ts
@@ -157,6 +160,7 @@ This keeps Conway logic out of the renderer and keeps DOM event handling out of 
 
 `front/src/controls/` contains DOM-facing UI components:
 
+- `AliveVariationChart.ts`: left-panel playback graph that renders the signed per-step change in living cells
 - `ModeSelector.ts`: radio-button mode switching
 - `DrawingToolBox.ts`: pencil/eraser selection
 - `ZooSelector.ts`: pattern selection in zoo mode
@@ -348,6 +352,27 @@ Catalog patterns are stored as JSON with the `.hxf` extension:
 Custom patterns are submitted in the same JSON shape through `POST /usercustom/:filename`, but are persisted in the database rather than the filesystem.
 
 ## Refactoring History
+
+### Phase 6 - Left playback telemetry and FPS slider (2026-03)
+
+The left control column was reorganized into separated visual sections so that playback status reads as a single stack:
+
+- mode radio buttons
+- iteration counter
+- a telemetry block with alive cells, dead cells, and a live variation graph
+- an FPS slider with inline numeric readout
+- the start / pause button
+
+The new `AliveVariationChart` control does not plot the total number of living cells. Instead, it plots the signed delta between two successive states:
+
+- points above the center line mean the alive-cell count increased
+- points below the center line mean the alive-cell count decreased
+- the dotted horizontal midline is the zero-variation reference
+- the final marker turns green when the variation is positive and red when it is negative
+
+The chart keeps the axes inside the canvas, including single-sided arrowheads at the top of the Y axis and the end of the X axis. The left panel width and numeric columns were also fixed so changing counters no longer causes horizontal layout jitter.
+
+FPS control was changed from a free-text input to a range slider (`0` to `60`). `0` effectively freezes generation updates while keeping the playback UI active; values above `0` set the target generations per second used by the animation loop.
 
 ### Phase 3 - Random preset seeding split (2026-03)
 
