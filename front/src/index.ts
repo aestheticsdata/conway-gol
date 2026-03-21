@@ -12,13 +12,15 @@ import DrawingToolBox from "@controls/DrawingToolBox";
 import ModeSelector, { type Mode } from "@controls/ModeSelector";
 import UserCustomSelector from "@controls/UserCustomSelector";
 import ZooSelector from "@controls/ZooSelector";
-import { getRequiredContext2D, queryRequired } from "@helpers/dom";
+import { CONTROL_TEXTS } from "@controls/texts";
+import { getRequiredContext2D, queryAll, queryRequired } from "@helpers/dom";
 import { getRequestURL } from "@helpers/api";
 import { URLS } from "@helpers/constants";
 import {
   type NoiseType,
   type RandomSeedParams,
 } from "@grid/seeding/RandomPresetSeeder";
+import { APP_TEXTS } from "./texts";
 
 class Main {
   private readonly _canvas: HTMLCanvasElement;
@@ -60,12 +62,15 @@ class Main {
   private _userCustomSelector?: UserCustomSelector;
 
   constructor() {
+    document.title = APP_TEXTS.document.title;
     this._canvas = queryRequired<HTMLCanvasElement>("#canvasID");
+    this._canvas.textContent = APP_TEXTS.canvas.unsupported;
     this._canvas.width = GRID.SIZE.X;
     this._canvas.height = GRID.SIZE.Y;
     this._stage = getRequiredContext2D(this._canvas);
 
     this._drawingCanvas = queryRequired<HTMLCanvasElement>("#canvas-drawing");
+    this._drawingCanvas.textContent = APP_TEXTS.canvas.unsupported;
     this._drawingCanvas.width = GRID.SIZE.X;
     this._drawingCanvas.height = GRID.SIZE.Y;
     this._drawingContext = getRequiredContext2D(this._drawingCanvas);
@@ -90,10 +95,11 @@ class Main {
       void this._setup();
     };
 
+    this._applyStaticTexts();
     this._renderRandomPresetOptions();
     this._pauseBtn.addEventListener("click", this._togglePause);
     this._setFPS();
-    this._pauseBtn.textContent = "start";
+    this._pauseBtn.textContent = APP_TEXTS.playback.start;
     this._resetIterationCounter();
     // Sync display values on init
     this._randomDensityValue.textContent = `${this._randomDensitySlider.value}%`;
@@ -126,6 +132,39 @@ class Main {
         return option;
       }),
     );
+  }
+
+  private _applyStaticTexts(): void {
+    queryRequired<HTMLLabelElement>('label[for="random"]').textContent = APP_TEXTS.modes.random;
+    queryRequired<HTMLLabelElement>('label[for="zoo"]').textContent = APP_TEXTS.modes.zoo;
+    queryRequired<HTMLLabelElement>('label[for="drawing"]').textContent = APP_TEXTS.modes.drawing;
+    queryRequired<HTMLElement>(".iteration-label").textContent = `${APP_TEXTS.playback.iteration} `;
+    queryRequired<HTMLLabelElement>('label[for="speed-input"]').textContent = `${APP_TEXTS.playback.fps} `;
+    queryRequired<HTMLLabelElement>('label[for="random-preset"]').textContent = APP_TEXTS.random.preset;
+    queryRequired<HTMLElement>("#random-density-label").textContent = `${APP_TEXTS.random.density} `;
+    queryRequired<HTMLElement>("#random-noise-type-label").textContent = APP_TEXTS.random.noiseType;
+    queryRequired<HTMLElement>("#random-noise-uniform-label").textContent =
+      APP_TEXTS.random.noiseTypes.uniform;
+    queryRequired<HTMLElement>("#random-noise-perlin-like-label").textContent =
+      APP_TEXTS.random.noiseTypes.perlinLike;
+    queryRequired<HTMLElement>("#random-noise-clusters-label").textContent =
+      APP_TEXTS.random.noiseTypes.clusters;
+    queryRequired<HTMLElement>("#random-seed-label").textContent = `${APP_TEXTS.random.seed} `;
+    queryRequired<HTMLElement>("#random-seed-auto-label").textContent = APP_TEXTS.random.autoSeed;
+    this._randomGenerateBtn.textContent = APP_TEXTS.random.generate;
+    queryRequired<HTMLButtonElement>(".custom-drawing-files .save").textContent =
+      CONTROL_TEXTS.drawing.saveButton;
+    queryRequired<HTMLLabelElement>('label[for="custom-file"]').textContent =
+      CONTROL_TEXTS.drawing.customDrawingLabel;
+    queryRequired<HTMLLabelElement>('label[for="primitives"]').textContent =
+      `${APP_TEXTS.zoo.species} `;
+
+    queryAll<HTMLImageElement>('img[data-tool="pencil"]').forEach((img) => {
+      img.alt = CONTROL_TEXTS.drawing.tools.pencilAlt;
+    });
+    queryAll<HTMLImageElement>('img[data-tool="eraser"]').forEach((img) => {
+      img.alt = CONTROL_TEXTS.drawing.tools.eraserAlt;
+    });
   }
 
   private _currentRandomPreset(): RandomPresetId {
@@ -247,9 +286,9 @@ class Main {
   private _togglePause = (): void => {
     if (this._isPlaying) {
       this._stop();
-      this._pauseBtn.textContent = "start";
+      this._pauseBtn.textContent = APP_TEXTS.playback.start;
     } else {
-      this._pauseBtn.textContent = "pause";
+      this._pauseBtn.textContent = APP_TEXTS.playback.pause;
       this._start();
     }
     this._isPlaying = !this._isPlaying;
@@ -392,10 +431,10 @@ class Main {
         a.target = "_blank";
         a.rel = "noopener noreferrer";
         a.title = line;
-        a.textContent = `- ${line}`;
+        a.textContent = `${APP_TEXTS.comments.itemPrefix}${line}`;
         nodes.push(a);
       } else {
-        nodes.push(document.createTextNode(`- ${line}`));
+        nodes.push(document.createTextNode(`${APP_TEXTS.comments.itemPrefix}${line}`));
       }
     });
     this._commentsDOMSelector.replaceChildren(...nodes);

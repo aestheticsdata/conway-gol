@@ -1,6 +1,7 @@
 import Swal from "sweetalert2";
 import UserCustomService from "@services/UserCustomService";
 import { queryRequired } from "@helpers/dom";
+import { CONTROL_TEXTS } from "./texts";
 
 class UserCustomSelector {
   private readonly _customDrawingDOMSelector: HTMLElement;
@@ -47,20 +48,24 @@ class UserCustomSelector {
 
   private _save = async () => {
     const { value: filename } = await Swal.fire({
-      title: 'enter a filename',
-      input: 'text',
+      title: CONTROL_TEXTS.userCustomSelector.prompt.title,
+      input: "text",
       showCancelButton: true,
-      confirmButtonText: 'save',
-      inputValidator: (value) => { if (!value) { return 'filename required' } },
+      confirmButtonText: CONTROL_TEXTS.userCustomSelector.prompt.confirmButtonText,
+      inputValidator: (value) => {
+        if (!value) {
+          return CONTROL_TEXTS.userCustomSelector.prompt.filenameRequired;
+        }
+      },
     });
     if (filename) {
       await this._userCustomService.postCustomDrawing(this.getGridData(), filename);
       await this.getCustomList();
       await Swal.fire({
         toast: true,
-        icon: 'success',
-        title: `${filename} saved successfully`,
-        position: 'top-end',
+        icon: "success",
+        title: CONTROL_TEXTS.userCustomSelector.toast.savedSuccessfully(filename),
+        position: "top-end",
         showConfirmButton: false,
         timer: 3000,
       });

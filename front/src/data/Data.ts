@@ -4,6 +4,7 @@ import { species } from "./species/species";
 import axios from "axios";
 import { getRequestURL } from "@helpers/api";
 import { URLS } from "@helpers/constants";
+import { DATA_TEXTS } from "./texts";
 
 type PatternContent = {
   position?: number[];
@@ -56,16 +57,16 @@ class Data {
       pattern = { position, content: critterParsed.automata };
       this.comments = critterParsed.comments;
     } catch (err) {
-      console.error("Error fetching critter:", err);
+      console.error(DATA_TEXTS.errors.fetchingCritter, err);
       pattern = (species[entity] as PatternContent | undefined) ?? null;
       if (!pattern) {
-        console.error(`Species "${entity}" not found in API or local species`);
+        console.error(DATA_TEXTS.errors.speciesNotFound(entity));
         return;
       }
     }
 
     if (!pattern?.content) {
-      console.error("Invalid critter data:", pattern);
+      console.error(DATA_TEXTS.errors.invalidCritterData, pattern);
       return;
     }
 

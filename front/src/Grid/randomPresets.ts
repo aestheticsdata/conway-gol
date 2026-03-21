@@ -1,17 +1,19 @@
+import { GRID_TEXTS } from "./texts";
+
 /**
  * Random-mode presets, used as the single source of truth for ids and labels.
  */
 export const RANDOM_PRESETS = [
-  { id: "stars", label: "Stars" },
-  { id: "circles", label: "Random circles" },
-  { id: "sinus", label: "Sine waves" },
-  { id: "rings", label: "Rings" },
-  { id: "stripes", label: "Stripes" },
-  { id: "checker", label: "Checkerboard" },
-  { id: "clusters", label: "Clusters" },
-  { id: "diagonal", label: "Diagonals" },
-  { id: "cross", label: "Cross" },
-  { id: "noise", label: "Classic noise" },
+  { id: "stars", label: GRID_TEXTS.randomPresets.stars },
+  { id: "circles", label: GRID_TEXTS.randomPresets.circles },
+  { id: "sinus", label: GRID_TEXTS.randomPresets.sinus },
+  { id: "rings", label: GRID_TEXTS.randomPresets.rings },
+  { id: "stripes", label: GRID_TEXTS.randomPresets.stripes },
+  { id: "checker", label: GRID_TEXTS.randomPresets.checker },
+  { id: "clusters", label: GRID_TEXTS.randomPresets.clusters },
+  { id: "diagonal", label: GRID_TEXTS.randomPresets.diagonal },
+  { id: "cross", label: GRID_TEXTS.randomPresets.cross },
+  { id: "noise", label: GRID_TEXTS.randomPresets.noise },
 ] as const;
 
 export type RandomPresetId = (typeof RANDOM_PRESETS)[number]["id"];
