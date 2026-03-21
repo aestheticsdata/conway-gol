@@ -3,7 +3,7 @@ import { CELL_STATE } from "@cell/constants";
 import DrawingToolBox, { type DrawingMode } from "@controls/DrawingToolBox";
 import { drawGrid } from "@helpers/canvas";
 import type UserCustomSelector from "@controls/UserCustomSelector";
-import Simulation from "./Simulation";
+import Simulation, { type SimulationStateStats } from "./Simulation";
 import {
   CELL_COLORS,
   CELL_SIZE,
@@ -27,7 +27,7 @@ type GridBaseOptions = {
   ctx: CanvasRenderingContext2D;
   species?: string;
   onLoad?: (comments: string[]) => void;
-  onStateChange?: (stats: { alive: number; dead: number }) => void;
+  onStateChange?: (stats: SimulationStateStats) => void;
 };
 
 type RandomGridOptions = GridBaseOptions & {
@@ -74,7 +74,7 @@ class Grid {
   private readonly _canvas: HTMLCanvasElement;
   private readonly _ctx: CanvasRenderingContext2D;
   private readonly _simulation: Simulation;
-  private readonly _onStateChange?: (stats: { alive: number; dead: number }) => void;
+  private readonly _onStateChange?: (stats: SimulationStateStats) => void;
   private readonly _drawing?: DrawingDependencies;
   private _previousCellPos: { xPos: number; yPos: number } | null = null;
   private _isDown = false;
@@ -422,10 +422,7 @@ class Grid {
   }
 
   private _emitStateChange(): void {
-    this._onStateChange?.({
-      alive: this._simulation.getAliveCount(),
-      dead: this._simulation.getDeadCount(),
-    });
+    this._onStateChange?.(this._simulation.getStateStats());
   }
 }
 

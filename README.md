@@ -23,7 +23,7 @@ A full-stack implementation of [Conway's Game of Life](https://en.wikipedia.org/
 - Zoo mode with 1,400+ catalog patterns
 - Drawing mode with save/load for custom patterns
 - Zoom view around the cursor
-- Left-side playback telemetry with iteration count, live/dead cell counts, and a real-time alive-cell variation graph
+- Left-side playback telemetry with iteration count, live/dead cell counts, a real-time alive-cell variation graph, and a real-time absolute alive-cell graph
 - Adjustable FPS from 0 to 60 via slider
 - Toroidal grid with wraparound edges
 
@@ -71,11 +71,14 @@ conway-gol/
 │   │   │   └── zoom/
 │   │   │       └── ZoomBox.ts
 │   │   ├── controls/
+│   │   │   ├── AliveCountChart.ts
 │   │   │   ├── AliveVariationChart.ts
-│   │   │   ├── AliveVariationChart.constants.ts
 │   │   │   ├── DrawingToolBox.ts
 │   │   │   ├── ModeSelector.ts
+│   │   │   ├── PositiveSeriesChart.ts
 │   │   │   ├── UserCustomSelector.ts
+│   │   │   ├── SignedSeriesChart.ts
+│   │   │   ├── constants.ts
 │   │   │   └── ZooSelector.ts
 │   │   ├── data/
 │   │   │   ├── Data.ts
@@ -161,10 +164,16 @@ This keeps Conway logic out of the renderer and keeps DOM event handling out of 
 `front/src/controls/` contains DOM-facing UI components:
 
 - `AliveVariationChart.ts`: left-panel playback graph that renders the signed per-step change in living cells
+- `AliveCountChart.ts`: left-panel playback graph that renders the absolute number of living cells over time
 - `ModeSelector.ts`: radio-button mode switching
 - `DrawingToolBox.ts`: pencil/eraser selection
 - `ZooSelector.ts`: pattern selection in zoo mode
 - `UserCustomSelector.ts`: save/load of custom drawings
+
+The telemetry charts share reusable renderers:
+
+- `SignedSeriesChart.ts`: compact signed chart used for metrics centered around zero, such as alive-cell variation
+- `PositiveSeriesChart.ts`: compact positive-only chart used for monotonic-from-zero metrics, such as the absolute alive-cell count
 
 `Data` in `front/src/data/Data.ts` fetches catalog or custom patterns, centers them on the 156x156 grid, and exposes a plain `number[][]` seed for the simulation. After `load()` resolves, `Data.comments` holds the pattern's metadata lines for the caller to display.
 
@@ -369,6 +378,12 @@ The new `AliveVariationChart` control does not plot the total number of living c
 - points below the center line mean the alive-cell count decreased
 - the dotted horizontal midline is the zero-variation reference
 - the final marker turns green when the variation is positive and red when it is negative
+
+The telemetry stack now also includes an `AliveCountChart` directly below the variation graph. Unlike the delta graph, it plots the absolute number of living cells over time:
+
+- the curve rises when the population grows and falls when it shrinks
+- the bottom axis is zero and the top of the chart tracks the current visible maximum
+- the last marker stays neutral because the chart encodes magnitude rather than signed change
 
 The chart keeps the axes inside the canvas, including single-sided arrowheads at the top of the Y axis and the end of the X axis. The left panel width and numeric columns were also fixed so changing counters no longer causes horizontal layout jitter.
 

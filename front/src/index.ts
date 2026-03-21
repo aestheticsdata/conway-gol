@@ -9,10 +9,12 @@ import {
 } from "@grid/randomPresets";
 import ZoomBox from "@grid/zoom/ZoomBox";
 import AliveVariationChart from "@controls/AliveVariationChart";
+import AliveCountChart from "@controls/AliveCountChart";
 import DrawingToolBox from "@controls/DrawingToolBox";
 import ModeSelector, { type Mode } from "@controls/ModeSelector";
 import UserCustomSelector from "@controls/UserCustomSelector";
 import ZooSelector from "@controls/ZooSelector";
+import type { SimulationStateStats } from "@grid/Simulation";
 import { CONTROL_TEXTS } from "@controls/texts";
 import { getRequiredContext2D, queryAll, queryRequired } from "@helpers/dom";
 import { getRequestURL } from "@helpers/api";
@@ -32,6 +34,7 @@ class Main {
   private readonly _aliveCellsCounter: HTMLElement;
   private readonly _deadCellsCounter: HTMLElement;
   private readonly _aliveVariationChart: AliveVariationChart;
+  private readonly _aliveCountChart: AliveCountChart;
   private readonly _pauseBtn: HTMLButtonElement;
   private readonly _speedSlider: HTMLInputElement;
   private readonly _speedValue: HTMLElement;
@@ -85,6 +88,9 @@ class Main {
     this._deadCellsCounter = queryRequired<HTMLElement>(".dead-cells-counter");
     this._aliveVariationChart = new AliveVariationChart(
       queryRequired<HTMLCanvasElement>(".alive-variation-chart"),
+    );
+    this._aliveCountChart = new AliveCountChart(
+      queryRequired<HTMLCanvasElement>(".alive-count-chart"),
     );
     this._pauseBtn = queryRequired<HTMLButtonElement>("button.pause");
     this._speedSlider = queryRequired<HTMLInputElement>("#speed-slider");
@@ -154,6 +160,7 @@ class Main {
     queryRequired<HTMLElement>(".dead-cells-label").textContent = `${APP_TEXTS.playback.deadCells} `;
     queryRequired<HTMLLabelElement>('label[for="speed-slider"]').textContent = `${APP_TEXTS.playback.fps} `;
     queryRequired<HTMLElement>(".alive-variation-legend").textContent = APP_TEXTS.playback.aliveVariation;
+    queryRequired<HTMLElement>(".alive-count-legend").textContent = APP_TEXTS.playback.aliveCount;
     queryRequired<HTMLLabelElement>('label[for="random-preset"]').textContent = APP_TEXTS.random.preset;
     queryRequired<HTMLElement>("#random-density-label").textContent = `${APP_TEXTS.random.density} `;
     queryRequired<HTMLElement>("#random-noise-type-label").textContent = APP_TEXTS.random.noiseType;
@@ -210,6 +217,7 @@ class Main {
     if (this._selectedMode !== "random" || !this._grid) return;
     this._resetIterationCounter();
     this._aliveVariationChart.reset();
+    this._aliveCountChart.reset();
     this._grid.reseedRandomPreset(
       this._currentRandomPreset(),
       this._randomPresetVariation,
@@ -222,14 +230,15 @@ class Main {
     this._iterationCounter.textContent = "0";
   }
 
-  private _updateCellStats = (stats: { alive: number; dead: number }): void => {
+  private _updateCellStats = (stats: Pick<SimulationStateStats, "alive" | "dead">): void => {
     this._aliveCellsCounter.textContent = String(stats.alive);
     this._deadCellsCounter.textContent = String(stats.dead);
   };
 
-  private _handleStateChange = (stats: { alive: number; dead: number }): void => {
+  private _handleStateChange = (stats: SimulationStateStats): void => {
     this._updateCellStats(stats);
     this._aliveVariationChart.push(stats.alive);
+    this._aliveCountChart.push(stats.alive);
   };
 
   private _resetPlaybackControls(): void {
@@ -248,6 +257,7 @@ class Main {
     this._randomAutoSeed = null;
     this._resetIterationCounter();
     this._aliveVariationChart.reset();
+    this._aliveCountChart.reset();
     this._grid.reseedRandomPreset(
       this._currentRandomPreset(),
       false,
@@ -264,6 +274,7 @@ class Main {
     this._randomAutoSeed = this._randomSeedAuto.checked ? this._nextRandomSeed() : null;
     this._resetIterationCounter();
     this._aliveVariationChart.reset();
+    this._aliveCountChart.reset();
     this._grid.reseedRandomPreset(
       this._currentRandomPreset(),
       true,
@@ -349,8 +360,12 @@ class Main {
     }
 
     this._grid?.destroyListener();
-    this._updateCellStats({ alive: 0, dead: GRID_COLS * GRID_ROWS });
+    this._updateCellStats({
+      alive: 0,
+      dead: GRID_COLS * GRID_ROWS,
+    });
     this._aliveVariationChart.reset();
+    this._aliveCountChart.reset();
 
     switch (this._selectedMode) {
       case "random":

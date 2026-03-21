@@ -8,6 +8,11 @@ import {
   DEFAULT_RANDOM_PARAMS,
 } from "./seeding/RandomPresetSeeder";
 
+export type SimulationStateStats = {
+  alive: number;
+  dead: number;
+};
+
 /**
  * Pure Conway's Game of Life simulation engine.
  *
@@ -53,16 +58,16 @@ class Simulation {
     this._current[row * this.cols + col] = value;
   }
 
-  public getAliveCount(): number {
-    let aliveCount = 0;
-    for (const cell of this._current) {
-      aliveCount += cell;
+  public getStateStats(): SimulationStateStats {
+    let alive = 0;
+    for (let index = 0; index < this._current.length; index++) {
+      alive += this._current[index];
     }
-    return aliveCount;
-  }
 
-  public getDeadCount(): number {
-    return this._current.length - this.getAliveCount();
+    return {
+      alive,
+      dead: this._current.length - alive,
+    };
   }
 
   // ── Seeding ────────────────────────────────────────────────────────────────

@@ -121,7 +121,7 @@ body {
 	font-weight: 900;
 }
 
-.alive-variation-chart {
+.telemetry-chart {
 	display: block;
 	width: 100%;
 	height: 92px;
@@ -129,7 +129,7 @@ body {
 	border-radius: 3px;
 }
 
-.alive-variation-legend {
+.telemetry-chart-legend {
 	margin-top: 4px;
 	font-size: 18px;
 	line-height: 1.1;
