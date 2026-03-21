@@ -6,15 +6,17 @@ class ZooSelector {
     selector: HTMLElement,
     cb: (speciesName: string) => void,
     list?: string[],
+    selectedSpecies?: string,
   ): void {
     const zoo = list ?? Object.keys(species);
     const select = queryRequired<HTMLSelectElement>("#primitives", selector);
+    const activeSpecies = selectedSpecies ?? "canadagoose";
     select.replaceChildren(
       ...zoo.map((primitive) => {
         const option = document.createElement("option");
         option.value = primitive;
         option.textContent = primitive;
-        option.selected = primitive === "canadagoose";
+        option.selected = primitive === activeSpecies;
         return option;
       }),
     );

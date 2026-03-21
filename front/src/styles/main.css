@@ -41,6 +41,7 @@ body {
 }
 .controls-wrapper .right-pane {
 	margin-right: 40px;
+	width: 170px;
 }
 .controls-wrapper .mode-selector {
 	font-size: 25px;
@@ -62,10 +63,51 @@ body {
 .iteration {
 	font-family: 'Dongle', sans-serif;
 	font-size: 25px;
-	text-align: left;
 	color: #0d5e8d;
 	margin-top: 10px;
 	border-radius: 3px;
+	display: grid;
+	grid-template-columns: max-content minmax(4ch, 1fr);
+	column-gap: 6px;
+	width: 100%;
+}
+
+.cell-stats {
+	font-family: 'Dongle', sans-serif;
+	font-size: 25px;
+	color: #0d5e8d;
+	margin-top: 2px;
+	width: 100%;
+}
+
+.cell-stat {
+	line-height: 0.95;
+	display: grid;
+	grid-template-columns: max-content minmax(4ch, 1fr);
+	column-gap: 6px;
+	width: 100%;
+}
+
+.iteration-counter,
+.alive-cells-counter,
+.dead-cells-counter {
+	display: inline-block;
+	min-width: 4ch;
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+}
+
+.alive-cells-counter {
+	color: #0062ff;
+}
+
+.dead-cells-counter {
+	color: #878787;
+}
+
+.iteration-counter {
+	color: #0d5e8d;
+	font-weight: 900;
 }
 
 .speed-selector {
@@ -310,5 +352,3 @@ select, input {
 .zoombox-container .zoombox .coordinates .x-pos-label, .zoombox-container .zoombox .coordinates .y-pos-label {
 	font-weight: 800;
 }
-
-

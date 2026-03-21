@@ -53,6 +53,18 @@ class Simulation {
     this._current[row * this.cols + col] = value;
   }
 
+  public getAliveCount(): number {
+    let aliveCount = 0;
+    for (const cell of this._current) {
+      aliveCount += cell;
+    }
+    return aliveCount;
+  }
+
+  public getDeadCount(): number {
+    return this._current.length - this.getAliveCount();
+  }
+
   // ── Seeding ────────────────────────────────────────────────────────────────
 
   /** Fill the grid with classic uniform noise using INITIAL_DENSITY. */

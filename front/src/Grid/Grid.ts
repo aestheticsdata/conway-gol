@@ -27,6 +27,7 @@ type GridBaseOptions = {
   ctx: CanvasRenderingContext2D;
   species?: string;
   onLoad?: (comments: string[]) => void;
+  onStateChange?: (stats: { alive: number; dead: number }) => void;
 };
 
 type RandomGridOptions = GridBaseOptions & {
@@ -73,6 +74,7 @@ class Grid {
   private readonly _canvas: HTMLCanvasElement;
   private readonly _ctx: CanvasRenderingContext2D;
   private readonly _simulation: Simulation;
+  private readonly _onStateChange?: (stats: { alive: number; dead: number }) => void;
   private readonly _drawing?: DrawingDependencies;
   private _previousCellPos: { xPos: number; yPos: number } | null = null;
   private _isDown = false;
@@ -82,6 +84,7 @@ class Grid {
     this._canvas = options.canvas;
     this._ctx = options.ctx;
     this._simulation = new Simulation(GRID_ROWS, GRID_COLS);
+    this._onStateChange = options.onStateChange;
 
     switch (options.mode) {
       case "random":
@@ -142,6 +145,7 @@ class Grid {
     this._simulation.tick();
     this._render();
     this._drawGrid();
+    this._emitStateChange();
   }
 
   /**
@@ -156,6 +160,7 @@ class Grid {
     this._simulation.seedByPreset(preset, randomVariation, params);
     this._render();
     this._drawGrid();
+    this._emitStateChange();
   }
 
   // ── Initialization ────────────────────────────────────────────────────────
@@ -164,6 +169,7 @@ class Grid {
     this._simulation.seedByPreset(randomPreset, false, params);
     this._render();
     this._drawGrid();
+    this._emitStateChange();
   }
 
   private _initializeZoo(
@@ -175,6 +181,7 @@ class Grid {
       this._simulation.seedFromGrid(data.grid);
       this._render();
       this._drawGrid();
+      this._emitStateChange();
       onLoad?.(data.comments);
     });
   }
@@ -196,11 +203,13 @@ class Grid {
       void data.load(species, [0, 0], "custom").then(() => {
         this._simulation.seedFromGrid(data.grid);
         this._render();
+        this._emitStateChange();
         onLoad?.(data.comments);
       });
     } else {
       this._simulation.seedDead();
       this._render();
+      this._emitStateChange();
     }
 
     this._drawGrid();
@@ -364,6 +373,7 @@ class Grid {
       this._drawingMode === "pencil" ? CELL_STATE.ALIVE : CELL_STATE.DEAD;
     this._simulation.setCell(yPos, xPos, newState);
     this._renderCell(yPos, xPos);
+    this._emitStateChange();
   };
 
   /** Draw a single cell on the overlay (hover preview) canvas. */
@@ -409,6 +419,13 @@ class Grid {
 
   private _drawGrid(): void {
     drawGrid(this._ctx, this._canvas);
+  }
+
+  private _emitStateChange(): void {
+    this._onStateChange?.({
+      alive: this._simulation.getAliveCount(),
+      dead: this._simulation.getDeadCount(),
+    });
   }
 }
 

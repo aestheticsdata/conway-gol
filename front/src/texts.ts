@@ -9,6 +9,8 @@ export const APP_TEXTS = {
   },
   playback: {
     iteration: "Iteration:",
+    aliveCells: "Alive cells:",
+    deadCells: "Dead cells:",
     fps: "FPS:",
     start: "start",
     pause: "pause",

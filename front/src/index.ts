@@ -1,6 +1,6 @@
 import axios from "axios";
 import Grid from "@grid/Grid";
-import { GRID } from "@grid/constants";
+import { GRID, GRID_COLS, GRID_ROWS } from "@grid/constants";
 import {
   DEFAULT_RANDOM_PRESET,
   RANDOM_PRESETS,
@@ -28,6 +28,8 @@ class Main {
   private readonly _drawingCanvas: HTMLCanvasElement;
   private readonly _drawingContext: CanvasRenderingContext2D;
   private readonly _iterationCounter: HTMLElement;
+  private readonly _aliveCellsCounter: HTMLElement;
+  private readonly _deadCellsCounter: HTMLElement;
   private readonly _pauseBtn: HTMLButtonElement;
   private readonly _speedSelector: HTMLInputElement;
   private readonly _commentsDOMSelector: HTMLElement;
@@ -76,6 +78,8 @@ class Main {
     this._drawingContext = getRequiredContext2D(this._drawingCanvas);
 
     this._iterationCounter = queryRequired<HTMLElement>(".iteration-counter");
+    this._aliveCellsCounter = queryRequired<HTMLElement>(".alive-cells-counter");
+    this._deadCellsCounter = queryRequired<HTMLElement>(".dead-cells-counter");
     this._pauseBtn = queryRequired<HTMLButtonElement>("button.pause");
     this._speedSelector = queryRequired<HTMLInputElement>("#speed-input");
     this._commentsDOMSelector = queryRequired<HTMLElement>(".critter-comments");
@@ -139,6 +143,8 @@ class Main {
     queryRequired<HTMLLabelElement>('label[for="zoo"]').textContent = APP_TEXTS.modes.zoo;
     queryRequired<HTMLLabelElement>('label[for="drawing"]').textContent = APP_TEXTS.modes.drawing;
     queryRequired<HTMLElement>(".iteration-label").textContent = `${APP_TEXTS.playback.iteration} `;
+    queryRequired<HTMLElement>(".alive-cells-label").textContent = `${APP_TEXTS.playback.aliveCells} `;
+    queryRequired<HTMLElement>(".dead-cells-label").textContent = `${APP_TEXTS.playback.deadCells} `;
     queryRequired<HTMLLabelElement>('label[for="speed-input"]').textContent = `${APP_TEXTS.playback.fps} `;
     queryRequired<HTMLLabelElement>('label[for="random-preset"]').textContent = APP_TEXTS.random.preset;
     queryRequired<HTMLElement>("#random-density-label").textContent = `${APP_TEXTS.random.density} `;
@@ -206,6 +212,11 @@ class Main {
     this._iterationCounterValue = 0;
     this._iterationCounter.textContent = "0";
   }
+
+  private _updateCellStats = (stats: { alive: number; dead: number }): void => {
+    this._aliveCellsCounter.textContent = String(stats.alive);
+    this._deadCellsCounter.textContent = String(stats.dead);
+  };
 
   private _resetPlaybackControls(): void {
     this._resetIterationCounter();
@@ -345,6 +356,7 @@ class Main {
     }
 
     this._grid?.destroyListener();
+    this._updateCellStats({ alive: 0, dead: GRID_COLS * GRID_ROWS });
 
     switch (this._selectedMode) {
       case "random":
@@ -363,6 +375,7 @@ class Main {
           mode: "random",
           randomPreset: this._currentRandomPreset(),
           randomParams: this._currentRandomParams(),
+          onStateChange: this._updateCellStats,
         });
         break;
 
@@ -375,6 +388,7 @@ class Main {
           this._zooPrimitivesDOMSelector,
           this._changeZoo,
           critterList,
+          this._selectedSpecies ?? undefined,
         );
         this._setDisplay(this._zooPrimitivesDOMSelector, true);
         this._setDisplay(this._drawingCanvas, false);
@@ -385,6 +399,7 @@ class Main {
           ctx: this._stage,
           mode: "zoo",
           species: this._selectedSpecies ?? undefined,
+          onStateChange: this._updateCellStats,
           onLoad: (comments) => { this._renderComments(comments); },
         });
         break;
@@ -410,6 +425,7 @@ class Main {
           drawingToolbox: this._drawingToolBox,
           mode: "drawing",
           species: this._selectedSpecies ?? undefined,
+          onStateChange: this._updateCellStats,
           userCustomSelector: this._userCustomSelector,
           zoombox: this._zoomBox,
           onLoad: (comments) => { this._renderComments(comments); },
