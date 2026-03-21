@@ -1,5 +1,5 @@
 import { CELL_STATE } from "@cell/constants";
-import { GRID_COLS, GRID_ROWS } from "./constants";
+import { GRID_COLS, GRID_ROWS, INITIAL_DENSITY } from "./constants";
 import type { RandomPresetId } from "./randomPresets";
 import {
   RandomPresetSeeder,
@@ -55,9 +55,12 @@ class Simulation {
 
   // ── Seeding ────────────────────────────────────────────────────────────────
 
-  /** Fill the grid randomly according to INITIAL_DENSITY. */
+  /** Fill the grid with classic uniform noise using INITIAL_DENSITY. */
   public seedRandom(): void {
-    this.seedByPreset("noise", true);
+    this.seedByPreset("noise", true, {
+      ...DEFAULT_RANDOM_PARAMS,
+      density: INITIAL_DENSITY,
+    });
   }
 
   /**

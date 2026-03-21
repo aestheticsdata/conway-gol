@@ -5,12 +5,12 @@ export type NoiseType = "uniform" | "perlin-like" | "clusters";
 
 export interface RandomSeedParams {
   density: number;       // 0–1: shape count / frequency for patterns; alive probability for "noise"
-  noiseType: NoiseType;  // spatial algorithm, only used by the "noise" preset
+  noiseType: NoiseType;  // direct algorithm for "noise"; spatial mask for other presets
   seed: number | null;   // null = auto (preset hash or Math.random())
 }
 
 export const DEFAULT_RANDOM_PARAMS: RandomSeedParams = {
-  density: 1,
+  density: 0.09, // matches the UI default: 30% slider → 9% effective density
   noiseType: "uniform",
   seed: null,
 };
@@ -89,7 +89,7 @@ function stampStarMotif(
  * density controls the NUMBER / FREQUENCY of shapes for pattern presets:
  *   - stars/clusters/sinus: number of objects scales with density
  *   - rings/stripes/diagonal: frequency (inverse of period) scales with density
- *   - circles: frequency parameter k scales with density
+ *   - circles: number of circles scales with density
  *   - checker: square size is inversely proportional to density (more density → more squares)
  *   - cross: arm thickness scales with density
  *   - noise: density = alive-cell probability; noiseType = generation algorithm

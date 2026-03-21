@@ -52,6 +52,8 @@ class Main {
   private _lastDrawTime = 0;
   private _elapsed = 0;
   private _selectedSpecies: string | null = null;
+  private _randomPresetVariation = false;
+  private _randomAutoSeed: number | null = null;
   private _critterList?: string[];
   private _drawingToolBox?: DrawingToolBox;
   private _zoomBox?: ZoomBox;
@@ -136,16 +138,29 @@ class Main {
     const density = t * t; // quadratic curve: spreads the low end, 30% slider → 9% fill
     const noiseTypeRadio = document.querySelector<HTMLInputElement>('input[name="random-noise-type"]:checked');
     const noiseType = (noiseTypeRadio?.value ?? "uniform") as NoiseType;
-    const seed = this._randomSeedAuto.checked ? null : Number(this._randomSeedSlider.value);
+    const seed = this._randomSeedAuto.checked
+      ? (this._randomPresetVariation ? (this._randomAutoSeed ??= this._nextRandomSeed()) : null)
+      : Number(this._randomSeedSlider.value);
     return { density, noiseType, seed };
   }
 
-  private _onRandomParamChange = (): void => {
+  private _nextRandomSeed(): number {
+    return Math.floor(Math.random() * 0x100000000) >>> 0;
+  }
+
+  private _onRandomParamChange = (event?: Event): void => {
     this._randomDensityValue.textContent = `${this._randomDensitySlider.value}%`;
     this._randomSeedValue.textContent = String(this._randomSeedSlider.value);
+    if (event?.currentTarget === this._randomSeedSlider && this._randomSeedAuto.checked) {
+      return;
+    }
     if (this._selectedMode !== "random" || !this._grid) return;
     this._resetIterationCounter();
-    this._grid.reseedRandomPreset(this._currentRandomPreset(), false, this._currentRandomParams());
+    this._grid.reseedRandomPreset(
+      this._currentRandomPreset(),
+      this._randomPresetVariation,
+      this._currentRandomParams(),
+    );
   };
 
   private _resetIterationCounter(): void {
@@ -164,8 +179,14 @@ class Main {
       return;
     }
 
+    this._randomPresetVariation = false;
+    this._randomAutoSeed = null;
     this._resetIterationCounter();
-    this._grid.reseedRandomPreset(this._currentRandomPreset(), false, this._currentRandomParams());
+    this._grid.reseedRandomPreset(
+      this._currentRandomPreset(),
+      false,
+      this._currentRandomParams(),
+    );
   };
 
   private _onRandomPresetGenerate = (): void => {
@@ -173,8 +194,14 @@ class Main {
       return;
     }
 
+    this._randomPresetVariation = true;
+    this._randomAutoSeed = this._randomSeedAuto.checked ? this._nextRandomSeed() : null;
     this._resetIterationCounter();
-    this._grid.reseedRandomPreset(this._currentRandomPreset(), true, this._currentRandomParams());
+    this._grid.reseedRandomPreset(
+      this._currentRandomPreset(),
+      true,
+      this._currentRandomParams(),
+    );
   };
 
   private _setFPS(): void {
@@ -289,6 +316,8 @@ class Main {
         this._setDisplay(this._drawingCanvas, false);
         this._zoomBox?.hide();
         this._userCustomSelector?.hide();
+        this._randomPresetVariation = false;
+        this._randomAutoSeed = null;
         this._grid = new Grid({
           canvas: this._canvas,
           ctx: this._stage,
