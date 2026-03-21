@@ -42,9 +42,38 @@
       </div>
       <div class="right-container">
         <div class="random-preset-selector" style="display: none">
-          <label for="random-preset">Aléatoire : </label>
+          <label for="random-preset">Random: </label>
           <select id="random-preset" name="random-preset"></select>
-          <button type="button" class="random-generate">Générer</button>
+          <div class="random-params">
+            <div class="random-param random-param--separated">
+              <label for="random-density">Density: <span id="random-density-value">30%</span></label>
+              <input type="range" id="random-density" min="0" max="100" value="30" step="1" />
+            </div>
+            <div class="random-param random-param--separated">
+              <label>Noise type:</label>
+              <div class="random-noise-type-group">
+                <label class="radio-label">
+                  <input type="radio" name="random-noise-type" value="uniform" checked /> Uniform
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="random-noise-type" value="perlin-like" /> Perlin-like
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="random-noise-type" value="clusters" /> Clusters
+                </label>
+              </div>
+            </div>
+            <div class="random-param random-param--seed">
+              <label for="random-seed">Seed: <span id="random-seed-value">0</span></label>
+              <input type="range" id="random-seed" min="0" max="9999999" value="0" step="1" />
+              <label class="random-seed-random">
+                <input type="checkbox" id="random-seed-auto" checked /> Random seed
+              </label>
+            </div>
+          </div>
+          <div class="random-generate-wrapper">
+            <button type="button" class="random-generate">Generate</button>
+          </div>
         </div>
         <div class="custom-drawing-files" style="display: none">
           <button class="save">

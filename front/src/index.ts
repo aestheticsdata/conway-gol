@@ -15,6 +15,10 @@ import ZooSelector from "@controls/ZooSelector";
 import { getRequiredContext2D, queryRequired } from "@helpers/dom";
 import { getRequestURL } from "@helpers/api";
 import { URLS } from "@helpers/constants";
+import {
+  type NoiseType,
+  type RandomSeedParams,
+} from "@grid/seeding/RandomPresetSeeder";
 
 class Main {
   private readonly _canvas: HTMLCanvasElement;
@@ -29,6 +33,11 @@ class Main {
   private readonly _randomPresetContainer: HTMLElement;
   private readonly _randomPresetSelect: HTMLSelectElement;
   private readonly _randomGenerateBtn: HTMLButtonElement;
+  private readonly _randomDensitySlider: HTMLInputElement;
+  private readonly _randomDensityValue: HTMLSpanElement;
+  private readonly _randomSeedSlider: HTMLInputElement;
+  private readonly _randomSeedValue: HTMLSpanElement;
+  private readonly _randomSeedAuto: HTMLInputElement;
   private readonly _customCursor: HTMLElement;
   private readonly _changeZoo: (species: string) => void;
   private _requestAnimationID = 0;
@@ -67,6 +76,11 @@ class Main {
     this._randomPresetContainer = queryRequired<HTMLElement>(".random-preset-selector");
     this._randomPresetSelect = queryRequired<HTMLSelectElement>("#random-preset");
     this._randomGenerateBtn = queryRequired<HTMLButtonElement>(".random-generate");
+    this._randomDensitySlider = queryRequired<HTMLInputElement>("#random-density");
+    this._randomDensityValue = queryRequired<HTMLSpanElement>("#random-density-value");
+    this._randomSeedSlider = queryRequired<HTMLInputElement>("#random-seed");
+    this._randomSeedValue = queryRequired<HTMLSpanElement>("#random-seed-value");
+    this._randomSeedAuto = queryRequired<HTMLInputElement>("#random-seed-auto");
     this._customCursor = queryRequired<HTMLElement>(".custom-cursor");
 
     this._changeZoo = (species: string) => {
@@ -79,10 +93,19 @@ class Main {
     this._setFPS();
     this._pauseBtn.textContent = "start";
     this._resetIterationCounter();
+    // Sync display values on init
+    this._randomDensityValue.textContent = `${this._randomDensitySlider.value}%`;
+    this._randomSeedValue.textContent = String(this._randomSeedSlider.value);
 
     new ModeSelector(this._changeMode);
     this._randomPresetSelect.addEventListener("change", this._onRandomPresetChange);
     this._randomGenerateBtn.addEventListener("click", this._onRandomPresetGenerate);
+    this._randomDensitySlider.addEventListener("input", this._onRandomParamChange);
+    this._randomSeedSlider.addEventListener("input", this._onRandomParamChange);
+    this._randomSeedAuto.addEventListener("change", this._onRandomParamChange);
+    document.querySelectorAll('input[name="random-noise-type"]').forEach((radio) => {
+      radio.addEventListener("change", this._onRandomParamChange);
+    });
   }
 
   private _changeMode = (mode: Mode): void => {
@@ -108,6 +131,23 @@ class Main {
     return isRandomPresetId(value) ? value : DEFAULT_RANDOM_PRESET;
   }
 
+  private _currentRandomParams(): RandomSeedParams {
+    const t = Number(this._randomDensitySlider.value) / 100;
+    const density = t * t; // quadratic curve: spreads the low end, 30% slider → 9% fill
+    const noiseTypeRadio = document.querySelector<HTMLInputElement>('input[name="random-noise-type"]:checked');
+    const noiseType = (noiseTypeRadio?.value ?? "uniform") as NoiseType;
+    const seed = this._randomSeedAuto.checked ? null : Number(this._randomSeedSlider.value);
+    return { density, noiseType, seed };
+  }
+
+  private _onRandomParamChange = (): void => {
+    this._randomDensityValue.textContent = `${this._randomDensitySlider.value}%`;
+    this._randomSeedValue.textContent = String(this._randomSeedSlider.value);
+    if (this._selectedMode !== "random" || !this._grid) return;
+    this._resetIterationCounter();
+    this._grid.reseedRandomPreset(this._currentRandomPreset(), false, this._currentRandomParams());
+  };
+
   private _resetIterationCounter(): void {
     this._iterationCounterValue = 0;
     this._iterationCounter.textContent = "0";
@@ -125,7 +165,7 @@ class Main {
     }
 
     this._resetIterationCounter();
-    this._grid.reseedRandomPreset(this._currentRandomPreset(), false);
+    this._grid.reseedRandomPreset(this._currentRandomPreset(), false, this._currentRandomParams());
   };
 
   private _onRandomPresetGenerate = (): void => {
@@ -134,7 +174,7 @@ class Main {
     }
 
     this._resetIterationCounter();
-    this._grid.reseedRandomPreset(this._currentRandomPreset(), true);
+    this._grid.reseedRandomPreset(this._currentRandomPreset(), true, this._currentRandomParams());
   };
 
   private _setFPS(): void {
@@ -254,6 +294,7 @@ class Main {
           ctx: this._stage,
           mode: "random",
           randomPreset: this._currentRandomPreset(),
+          randomParams: this._currentRandomParams(),
         });
         break;
 

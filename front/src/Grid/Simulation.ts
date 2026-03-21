@@ -4,6 +4,8 @@ import type { RandomPresetId } from "./randomPresets";
 import {
   RandomPresetSeeder,
   type IRandomPresetSeeder,
+  type RandomSeedParams,
+  DEFAULT_RANDOM_PARAMS,
 } from "./seeding/RandomPresetSeeder";
 
 /**
@@ -63,13 +65,18 @@ class Simulation {
    * @param randomVariation — `false`: stable default for that preset (select / mode entry).
    *                          `true`: new random instance of the same family (Generate button).
    */
-  public seedByPreset(preset: RandomPresetId, randomVariation = false): void {
+  public seedByPreset(
+    preset: RandomPresetId,
+    randomVariation = false,
+    params: RandomSeedParams = DEFAULT_RANDOM_PARAMS,
+  ): void {
     this._randomPresetSeeder.seedInto(
       this._current,
       this.rows,
       this.cols,
       preset,
       randomVariation,
+      params,
     );
   }
 

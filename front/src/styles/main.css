@@ -147,6 +147,91 @@ button:active {
 	min-width: 100px;
 }
 
+.random-generate-wrapper {
+	margin-top: 14px;
+	padding-top: 14px;
+	border-top: 1px solid #b8b8b8;
+}
+
+.random-params {
+	margin-top: 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.random-param {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+}
+
+.random-param > label:first-child {
+	font-size: 18px;
+	color: #444;
+}
+
+.random-param input[type="range"] {
+	width: 160px;
+	accent-color: #ffcc00;
+	cursor: pointer;
+	padding: 0;
+}
+
+.random-param input[type="range"]:disabled {
+	opacity: 0.35;
+	cursor: default;
+}
+
+.random-noise-type-group {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	margin-top: 2px;
+}
+
+.radio-label {
+	font-size: 17px;
+	color: #333;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	gap: 5px;
+}
+
+.radio-label input[type="radio"] {
+	cursor: pointer;
+	accent-color: #ffcc00;
+}
+
+.random-param--separated,
+.random-param--seed {
+	margin-top: 10px;
+	padding-top: 10px;
+	border-top: 1px solid #b8b8b8;
+}
+
+.random-seed-random {
+	font-size: 16px;
+	color: #555;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	margin-top: 3px;
+}
+
+.random-seed-random input[type="checkbox"] {
+	cursor: pointer;
+	accent-color: #ffcc00;
+}
+
+#random-density-value,
+#random-seed-value {
+	font-weight: bold;
+	color: #0d5e8d;
+}
+
 .zoo-selector {
 	position: absolute;
 	top: 300px;

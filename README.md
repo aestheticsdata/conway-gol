@@ -19,7 +19,7 @@ A full-stack implementation of [Conway's Game of Life](https://en.wikipedia.org/
 
 ## Features
 
-- Random mode with named presets and a `Generate` action for a new variation
+- Random mode with named presets, three generation controls (density, noise type, seed), and a `Generate` action for a new variation
 - Zoo mode with 1,400+ catalog patterns
 - Drawing mode with save/load for custom patterns
 - Zoom view around the cursor
@@ -125,6 +125,16 @@ Each preset supports two behaviours:
 
 - a stable deterministic default when entering random mode or switching preset
 - a random variation when the user clicks `Generate`
+
+Generation is controlled by a `RandomSeedParams` object:
+
+| Field | Type | Description |
+|---|---|---|
+| `density` | `number` 0–1 | Fill fraction applied with a quadratic curve (`t²`), so the slider feels sparse at the low end and full at 100 % |
+| `noiseType` | `"uniform" \| "perlin-like" \| "clusters"` | Spatial distribution; for non-noise presets a smooth mask is applied post-generation |
+| `seed` | `number \| null` | Non-null seeds the Mulberry32 PRNG for deterministic replay; `null` uses the preset's FNV-1a hash (stable default) or `Math.random()` (Generate) |
+
+All presets are calibrated so that `density = 1` nearly fills the 156 × 156 grid.
 
 `front/src/Grid/randomPresets.ts` is the source of truth for preset ids, labels, and the default preset. The UI and engine both read from this file, so the preset list is not duplicated.
 
@@ -350,6 +360,33 @@ The random-mode feature was separated into explicit layers:
 - `Grid` now uses typed per-mode options instead of a long positional constructor
 
 This made the random mode easier to extend without pushing more UI concerns into the simulation engine.
+
+### Phase 5 - Random mode generation controls (2026-03)
+
+Three interactive controls were added to random mode, separated by visual dividers:
+
+- **Density slider** (0–100 %) — controls how much of the canvas is filled. A quadratic curve (`t²`) is applied so that small values stay sparse and 100 % gives a nearly full grid.
+- **Noise type radio buttons** (`Uniform` / `Perlin-like` / `Clusters`) — for the `noise` preset these drive the generation algorithm directly; for all other presets a smooth large-scale spatial mask (scale = 30 cells) is applied after generation to concentrate the pattern in coherent regions.
+- **Seed slider + "Random seed" checkbox** — a fixed seed feeds the Mulberry32 PRNG for exact replay. When the checkbox is checked, `seed = null` and either the preset's deterministic FNV-1a hash or `Math.random()` is used instead. The slider is always enabled; the checkbox governs whether its value matters.
+
+`RandomSeedParams` (`density`, `noiseType`, `seed`) threads through the full call chain: `Main` → `Grid.reseedRandomPreset` → `Simulation.seedByPreset` → `RandomPresetSeeder.seedInto`.
+
+All ten preset algorithms were reworked so that `density = 1` nearly fills the canvas:
+
+| Preset | Change |
+|---|---|
+| `stars` | Rejection-sampling removed; `baseCount = rows × cols / 4` (~6 000 shapes), direct stamping with overlap |
+| `circles` | Redesigned as discrete random filled or hollow circles; `baseCount = rows × cols / 250` |
+| `sinus` | Base wave count raised from 5 to 40; fixed layout bug that placed waves beyond index 5 off-canvas |
+| `rings` | Phase-based fill (`phase < density → alive`) replaces the fixed 50 % alternating band |
+| `stripes` | Fill fraction = `density` (`thick/period = density`), was fixed at ~33 % |
+| `checker` | Wang hash per block for a smooth 0 % → 50 % → 100 % transition without randomness |
+| `clusters` | Up to 196 clusters at 100 % (was 16); radius scales with grid size |
+| `diagonal` | Fill fraction = `density`, was fixed at ~29 % |
+| `cross` | Arm thickness = `(minSide / 2) × density`, was a fixed 3 px |
+| `noise` | Unchanged; density = alive-cell probability, noiseType = generation algorithm |
+
+When an explicit seed is provided, `effectiveRandom = true` is forced so all preset methods use their random-position paths — ensuring that changing the seed produces a visually different layout while remaining fully reproducible.
 
 ### Phase 4 - Service layer cleanup and path aliases (2026-03)
 

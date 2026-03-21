@@ -16,6 +16,10 @@ import {
   DEFAULT_RANDOM_PRESET,
   type RandomPresetId,
 } from "./randomPresets";
+import {
+  DEFAULT_RANDOM_PARAMS,
+  type RandomSeedParams,
+} from "./seeding/RandomPresetSeeder";
 import type ZoomBox from "./zoom/ZoomBox";
 
 type GridBaseOptions = {
@@ -28,6 +32,7 @@ type GridBaseOptions = {
 type RandomGridOptions = GridBaseOptions & {
   mode: "random";
   randomPreset?: RandomPresetId;
+  randomParams?: RandomSeedParams;
 };
 
 type ZooGridOptions = GridBaseOptions & {
@@ -80,7 +85,10 @@ class Grid {
 
     switch (options.mode) {
       case "random":
-        this._initializeRandom(options.randomPreset ?? DEFAULT_RANDOM_PRESET);
+        this._initializeRandom(
+          options.randomPreset ?? DEFAULT_RANDOM_PRESET,
+          options.randomParams ?? DEFAULT_RANDOM_PARAMS,
+        );
         break;
       case "zoo":
         this._initializeZoo(options.species, options.onLoad);
@@ -143,16 +151,17 @@ class Grid {
   public reseedRandomPreset(
     preset: RandomPresetId,
     randomVariation = false,
+    params: RandomSeedParams = DEFAULT_RANDOM_PARAMS,
   ): void {
-    this._simulation.seedByPreset(preset, randomVariation);
+    this._simulation.seedByPreset(preset, randomVariation, params);
     this._render();
     this._drawGrid();
   }
 
   // ── Initialization ────────────────────────────────────────────────────────
 
-  private _initializeRandom(randomPreset: RandomPresetId): void {
-    this._simulation.seedByPreset(randomPreset, false);
+  private _initializeRandom(randomPreset: RandomPresetId, params: RandomSeedParams): void {
+    this._simulation.seedByPreset(randomPreset, false, params);
     this._render();
     this._drawGrid();
   }
