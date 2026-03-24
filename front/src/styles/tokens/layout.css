@@ -1,0 +1,6 @@
+:root {
+  --workspace-left-pane-width: 318px;
+  --workspace-right-pane-width: 360px;
+  --workspace-top-offset: 0px;
+  --left-pane-compact-block-width: 220px;
+}

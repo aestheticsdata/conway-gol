@@ -4,24 +4,56 @@ import {
   SIMULATION_ROUTE,
   ZOO_ROUTE,
 } from "@app/routes";
+import { NOISE_CLUSTERS_ICON } from "@assets/icons/noiseClustersIcon";
+import { NOISE_PERLIN_ICON } from "@assets/icons/noisePerlinIcon";
+import { NOISE_UNIFORM_ICON } from "@assets/icons/noiseUniformIcon";
 import { PAW_ICON } from "@assets/icons/pawIcon";
 import { PENCIL_ICON } from "@assets/icons/pencilIcon";
 import { SHUFFLE_ICON } from "@assets/icons/shuffleIcon";
 
-function checked(route: WorkspaceRoute, expected: WorkspaceRoute): string {
-  return route === expected ? " checked" : "";
+type TileSelectorSize = "md" | "sm";
+
+function createTileLabel(
+  icon: string,
+  dataAttributeName: string,
+  dataAttributeValue: string,
+): string {
+  return `
+    <span class="tile-selector__icon" aria-hidden="true">${icon}</span>
+    <span class="tile-selector__text" data-${dataAttributeName}="${dataAttributeValue}"></span>
+  `;
 }
 
-function createModeLabel(mode: "random" | "zoo" | "drawing"): string {
-  const icon = mode === "random"
-    ? SHUFFLE_ICON
-    : mode === "zoo"
-      ? PAW_ICON
-      : PENCIL_ICON;
+function createTileSelectorOption(options: {
+  id: string;
+  name: string;
+  value: string;
+  checked?: boolean;
+  size?: TileSelectorSize;
+  icon: string;
+  dataAttributeName: string;
+  dataAttributeValue: string;
+  title?: string;
+  ariaLabel?: string;
+}): string {
+  const {
+    id,
+    name,
+    value,
+    checked = false,
+    size = "md",
+    icon,
+    dataAttributeName,
+    dataAttributeValue,
+    title,
+    ariaLabel,
+  } = options;
 
   return `
-    <span class="mode-selector__icon" aria-hidden="true">${icon}</span>
-    <span class="mode-selector__text" data-mode="${mode}"></span>
+    <div class="tile-selector__option" data-size="${size}">
+      <input type="radio" id="${id}" name="${name}" value="${value}"${checked ? " checked" : ""}${ariaLabel ? ` aria-label="${ariaLabel}"` : ""}>
+      <label for="${id}"${title ? ` title="${title}"` : ""}>${createTileLabel(icon, dataAttributeName, dataAttributeValue)}</label>
+    </div>
   `;
 }
 
@@ -60,19 +92,37 @@ export function createWorkspaceMarkup(route: WorkspaceRoute): string {
         <aside class="left-pane">
           <div class="pane-section pane-section--mode">
             <div class="pane-section-label mode-selector-label" data-ui="mode-label"></div>
-            <div class="mode-selector">
-              <div class="mode-selector__option">
-                <input type="radio" id="random" name="mode" value="random"${checked(route, SIMULATION_ROUTE)}>
-                <label for="random">${createModeLabel("random")}</label>
-              </div>
-              <div class="mode-selector__option">
-                <input type="radio" id="zoo" name="mode" value="zoo"${checked(route, ZOO_ROUTE)}>
-                <label for="zoo">${createModeLabel("zoo")}</label>
-              </div>
-              <div class="mode-selector__option">
-                <input type="radio" id="drawing" name="mode" value="drawing"${checked(route, DRAWING_ROUTE)}>
-                <label for="drawing">${createModeLabel("drawing")}</label>
-              </div>
+            <div class="mode-selector tile-selector">
+              ${createTileSelectorOption({
+                id: "random",
+                name: "mode",
+                value: "random",
+                checked: route === SIMULATION_ROUTE,
+                size: "md",
+                icon: SHUFFLE_ICON,
+                dataAttributeName: "mode",
+                dataAttributeValue: "random",
+              })}
+              ${createTileSelectorOption({
+                id: "zoo",
+                name: "mode",
+                value: "zoo",
+                checked: route === ZOO_ROUTE,
+                size: "md",
+                icon: PAW_ICON,
+                dataAttributeName: "mode",
+                dataAttributeValue: "zoo",
+              })}
+              ${createTileSelectorOption({
+                id: "drawing",
+                name: "mode",
+                value: "drawing",
+                checked: route === DRAWING_ROUTE,
+                size: "md",
+                icon: PENCIL_ICON,
+                dataAttributeName: "mode",
+                dataAttributeValue: "drawing",
+              })}
             </div>
           </div>
           <div class="pane-section pane-section--separated">
@@ -150,19 +200,41 @@ export function createWorkspaceMarkup(route: WorkspaceRoute): string {
               </div>
               <div class="random-param random-param--separated">
                 <label id="random-noise-type-label"></label>
-                <div class="random-noise-type-group">
-                  <label class="radio-label">
-                    <input type="radio" name="random-noise-type" value="uniform" checked>
-                    <span id="random-noise-uniform-label"></span>
-                  </label>
-                  <label class="radio-label">
-                    <input type="radio" name="random-noise-type" value="perlin-like">
-                    <span id="random-noise-perlin-like-label"></span>
-                  </label>
-                  <label class="radio-label">
-                    <input type="radio" name="random-noise-type" value="clusters">
-                    <span id="random-noise-clusters-label"></span>
-                  </label>
+                <div class="random-noise-type-group tile-selector">
+                  ${createTileSelectorOption({
+                    id: "random-noise-uniform",
+                    name: "random-noise-type",
+                    value: "uniform",
+                    checked: true,
+                    size: "md",
+                    icon: NOISE_UNIFORM_ICON,
+                    dataAttributeName: "noise-type",
+                    dataAttributeValue: "uniform",
+                    title: "Uniform",
+                    ariaLabel: "Uniform",
+                  })}
+                  ${createTileSelectorOption({
+                    id: "random-noise-perlin-like",
+                    name: "random-noise-type",
+                    value: "perlin-like",
+                    size: "md",
+                    icon: NOISE_PERLIN_ICON,
+                    dataAttributeName: "noise-type",
+                    dataAttributeValue: "perlin-like",
+                    title: "Perlin-like",
+                    ariaLabel: "Perlin-like",
+                  })}
+                  ${createTileSelectorOption({
+                    id: "random-noise-clusters",
+                    name: "random-noise-type",
+                    value: "clusters",
+                    size: "md",
+                    icon: NOISE_CLUSTERS_ICON,
+                    dataAttributeName: "noise-type",
+                    dataAttributeValue: "clusters",
+                    title: "Clusters",
+                    ariaLabel: "Clusters",
+                  })}
                 </div>
               </div>
               <div class="random-param random-param--seed">

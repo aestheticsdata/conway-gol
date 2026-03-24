@@ -220,11 +220,11 @@ export class SimulationWorkspace {
 
   private _applyStaticTexts(): void {
     queryRequired<HTMLElement>('[data-ui="mode-label"]', this._root).textContent = APP_TEXTS.modes.label;
-    queryRequired<HTMLElement>('.mode-selector__text[data-mode="random"]', this._root).textContent =
+    queryRequired<HTMLElement>('.tile-selector__text[data-mode="random"]', this._root).textContent =
       APP_TEXTS.modes.random;
-    queryRequired<HTMLElement>('.mode-selector__text[data-mode="zoo"]', this._root).textContent =
+    queryRequired<HTMLElement>('.tile-selector__text[data-mode="zoo"]', this._root).textContent =
       APP_TEXTS.modes.zoo;
-    queryRequired<HTMLElement>('.mode-selector__text[data-mode="drawing"]', this._root).textContent =
+    queryRequired<HTMLElement>('.tile-selector__text[data-mode="drawing"]', this._root).textContent =
       APP_TEXTS.modes.drawing;
     queryRequired<HTMLElement>(".iteration-label", this._root).textContent = `${APP_TEXTS.playback.iteration} `;
     queryRequired<HTMLElement>(".alive-cells-label", this._root).textContent = `${APP_TEXTS.playback.aliveCells} `;
@@ -236,12 +236,12 @@ export class SimulationWorkspace {
       APP_TEXTS.random.preset;
     queryRequired<HTMLElement>("#random-density-label", this._root).textContent = `${APP_TEXTS.random.density} `;
     queryRequired<HTMLElement>("#random-noise-type-label", this._root).textContent = APP_TEXTS.random.noiseType;
-    queryRequired<HTMLElement>("#random-noise-uniform-label", this._root).textContent =
-      APP_TEXTS.random.noiseTypes.uniform;
-    queryRequired<HTMLElement>("#random-noise-perlin-like-label", this._root).textContent =
-      APP_TEXTS.random.noiseTypes.perlinLike;
-    queryRequired<HTMLElement>("#random-noise-clusters-label", this._root).textContent =
-      APP_TEXTS.random.noiseTypes.clusters;
+    queryRequired<HTMLElement>('[data-noise-type="uniform"]', this._root).textContent =
+      APP_TEXTS.random.noiseTypeTiles.uniform;
+    queryRequired<HTMLElement>('[data-noise-type="perlin-like"]', this._root).textContent =
+      APP_TEXTS.random.noiseTypeTiles.perlinLike;
+    queryRequired<HTMLElement>('[data-noise-type="clusters"]', this._root).textContent =
+      APP_TEXTS.random.noiseTypeTiles.clusters;
     queryRequired<HTMLElement>("#random-seed-label", this._root).textContent = `${APP_TEXTS.random.seed} `;
     queryRequired<HTMLElement>("#random-seed-auto-label", this._root).textContent = APP_TEXTS.random.autoSeed;
     this._randomGenerateBtn.textContent = APP_TEXTS.random.generate;

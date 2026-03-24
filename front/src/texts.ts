@@ -30,6 +30,11 @@ export const APP_TEXTS = {
       perlinLike: "Perlin-like",
       clusters: "Clusters",
     },
+    noiseTypeTiles: {
+      uniform: "Uniform",
+      perlinLike: "Perlin",
+      clusters: "Clusters",
+    },
     seed: "Seed:",
     autoSeed: "Random seed",
     generate: "Generate",

@@ -30,7 +30,8 @@ A full-stack implementation of [Conway's Game of Life](https://en.wikipedia.org/
 - Left-side playback telemetry with iteration count, live/dead cell counts, a real-time alive-cell variation graph, and a real-time absolute alive-cell graph
 - Tokens-based visual system for colors, radius, spacing, form fields, telemetry, and canvas rendering
 - Custom-styled random-preset dropdown consistent with the app visual language
-- Inline SVG mode icons stored in shared assets
+- Reusable tile-style radio buttons used for workspace mode selection and random noise type selection
+- Inline SVG icons stored in shared assets for mode buttons and random-noise selectors
 - Adjustable FPS from 0 to 60 via slider
 - Toroidal grid with wraparound edges
 
@@ -114,7 +115,12 @@ conway-gol/
 │   │   ├── styles/
 │   │   │   ├── main.css
 │   │   │   ├── reset.css
-│   │   │   └── tokens.css
+│   │   │   ├── tokens.css
+│   │   │   └── tokens/
+│   │   │       ├── colors.css
+│   │   │       ├── effects.css
+│   │   │       ├── layout.css
+│   │   │       └── radius.css
 │   │   └── texts.ts
 │   ├── tsconfig.json
 │   ├── vite.config.ts
@@ -353,6 +359,7 @@ This keeps Conway logic out of the renderer and keeps DOM event handling out of 
 - mode-specific UI visibility
 - telemetry counters and charts
 - random preset controls and the custom dropdown
+- reusable tile-button groups for route mode selection and random noise type selection
 - route-to-mode synchronization between `/simulation`, `/zoo`, and `/drawing`
 
 #### UI helpers and data access
@@ -384,7 +391,10 @@ The telemetry charts share reusable renderers:
 
 `front/src/helpers/canvas.ts` exposes `drawGrid()`, a standalone canvas utility used by both `Grid` and `ZoomBox`.
 
-`front/src/assets/icons/` contains the shared inline SVG mode icons used by the workspace shell.
+`front/src/assets/icons/` contains the shared inline SVG icons used by the workspace shell, including:
+
+- route mode icons (`random`, `zoo`, `drawing`)
+- random noise type icons (`uniform`, `perlin-like`, `clusters`)
 
 ### API
 
@@ -410,9 +420,11 @@ The current UI refactor introduces a lightweight design system intended to make 
 
 ### Source of truth
 
-The main design tokens live in `front/src/styles/tokens.css`.
+The token entry point is `front/src/styles/tokens.css`.
 
-This file centralizes:
+The real token definitions are split by family under `front/src/styles/tokens/`.
+
+Those files centralize:
 
 - shared surfaces and text colors
 - accent colors
@@ -435,29 +447,35 @@ The design system currently follows these rules:
 - muted secondary text and bright numeric accents
 - glass-like panels used sparingly on structural panes and charts
 - no default browser blue on custom interactive controls
+- login and workspace screens can have different background treatments without changing the shared base theme
 - Conway canvas remains readable first; decorative effects should never compete with the grid
 
 ### Token groups
 
-Important token groups in `tokens.css`:
+Important token families:
 
 | Group | Purpose |
 |---|---|
-| `--bg-*`, `--text-*`, `--accent*` | Core shell colors |
-| `--radius` | Global corner radius used across panes, buttons, fields, charts, and canvas |
-| `--workspace-*` | Shell layout widths and top offset |
-| `--canvas-*` | Grid line, cell, preview, and zoom rendering colors |
-| `--telemetry-*` | Chart surfaces, axes, lines, markers, and positive/negative state colors |
-| `--field-*` | Input and custom dropdown surfaces, borders, highlights, and hover glow |
+| `tokens/colors.css` | Core shell colors, canvas colors, telemetry colors, and field colors |
+| `tokens/effects.css` | Shared shadows and glow effects |
+| `tokens/layout.css` | Shell layout widths and workspace sizing tokens |
+| `tokens/radius.css` | Global radius tokens such as `--radius` |
 
 ### Current custom components
 
 The current visual system includes a few custom controls that are intentionally styled outside the browser defaults:
 
-- mode selector buttons with inline SVG icons from `front/src/assets/icons/`
+- reusable tile-style radio buttons with inline SVG icons
 - telemetry charts drawn directly on canvas with a shared theme
 - custom random preset dropdown in the right pane
+- custom random noise type selector using the same tile-button primitive as the route mode selector
 - gradient CTA buttons with alternate hover/active states
+
+The tile-button primitive is designed to stay reusable:
+
+- same geometry, icon slot, and label slot across different selector groups
+- size can be chosen at markup time (`md`, `sm`, etc.) through the screen template helper
+- labels can stay short in the tile while accessibility labels and titles preserve the full meaning
 
 When extending the UI, prefer adding or reusing tokens before introducing one-off colors, radii, or shadows directly in component CSS.
 

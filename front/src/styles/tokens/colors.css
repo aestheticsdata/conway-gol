@@ -1,0 +1,39 @@
+:root {
+  --bg-main: #07111f;
+  --bg-elevated: rgba(8, 18, 33, 0.88);
+  --bg-panel: rgba(12, 23, 41, 0.78);
+  --bg-soft: rgba(18, 31, 54, 0.72);
+  --text-main: #f5fbff;
+  --text-muted: #8fa9c2;
+  --border: rgba(117, 161, 205, 0.2);
+  --accent: #25dbff;
+  --accent-strong: #09c6ff;
+
+  --canvas-grid-color: rgba(204, 204, 204, 0.2);
+  --canvas-zoom-grid-color: rgb(175, 175, 175);
+  --canvas-cell-alive-color: rgb(112, 186, 223);
+  --canvas-cell-dead-color: transparent;
+  --canvas-cell-border-color: rgb(204, 204, 204);
+  --canvas-cell-outside-color: transparent;
+  --canvas-preview-alive-color: rgba(112, 186, 223, 0.75);
+  --canvas-preview-erase-color: rgba(204, 204, 204, 0.35);
+  --canvas-zoom-highlight-stroke-color: rgba(255, 204, 0, 1);
+
+  --telemetry-surface-top: rgba(32, 47, 71, 0.92);
+  --telemetry-surface-bottom: rgba(13, 20, 34, 0.92);
+  --telemetry-border: rgba(117, 161, 205, 0.24);
+  --telemetry-highlight: rgba(255, 255, 255, 0.08);
+  --telemetry-axis: rgba(143, 169, 194, 0.24);
+  --telemetry-zero-line: rgba(37, 219, 255, 0.2);
+  --telemetry-label: rgba(143, 169, 194, 0.94);
+  --telemetry-line: #25dbff;
+  --telemetry-marker: #78efff;
+  --telemetry-positive: #78efff;
+  --telemetry-negative: #f3b165;
+  --telemetry-neutral: rgba(143, 169, 194, 0.94);
+
+  --field-bg: rgba(5, 11, 20, 0.82);
+  --field-border: rgba(117, 161, 205, 0.24);
+  --field-border-strong: rgba(117, 161, 205, 0.38);
+  --field-highlight: rgba(255, 255, 255, 0.06);
+}
