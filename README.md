@@ -152,6 +152,158 @@ The screen layer is intentionally small:
 - `LoginScreen.ts` renders the fake-auth entry route
 - `SimulationScreen.ts` renders the shared workspace shell for random, zoo, and drawing routes
 
+#### Custom router details
+
+The router is deliberately custom because the frontend is not built around React, Vue, or another framework router model. The app is DOM-driven and class-oriented, so the routing layer is designed around screen lifecycle rather than component trees.
+
+The routing system is split into three layers:
+
+1. `NavigationAdapter`
+   This is the browser-facing contract. It abstracts path reads, navigation requests, history replacement, back navigation, and lifecycle cleanup.
+
+2. `AppRouter`
+   This is the app-facing router. It resolves route definitions, creates screens, mounts them into the outlet, and guarantees `enter()` / `leave()` / `destroy()` ordering.
+
+3. `Screen`
+   This is the UI contract used by route targets. A screen must know how to mount itself, receive route context, leave cleanly, and optionally destroy resources.
+
+The main benefit of this split is that navigation mechanics and screen lifecycle are independent:
+
+- browser path changes stay in `NavigationApiAdapter`
+- route matching and fallback logic stay in `AppRouter`
+- workspace/login UI logic stays in `LoginScreen`, `SimulationScreen`, and `SimulationWorkspace`
+
+##### Why Navigation API
+
+The app uses the browser Navigation API instead of `hash` routing or a framework router:
+
+- it supports real document paths such as `/conway-gol/login` and `/conway-gol/simulation`
+- it lets the app intercept in-app navigations before they become full document reloads
+- it keeps browser back/forward behaviour aligned with SPA navigation
+
+The frontend still does one important thing manually: the initial render. The Navigation API does not emit a `navigate` event for the first page load, so `AppRouter.start()` explicitly renders `currentPath()` once at boot, then subscribes to later navigation events.
+
+##### Navigation API specifics
+
+This project uses the Navigation API as an implementation detail behind `NavigationAdapter`, not as a global dependency leaked throughout the app.
+
+Concretely, that means:
+
+- screens do not call `window.navigation` directly
+- router logic does not depend on browser event shapes outside the adapter
+- only `NavigationApiAdapter` knows how to translate browser navigations into app route changes
+
+This is important because the Navigation API has a different model from the old History API:
+
+- navigations can be intercepted before a document reload
+- the adapter can await `finished` for programmatic navigations
+- the app can opt out of intercepting unsupported navigation cases
+
+At the same time, the app does not depend on the Navigation API for the first render. On the initial page load:
+
+- the browser loads the document at `/conway-gol/login`, `/conway-gol/simulation`, etc.
+- no `navigate` event is fired for that first load
+- `AppRouter.start()` reads the current browser URL directly and renders the matching screen
+
+So the Navigation API is used for subsequent in-app transitions, while the initial route is handled explicitly at startup.
+
+##### Deployment implications of real routes
+
+Because the app uses real document paths instead of hashes, direct loads and refreshes must still resolve to the SPA entry document.
+
+That is not server-side rendering. It simply means the static host or web server must serve `index.html` for frontend routes such as:
+
+- `/conway-gol/login`
+- `/conway-gol/simulation`
+- `/conway-gol/zoo`
+- `/conway-gol/drawing`
+
+Once the document is loaded, the client-side router takes over.
+
+In production, this is handled by the Nginx rule for the frontend location:
+
+```nginx
+location /conway-gol/ {
+  alias /var/www/1991computer/conway-gol/front/;
+  try_files $uri $uri/ /conway-gol/index.html;
+}
+```
+
+That rule ensures:
+
+- an in-app navigation intercepted by the Navigation API stays client-side
+- a hard refresh on `/conway-gol/zoo` still returns the SPA document
+- the app can use real paths without `#` fragments
+
+##### Base path handling
+
+The app is deployed under `/conway-gol/`, not at the domain root. Because of that, router paths are normalized in two directions:
+
+- `stripBasePath()` converts browser URLs such as `/conway-gol/zoo` into app paths such as `/zoo`
+- `toDocumentPath()` converts app paths such as `/drawing` back into deployable document paths such as `/conway-gol/drawing`
+
+This keeps route definitions clean while still supporting deployment under a subdirectory.
+
+##### Interception rules
+
+`NavigationApiAdapter` only intercepts navigations that should stay inside the SPA. It ignores:
+
+- hash-only changes
+- downloads
+- form submissions
+- cross-origin navigations
+- URLs outside the configured base path
+- paths not registered as app routes
+
+That prevents the SPA from accidentally hijacking browser navigations it should not own.
+
+##### Route resolution and fallback
+
+`AppRouter` stores route definitions in a normalized path map. During render:
+
+- `/` is redirected to the configured fallback route
+- unknown paths are also redirected to the fallback route
+- known paths create a new screen instance for that route
+
+This keeps route handling explicit and avoids silent partial rendering of invalid states.
+
+##### Screen lifecycle
+
+Each navigation goes through a strict sequence:
+
+1. leave the current screen
+2. destroy the current screen if it exposes `destroy()`
+3. clear the outlet
+4. mount the next screen
+5. call `enter()` with `{ path, url, query }`
+
+`AppRouter` also uses a render token to protect against async race conditions. If a newer navigation finishes before an older screen has completed `enter()`, the older screen is immediately left and destroyed instead of staying mounted in a stale state.
+
+##### Route context
+
+Screens receive a small route context object:
+
+| Field | Type | Purpose |
+|---|---|---|
+| `path` | `AppPath` | Normalized app route such as `/simulation` |
+| `url` | `URL` | Full browser URL |
+| `query` | `URLSearchParams` | Parsed query string for route-driven behavior |
+
+That is enough for the current needs without coupling screens to the adapter or the browser directly.
+
+##### Current route table
+
+The current route registry is intentionally small:
+
+| Route | Screen |
+|---|---|
+| `/login` | `LoginScreen` |
+| `/simulation` | `SimulationScreen` in random mode |
+| `/zoo` | `SimulationScreen` in zoo mode |
+| `/drawing` | `SimulationScreen` in drawing mode |
+
+`SimulationScreen` delegates the actual mode-specific workspace behavior to `SimulationWorkspace`, which maps route state to Conway mode state.
+
 #### Simulation and seeding
 
 `Simulation` in `front/src/Grid/Simulation.ts` is the pure Conway engine. It:
