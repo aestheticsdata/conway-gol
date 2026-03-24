@@ -1,8 +1,9 @@
-import type { AppPath } from "@app/navigation/NavigationAdapter";
-import type { Screen, RouteContext } from "@app/router/Screen";
 import { SIMULATION_ROUTE } from "@app/routes";
-import { createLoginView } from "@app/views/html";
 import { APP_TEXTS } from "@texts";
+import { createLoginView } from "./html";
+
+import type { AppPath } from "@navigation/NavigationAdapter";
+import type { RouteContext, Screen } from "@router/Screen";
 
 export class LoginView implements Screen {
   private _root?: HTMLElement;

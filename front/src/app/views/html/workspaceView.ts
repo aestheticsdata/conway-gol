@@ -1,24 +1,16 @@
-import type { WorkspaceRoute } from "@app/routes";
-import {
-  DRAWING_ROUTE,
-  SIMULATION_ROUTE,
-  ZOO_ROUTE,
-} from "@app/routes";
+import { DRAWING_ROUTE, SIMULATION_ROUTE, ZOO_ROUTE } from "@app/routes";
 import { NOISE_CLUSTERS_ICON } from "@assets/icons/noiseClustersIcon";
 import { NOISE_PERLIN_ICON } from "@assets/icons/noisePerlinIcon";
 import { NOISE_UNIFORM_ICON } from "@assets/icons/noiseUniformIcon";
 import { PAW_ICON } from "@assets/icons/pawIcon";
 import { PENCIL_ICON } from "@assets/icons/pencilIcon";
 import { SHUFFLE_ICON } from "@assets/icons/shuffleIcon";
-import {
-  createTileSelectorButton,
-  type TileSelectorButtonOptions,
-} from "@app/views/html/tileSelector";
+import { createTileSelectorButton } from "@views/html/tileSelector";
 
-type ModeSelectorOption = Omit<
-  TileSelectorButtonOptions,
-  "dataAttributeName" | "selected"
-> & {
+import type { WorkspaceRoute } from "@app/routes";
+import type { TileSelectorButtonOptions } from "@views/html/tileSelector";
+
+type ModeSelectorOption = Omit<TileSelectorButtonOptions, "dataAttributeName" | "selected"> & {
   route: WorkspaceRoute;
 };
 
@@ -183,9 +175,7 @@ function createCanvasArea(): string {
 }
 
 function createRandomNoiseSelector(): string {
-  return RANDOM_NOISE_OPTIONS.map((option) =>
-    createTileSelectorButton(option),
-  ).join("");
+  return RANDOM_NOISE_OPTIONS.map((option) => createTileSelectorButton(option)).join("");
 }
 
 function createRandomControls(): string {

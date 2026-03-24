@@ -1,6 +1,6 @@
 type TileSelectorSize = "md" | "sm";
 
-export type TileSelectorButtonOptions = {
+export interface TileSelectorButtonOptions {
   value: string;
   selected?: boolean;
   size?: TileSelectorSize;
@@ -11,20 +11,14 @@ export type TileSelectorButtonOptions = {
   ariaLabel?: string;
 };
 
-function createTileSelectorLabel(
-  icon: string,
-  dataAttributeName: string,
-  dataAttributeValue: string,
-): string {
+function createTileSelectorLabel(icon: string, dataAttributeName: string, dataAttributeValue: string): string {
   return `
     <span class="tile-selector__icon" aria-hidden="true">${icon}</span>
     <span class="tile-selector__text" data-${dataAttributeName}="${dataAttributeValue}"></span>
   `;
 }
 
-export function createTileSelectorButton(
-  options: TileSelectorButtonOptions,
-): string {
+export function createTileSelectorButton(options: TileSelectorButtonOptions): string {
   const {
     value,
     selected = false,

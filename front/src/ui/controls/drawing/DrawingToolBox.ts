@@ -7,14 +7,14 @@ class DrawingToolBox {
   public readonly toolboxDOM: HTMLElement;
   private _selectedMode: DrawingMode = "pencil";
   private readonly _tools: Record<DrawingMode, HTMLElement>;
-  private _activeColor: string = 'rgba(255,204,0,1)';
+  private _activeColor: string = "rgba(255,204,0,1)";
   private _observer?: Observer;
 
   constructor() {
-    this.toolboxDOM = queryRequired<HTMLElement>('.drawing-toolbox');
+    this.toolboxDOM = queryRequired<HTMLElement>(".drawing-toolbox");
     this._tools = {
-      pencil: queryRequired<HTMLElement>('.item.pencil', this.toolboxDOM),
-      eraser: queryRequired<HTMLElement>('.item.eraser', this.toolboxDOM),
+      pencil: queryRequired<HTMLElement>(".item.pencil", this.toolboxDOM),
+      eraser: queryRequired<HTMLElement>(".item.eraser", this.toolboxDOM),
     };
     (Object.values(this._tools) as HTMLElement[]).forEach((tool) => {
       tool.addEventListener("click", this._onToolClick);
@@ -43,17 +43,15 @@ class DrawingToolBox {
   }
 
   private _selectMode(el: HTMLElement): void {
-    (Object.entries(this._tools) as [DrawingMode, HTMLElement][]).forEach(
-      ([mode, tool]) => {
-        if (tool === el) {
-          tool.style.backgroundColor = this._activeColor;
-          this._selectedMode = mode;
-          this._observer?.(this.selectedMode);
-        } else {
-          tool.style.backgroundColor = 'transparent';
-        }
-      },
-    );
+    (Object.entries(this._tools) as [DrawingMode, HTMLElement][]).forEach(([mode, tool]) => {
+      if (tool === el) {
+        tool.style.backgroundColor = this._activeColor;
+        this._selectedMode = mode;
+        this._observer?.(this.selectedMode);
+      } else {
+        tool.style.backgroundColor = "transparent";
+      }
+    });
   }
 
   private _onToolClick = (e: Event): void => {
@@ -62,7 +60,7 @@ class DrawingToolBox {
       return;
     }
     this._selectMode(el);
-  }
+  };
 }
 
 export default DrawingToolBox;

@@ -1,4 +1,4 @@
-import { API_BASE_PATH } from "./constants";
+import { API_BASE_PATH } from "@helpers/constants";
 
 export function getRequestURL(url: string): string {
   const normalizedUrl = url.replace(/^\/+/, "");

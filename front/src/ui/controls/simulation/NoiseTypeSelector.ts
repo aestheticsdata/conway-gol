@@ -1,5 +1,6 @@
-import type { NoiseType } from "@grid/seeding/RandomPresetSeeder";
 import TileButtonGroup from "../shared/TileButtonGroup";
+
+import type { NoiseType } from "@grid/seeding/RandomPresetSeeder";
 
 class NoiseTypeSelector extends TileButtonGroup<NoiseType> {
   constructor(onChange: (noiseType: NoiseType) => void, parent: ParentNode = document) {

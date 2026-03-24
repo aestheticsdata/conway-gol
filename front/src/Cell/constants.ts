@@ -15,4 +15,4 @@ export const CELL_STATE = {
   OUTSIDE: 3,
 } as const;
 
-export type CellState = typeof CELL_STATE[keyof typeof CELL_STATE];
+export type CellState = (typeof CELL_STATE)[keyof typeof CELL_STATE];

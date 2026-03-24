@@ -1,4 +1,4 @@
-import type { AppPath } from "@app/navigation/NavigationAdapter";
+import type { AppPath } from "@navigation/NavigationAdapter";
 
 export function normalizeBasePath(baseUrl: string): string {
   if (!baseUrl || baseUrl === "/") {

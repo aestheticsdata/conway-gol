@@ -1,12 +1,13 @@
 import { CELL_STATE } from "@cell/constants";
+
 import type { RandomPresetId } from "@grid/randomPresets";
 
 export type NoiseType = "uniform" | "perlin-like" | "clusters";
 
 export interface RandomSeedParams {
-  density: number;       // 0–1: shape count / frequency for patterns; alive probability for "noise"
-  noiseType: NoiseType;  // direct algorithm for "noise"; spatial mask for other presets
-  seed: number | null;   // null = auto (preset hash or Math.random())
+  density: number; // 0–1: shape count / frequency for patterns; alive probability for "noise"
+  noiseType: NoiseType; // direct algorithm for "noise"; spatial mask for other presets
+  seed: number | null; // null = auto (preset hash or Math.random())
 }
 
 export const DEFAULT_RANDOM_PARAMS: RandomSeedParams = {
@@ -47,13 +48,73 @@ function mulberry32(seed: number): () => number {
 }
 
 const STAR_MOTIFS = [
-  [[0,0],[-1,0],[1,0],[0,-1],[0,1]],
-  [[0,0],[-1,-1],[-1,1],[1,-1],[1,1]],
-  [[0,0],[-1,0],[-2,0],[1,0],[2,0],[0,-1],[0,-2],[0,1],[0,2]],
-  [[0,0],[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[-1,1],[1,-1],[1,1]],
-  [[0,0],[0,-2],[-1,-1],[-2,0],[-1,1],[0,2],[1,1],[2,0],[1,-1]],
-  [[0,0],[-2,0],[-1,-1],[-1,1],[1,-1],[1,1],[2,0]],
-  [[0,0],[-1,-1],[-2,-2],[1,1],[2,2],[-1,1],[-2,2],[1,-1],[2,-2]],
+  [
+    [0, 0],
+    [-1, 0],
+    [1, 0],
+    [0, -1],
+    [0, 1],
+  ],
+  [
+    [0, 0],
+    [-1, -1],
+    [-1, 1],
+    [1, -1],
+    [1, 1],
+  ],
+  [
+    [0, 0],
+    [-1, 0],
+    [-2, 0],
+    [1, 0],
+    [2, 0],
+    [0, -1],
+    [0, -2],
+    [0, 1],
+    [0, 2],
+  ],
+  [
+    [0, 0],
+    [-1, 0],
+    [1, 0],
+    [0, -1],
+    [0, 1],
+    [-1, -1],
+    [-1, 1],
+    [1, -1],
+    [1, 1],
+  ],
+  [
+    [0, 0],
+    [0, -2],
+    [-1, -1],
+    [-2, 0],
+    [-1, 1],
+    [0, 2],
+    [1, 1],
+    [2, 0],
+    [1, -1],
+  ],
+  [
+    [0, 0],
+    [-2, 0],
+    [-1, -1],
+    [-1, 1],
+    [1, -1],
+    [1, 1],
+    [2, 0],
+  ],
+  [
+    [0, 0],
+    [-1, -1],
+    [-2, -2],
+    [1, 1],
+    [2, 2],
+    [-1, 1],
+    [-2, 2],
+    [1, -1],
+    [2, -2],
+  ],
 ] as const;
 
 function stampStarMotif(
@@ -195,13 +256,7 @@ export class RandomPresetSeeder implements IRandomPresetSeeder {
     }
   }
 
-  private _fillValueNoise(
-    mask: Float32Array,
-    rows: number,
-    cols: number,
-    rng: () => number,
-    scale = 10,
-  ): void {
+  private _fillValueNoise(mask: Float32Array, rows: number, cols: number, rng: () => number, scale = 10): void {
     const gRows = Math.ceil(rows / scale) + 2;
     const gCols = Math.ceil(cols / scale) + 2;
     const grid = new Float32Array(gRows * gCols);
@@ -224,21 +279,12 @@ export class RandomPresetSeeder implements IRandomPresetSeeder {
         const v10 = grid[y0 * gCols + x1];
         const v01 = grid[y1 * gCols + x0];
         const v11 = grid[y1 * gCols + x1];
-        mask[idx++] =
-          v00 * (1 - ux) * (1 - uy) +
-          v10 * ux * (1 - uy) +
-          v01 * (1 - ux) * uy +
-          v11 * ux * uy;
+        mask[idx++] = v00 * (1 - ux) * (1 - uy) + v10 * ux * (1 - uy) + v01 * (1 - ux) * uy + v11 * ux * uy;
       }
     }
   }
 
-  private _fillClusterNoise(
-    mask: Float32Array,
-    rows: number,
-    cols: number,
-    rng: () => number,
-  ): void {
+  private _fillClusterNoise(mask: Float32Array, rows: number, cols: number, rng: () => number): void {
     const numClusters = 6 + Math.floor(rng() * 10);
     const baseRad = Math.min(rows, cols) * 0.12;
     const centers: { r: number; c: number; r2: number }[] = [];
@@ -269,8 +315,14 @@ export class RandomPresetSeeder implements IRandomPresetSeeder {
     density: number,
     noiseType: NoiseType,
   ): void {
-    if (density <= 0) { buffer.fill(CELL_STATE.DEAD); return; }
-    if (density >= 1) { buffer.fill(CELL_STATE.ALIVE); return; }
+    if (density <= 0) {
+      buffer.fill(CELL_STATE.DEAD);
+      return;
+    }
+    if (density >= 1) {
+      buffer.fill(CELL_STATE.ALIVE);
+      return;
+    }
     const mask = new Float32Array(buffer.length);
     this._fillNoiseMask(mask, rows, cols, rng, noiseType);
     for (let i = 0; i < buffer.length; i++) {
@@ -294,7 +346,7 @@ export class RandomPresetSeeder implements IRandomPresetSeeder {
     density: number,
   ): void {
     buffer.fill(CELL_STATE.DEAD);
-    const baseCount = Math.round(rows * cols / 4); // ~6084 for 156×156
+    const baseCount = Math.round((rows * cols) / 4); // ~6084 for 156×156
     const numStars = Math.round(baseCount * density);
     for (let k = 0; k < numStars; k++) {
       const r = Math.floor(rng() * rows);
@@ -320,7 +372,7 @@ export class RandomPresetSeeder implements IRandomPresetSeeder {
   ): void {
     buffer.fill(CELL_STATE.DEAD);
     // base count sized so density=1 gives ~1.5× grid-area coverage → nearly full canvas
-    const baseCount = Math.round(rows * cols / 250);
+    const baseCount = Math.round((rows * cols) / 250);
     const numCircles = Math.max(0, Math.round(baseCount * density));
     if (numCircles === 0) return;
 
@@ -365,9 +417,7 @@ export class RandomPresetSeeder implements IRandomPresetSeeder {
     const usableH = rows - 2 * margin;
     const baseWaves = randomVariation ? 15 + Math.floor(rng() * 25) : 40;
     const numWaves = Math.max(0, Math.round(baseWaves * density));
-    const k = randomVariation
-      ? 0.05 + rng() * 0.28
-      : (3 * 2 * Math.PI) / Math.max(cols, 1);
+    const k = randomVariation ? 0.05 + rng() * 0.28 : (3 * 2 * Math.PI) / Math.max(cols, 1);
     const amp = randomVariation ? 5 + rng() * 20 : 12;
     const band = randomVariation ? 1 + Math.floor(rng() * 2) : 2;
     const y0: number[] = [];
@@ -388,7 +438,10 @@ export class RandomPresetSeeder implements IRandomPresetSeeder {
         let alive = false;
         for (let w = 0; w < numWaves; w++) {
           const curve = y0[w] + amp * Math.sin(k * col + phases[w]);
-          if (Math.abs(row - curve) <= band) { alive = true; break; }
+          if (Math.abs(row - curve) <= band) {
+            alive = true;
+            break;
+          }
         }
         buffer[i++] = alive ? CELL_STATE.ALIVE : CELL_STATE.DEAD;
       }
@@ -464,8 +517,14 @@ export class RandomPresetSeeder implements IRandomPresetSeeder {
     randomVariation: boolean,
     density: number,
   ): void {
-    if (density <= 0) { buffer.fill(CELL_STATE.DEAD); return; }
-    if (density >= 1) { buffer.fill(CELL_STATE.ALIVE); return; }
+    if (density <= 0) {
+      buffer.fill(CELL_STATE.DEAD);
+      return;
+    }
+    if (density >= 1) {
+      buffer.fill(CELL_STATE.ALIVE);
+      return;
+    }
     const maxScale = randomVariation ? 4 + Math.floor(rng() * 6) : 6;
     const scale = Math.max(1, Math.round(maxScale * (1 - density) + 1));
     const shift = randomVariation ? Math.floor(rng() * 2) : 0;
@@ -542,10 +601,7 @@ export class RandomPresetSeeder implements IRandomPresetSeeder {
           const r2 = R * R;
           if (d < r2) falloff = Math.max(falloff, 1 - d / r2);
         }
-        buffer[i++] =
-          falloff > 0 && rng() < 0.22 + 0.72 * falloff
-            ? CELL_STATE.ALIVE
-            : CELL_STATE.DEAD;
+        buffer[i++] = falloff > 0 && rng() < 0.22 + 0.72 * falloff ? CELL_STATE.ALIVE : CELL_STATE.DEAD;
       }
     }
   }

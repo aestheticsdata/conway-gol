@@ -32,7 +32,7 @@
   display: inline-block;
   min-width: 4ch;
   text-align: right;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
   font-variant-numeric: tabular-nums;
 }
 
@@ -97,7 +97,7 @@
 .speed-value {
   text-align: right;
   font-variant-numeric: tabular-nums;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
   color: var(--accent);
 }
 

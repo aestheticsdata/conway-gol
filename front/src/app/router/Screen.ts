@@ -1,6 +1,6 @@
-import type { AppPath } from "@app/navigation/NavigationAdapter";
+import type { AppPath } from "@navigation/NavigationAdapter";
 
-export type RouteContext = {
+export interface RouteContext {
   path: AppPath;
   url: URL;
   query: URLSearchParams;

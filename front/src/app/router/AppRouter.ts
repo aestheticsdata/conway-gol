@@ -1,11 +1,12 @@
-import type { NavigationAdapter, AppPath } from "@app/navigation/NavigationAdapter";
-import type { RouteContext, Screen } from "./Screen";
-import { normalizeAppPath } from "./paths";
+import { normalizeAppPath } from "@router/paths";
 
-export type RouteDefinition = {
+import type { AppPath, NavigationAdapter } from "@navigation/NavigationAdapter";
+import type { RouteContext, Screen } from "@router/Screen";
+
+export interface RouteDefinition {
   path: AppPath;
   create: () => Screen;
-};
+}
 
 export class AppRouter {
   private readonly _routes = new Map<AppPath, RouteDefinition>();

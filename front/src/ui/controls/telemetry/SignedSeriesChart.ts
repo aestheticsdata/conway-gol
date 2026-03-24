@@ -92,8 +92,8 @@ class SignedSeriesChart {
     const plotBottom = height - 6;
     const plotHeight = Math.max(1, plotBottom - plotTop);
     const plotWidth = Math.max(1, plotRight - plotLeft);
-    const zeroY = plotTop + (plotHeight / 2);
-    const graphAmplitude = Math.max(1, (plotHeight / 2) - 3);
+    const zeroY = plotTop + plotHeight / 2;
+    const graphAmplitude = Math.max(1, plotHeight / 2 - 3);
     const theme = getTelemetryTheme();
 
     drawTelemetrySurface(this._ctx, width, height, theme);
@@ -119,8 +119,8 @@ class SignedSeriesChart {
     const scale = this._updateVerticalScale(targetScale);
     const stepX = this._values.length > 1 ? plotWidth / (this._values.length - 1) : 0;
     const points = this._values.map((value, index) => ({
-      x: plotLeft + (stepX * index),
-      y: zeroY - ((value / scale) * graphAmplitude),
+      x: plotLeft + stepX * index,
+      y: zeroY - (value / scale) * graphAmplitude,
       value,
     }));
 
@@ -150,10 +150,7 @@ class SignedSeriesChart {
       return this._verticalScale;
     }
 
-    this._verticalScale = Math.max(
-      1,
-      this._verticalScale - ((this._verticalScale - targetScale) * SCALE_RELAXATION),
-    );
+    this._verticalScale = Math.max(1, this._verticalScale - (this._verticalScale - targetScale) * SCALE_RELAXATION);
     return this._verticalScale;
   }
 

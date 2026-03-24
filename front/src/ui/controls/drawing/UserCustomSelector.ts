@@ -1,6 +1,6 @@
-import Swal from "sweetalert2";
-import UserCustomService from "@services/UserCustomService";
 import { queryRequired } from "@helpers/dom";
+import UserCustomService from "@services/UserCustomService";
+import Swal from "sweetalert2";
 import { CONTROL_TEXTS } from "./texts";
 
 class UserCustomSelector {
@@ -19,9 +19,9 @@ class UserCustomSelector {
   public getGridData: () => number[][] = () => [];
 
   constructor(cb: (speciesName: string) => void) {
-    this._customDrawingDOMSelector = queryRequired<HTMLElement>('.custom-drawing-files');
-    this._userListSelect = queryRequired<HTMLSelectElement>('#custom-file');
-    this.saveBtn = queryRequired<HTMLButtonElement>('.custom-drawing-files .save');
+    this._customDrawingDOMSelector = queryRequired<HTMLElement>(".custom-drawing-files");
+    this._userListSelect = queryRequired<HTMLSelectElement>("#custom-file");
+    this.saveBtn = queryRequired<HTMLButtonElement>(".custom-drawing-files .save");
     this._cb = cb;
     this.saveBtn.style.display = "block";
     this._userCustomService = new UserCustomService();
@@ -70,13 +70,13 @@ class UserCustomSelector {
         timer: 3000,
       });
     }
-  }
+  };
 
   public getCustomList = async (): Promise<void> => {
     const { data } = await this._userCustomService.getCustomdrawingList();
     this._userCustomList = data;
     this._createSelectButton();
-  }
+  };
 
   private _createSelectButton(): void {
     this._userListSelect.replaceChildren(
@@ -91,7 +91,7 @@ class UserCustomSelector {
 
   private _onSelectChange = (e: Event): void => {
     this._cb((e.currentTarget as HTMLSelectElement).value);
-  }
+  };
 }
 
 export default UserCustomSelector;

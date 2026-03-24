@@ -1,5 +1,5 @@
 :where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)) {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: "Space Grotesk", sans-serif;
   font-size: 15px;
   display: inline-flex;
   align-items: center;

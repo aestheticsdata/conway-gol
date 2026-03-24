@@ -44,19 +44,11 @@ export const DEFAULT_TELEMETRY_THEME: TelemetryTheme = {
   neutral: "rgba(143, 169, 194, 0.94)",
 };
 
-function readCssColorVariable(
-  styles: CSSStyleDeclaration,
-  variableName: string,
-  fallback: string,
-): string {
+function readCssColorVariable(styles: CSSStyleDeclaration, variableName: string, fallback: string): string {
   return styles.getPropertyValue(variableName).trim() || fallback;
 }
 
-function readCssNumberVariable(
-  styles: CSSStyleDeclaration,
-  variableName: string,
-  fallback: number,
-): number {
+function readCssNumberVariable(styles: CSSStyleDeclaration, variableName: string, fallback: number): number {
   const value = styles.getPropertyValue(variableName).trim();
   const parsed = Number.parseFloat(value);
   return Number.isFinite(parsed) ? parsed : fallback;

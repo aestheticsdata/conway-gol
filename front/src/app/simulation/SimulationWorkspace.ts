@@ -1,39 +1,26 @@
-import axios from "axios";
+import { MODE_TO_WORKSPACE_ROUTE, WORKSPACE_ROUTE_TO_MODE } from "@app/routes";
+import { CANVAS_PX_HEIGHT, CANVAS_PX_WIDTH, GRID_COLS, GRID_ROWS } from "@grid/constants";
 import Grid from "@grid/Grid";
-import {
-  CANVAS_PX_HEIGHT,
-  CANVAS_PX_WIDTH,
-  GRID,
-  GRID_COLS,
-  GRID_ROWS,
-} from "@grid/constants";
-import {
-  DEFAULT_RANDOM_PRESET,
-  isRandomPresetId,
-  type RandomPresetId,
-} from "@grid/randomPresets";
+import { DEFAULT_RANDOM_PRESET, isRandomPresetId } from "@grid/randomPresets";
 import ZoomBox from "@grid/zoom/ZoomBox";
-import AliveVariationChart from "@ui/controls/telemetry/AliveVariationChart";
-import AliveCountChart from "@ui/controls/telemetry/AliveCountChart";
-import DrawingToolBox from "@ui/controls/drawing/DrawingToolBox";
-import ModeSelector, { type Mode } from "@ui/controls/simulation/ModeSelector";
-import RandomControlsPanel from "@ui/controls/simulation/RandomControlsPanel";
-import UserCustomSelector from "@ui/controls/drawing/UserCustomSelector";
-import ZooSelector from "@ui/controls/simulation/ZooSelector";
-import type { SimulationStateStats } from "@grid/Simulation";
-import { CONTROL_TEXTS } from "@ui/controls/drawing/texts";
-import { getRequiredContext2D, queryAll, queryRequired } from "@helpers/dom";
 import { getRequestURL } from "@helpers/api";
 import { URLS } from "@helpers/constants";
-import {
-  type RandomSeedParams,
-} from "@grid/seeding/RandomPresetSeeder";
-import {
-  MODE_TO_WORKSPACE_ROUTE,
-  WORKSPACE_ROUTE_TO_MODE,
-  type WorkspaceRoute,
-} from "@app/routes";
+import { getRequiredContext2D, queryAll, queryRequired } from "@helpers/dom";
 import { APP_TEXTS } from "@texts";
+import DrawingToolBox from "@ui/controls/drawing/DrawingToolBox";
+import { CONTROL_TEXTS } from "@ui/controls/drawing/texts";
+import UserCustomSelector from "@ui/controls/drawing/UserCustomSelector";
+import ModeSelector, { type Mode } from "@ui/controls/simulation/ModeSelector";
+import RandomControlsPanel from "@ui/controls/simulation/RandomControlsPanel";
+import ZooSelector from "@ui/controls/simulation/ZooSelector";
+import AliveCountChart from "@ui/controls/telemetry/AliveCountChart";
+import AliveVariationChart from "@ui/controls/telemetry/AliveVariationChart";
+import axios from "axios";
+
+import type { WorkspaceRoute } from "@app/routes";
+import type { RandomPresetId } from "@grid/randomPresets";
+import type { SimulationStateStats } from "@grid/Simulation";
+import type { RandomSeedParams } from "@grid/seeding/RandomPresetSeeder";
 
 type SimulationWorkspaceOptions = {
   root: HTMLElement;
@@ -106,9 +93,7 @@ export class SimulationWorkspace {
     this._aliveVariationChart = new AliveVariationChart(
       queryRequired<HTMLCanvasElement>(".alive-variation-chart", this._root),
     );
-    this._aliveCountChart = new AliveCountChart(
-      queryRequired<HTMLCanvasElement>(".alive-count-chart", this._root),
-    );
+    this._aliveCountChart = new AliveCountChart(queryRequired<HTMLCanvasElement>(".alive-count-chart", this._root));
     this._pauseBtn = queryRequired<HTMLButtonElement>("button.pause", this._root);
     this._speedSlider = queryRequired<HTMLInputElement>("#speed-slider", this._root);
     this._speedValue = queryRequired<HTMLElement>(".speed-value", this._root);
@@ -164,8 +149,7 @@ export class SimulationWorkspace {
     queryRequired<HTMLElement>('[data-ui="mode-label"]', this._root).textContent = APP_TEXTS.modes.label;
     queryRequired<HTMLElement>('.tile-selector__text[data-mode="random"]', this._root).textContent =
       APP_TEXTS.modes.random;
-    queryRequired<HTMLElement>('.tile-selector__text[data-mode="zoo"]', this._root).textContent =
-      APP_TEXTS.modes.zoo;
+    queryRequired<HTMLElement>('.tile-selector__text[data-mode="zoo"]', this._root).textContent = APP_TEXTS.modes.zoo;
     queryRequired<HTMLElement>('.tile-selector__text[data-mode="drawing"]', this._root).textContent =
       APP_TEXTS.modes.drawing;
     queryRequired<HTMLElement>(".iteration-label", this._root).textContent = `${APP_TEXTS.playback.iteration} `;
@@ -178,8 +162,7 @@ export class SimulationWorkspace {
       CONTROL_TEXTS.drawing.saveButton;
     queryRequired<HTMLLabelElement>('label[for="custom-file"]', this._root).textContent =
       CONTROL_TEXTS.drawing.customDrawingLabel;
-    queryRequired<HTMLLabelElement>('label[for="primitives"]', this._root).textContent =
-      `${APP_TEXTS.zoo.species} `;
+    queryRequired<HTMLLabelElement>('label[for="primitives"]', this._root).textContent = `${APP_TEXTS.zoo.species} `;
 
     queryAll<HTMLImageElement>('img[data-tool="pencil"]', this._root).forEach((img) => {
       img.alt = CONTROL_TEXTS.drawing.tools.pencilAlt;
@@ -283,11 +266,7 @@ export class SimulationWorkspace {
     this._resetIterationCounter();
     this._aliveVariationChart.reset();
     this._aliveCountChart.reset();
-    this._grid.reseedRandomPreset(
-      this._currentRandomPreset(),
-      false,
-      this._currentRandomParams(),
-    );
+    this._grid.reseedRandomPreset(this._currentRandomPreset(), false, this._currentRandomParams());
   };
 
   private _onRandomPresetGenerate = (): void => {
@@ -300,11 +279,7 @@ export class SimulationWorkspace {
     this._resetIterationCounter();
     this._aliveVariationChart.reset();
     this._aliveCountChart.reset();
-    this._grid.reseedRandomPreset(
-      this._currentRandomPreset(),
-      true,
-      this._currentRandomParams(),
-    );
+    this._grid.reseedRandomPreset(this._currentRandomPreset(), true, this._currentRandomParams());
   };
 
   private _setFPS(): void {
@@ -368,9 +343,7 @@ export class SimulationWorkspace {
     }
 
     try {
-      this._critterList = (await axios.get<string[]>(
-        `${getRequestURL(URLS.critterList)}`,
-      )).data;
+      this._critterList = (await axios.get<string[]>(`${getRequestURL(URLS.critterList)}`)).data;
       return this._critterList;
     } catch (err) {
       console.error(err);
@@ -433,7 +406,9 @@ export class SimulationWorkspace {
           mode: "zoo",
           species: this._selectedSpecies ?? undefined,
           onStateChange: this._handleStateChange,
-          onLoad: (comments) => { this._renderComments(comments); },
+          onLoad: (comments) => {
+            this._renderComments(comments);
+          },
         });
         break;
       }
@@ -461,7 +436,9 @@ export class SimulationWorkspace {
           onStateChange: this._handleStateChange,
           userCustomSelector: this._userCustomSelector,
           zoombox: this._zoomBox,
-          onLoad: (comments) => { this._renderComments(comments); },
+          onLoad: (comments) => {
+            this._renderComments(comments);
+          },
         });
         this._grid.initListener();
         break;

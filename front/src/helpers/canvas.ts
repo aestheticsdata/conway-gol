@@ -1,11 +1,18 @@
 import { CELL_SIZE } from "@grid/constants";
 
-export function drawGrid(
-  ctx: CanvasRenderingContext2D,
-  canvas: HTMLCanvasElement,
+type DrawGridParams = {
+  ctx: CanvasRenderingContext2D;
+  canvas: HTMLCanvasElement;
+  zoom?: number;
+  color?: string;
+};
+
+export function drawGrid({
+  ctx,
+  canvas,
   zoom = 1,
   color = "transparent",
-): void {
+}: DrawGridParams): void {
   const step = CELL_SIZE * zoom;
   const columns = Math.floor(canvas.width / step);
   const rows = Math.floor(canvas.height / step);

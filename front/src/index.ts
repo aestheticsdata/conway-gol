@@ -1,17 +1,12 @@
-import { NavigationApiAdapter } from "@app/navigation/NavigationApiAdapter";
-import { AppRouter } from "@app/router/AppRouter";
-import { normalizeBasePath } from "@app/router/paths";
-import {
-  DEFAULT_APP_ROUTE,
-  DRAWING_ROUTE,
-  LOGIN_ROUTE,
-  SIMULATION_ROUTE,
-  ZOO_ROUTE,
-} from "@app/routes";
-import { LoginView } from "@app/views/LoginView";
-import { SimulationView } from "@app/views/SimulationView";
+import { DEFAULT_APP_ROUTE, DRAWING_ROUTE, LOGIN_ROUTE, SIMULATION_ROUTE, ZOO_ROUTE } from "@app/routes";
 import { queryRequired } from "@helpers/dom";
-import type { AppPath } from "@app/navigation/NavigationAdapter";
+import { NavigationApiAdapter } from "@navigation/NavigationApiAdapter";
+import { AppRouter } from "@router/AppRouter";
+import { normalizeBasePath } from "@router/paths";
+import { LoginView } from "@views/LoginView";
+import { SimulationView } from "@views/SimulationView";
+
+import type { AppPath } from "@navigation/NavigationAdapter";
 
 const outlet = queryRequired<HTMLElement>("#app");
 const basePath = normalizeBasePath(import.meta.env.BASE_URL);

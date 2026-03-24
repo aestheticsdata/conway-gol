@@ -1,12 +1,9 @@
 import { CELL_STATE } from "@cell/constants";
 import { GRID_COLS, GRID_ROWS, INITIAL_DENSITY } from "./constants";
+import { DEFAULT_RANDOM_PARAMS, RandomPresetSeeder } from "./seeding/RandomPresetSeeder";
+
 import type { RandomPresetId } from "./randomPresets";
-import {
-  RandomPresetSeeder,
-  type IRandomPresetSeeder,
-  type RandomSeedParams,
-  DEFAULT_RANDOM_PARAMS,
-} from "./seeding/RandomPresetSeeder";
+import type { IRandomPresetSeeder, RandomSeedParams } from "./seeding/RandomPresetSeeder";
 
 export type SimulationStateStats = {
   alive: number;
@@ -36,11 +33,7 @@ class Simulation {
   public readonly cols: number;
   private readonly _randomPresetSeeder: IRandomPresetSeeder;
 
-  constructor(
-    rows: number = GRID_ROWS,
-    cols: number = GRID_COLS,
-    randomPresetSeeder?: IRandomPresetSeeder,
-  ) {
+  constructor(rows: number = GRID_ROWS, cols: number = GRID_COLS, randomPresetSeeder?: IRandomPresetSeeder) {
     this.rows = rows;
     this.cols = cols;
     this._current = new Uint8Array(rows * cols);
@@ -90,14 +83,7 @@ class Simulation {
     randomVariation = false,
     params: RandomSeedParams = DEFAULT_RANDOM_PARAMS,
   ): void {
-    this._randomPresetSeeder.seedInto(
-      this._current,
-      this.rows,
-      this.cols,
-      preset,
-      randomVariation,
-      params,
-    );
+    this._randomPresetSeeder.seedInto(this._current, this.rows, this.cols, preset, randomVariation, params);
   }
 
   /** Fill the grid with all DEAD cells (blank canvas). */
@@ -140,8 +126,12 @@ class Simulation {
         // ALIVE=1 and DEAD=0, so we can directly sum neighbour values
         this._next[row * this.cols + col] =
           current === CELL_STATE.ALIVE
-            ? (n === 2 || n === 3 ? CELL_STATE.ALIVE : CELL_STATE.DEAD)
-            : (n === 3 ? CELL_STATE.ALIVE : CELL_STATE.DEAD);
+            ? n === 2 || n === 3
+              ? CELL_STATE.ALIVE
+              : CELL_STATE.DEAD
+            : n === 3
+              ? CELL_STATE.ALIVE
+              : CELL_STATE.DEAD;
       }
     }
     // O(1) swap — no memory allocation
@@ -157,9 +147,7 @@ class Simulation {
   public toGrid(): number[][] {
     const result: number[][] = [];
     for (let row = 0; row < this.rows; row++) {
-      result.push(
-        Array.from(this._current.subarray(row * this.cols, (row + 1) * this.cols))
-      );
+      result.push(Array.from(this._current.subarray(row * this.cols, (row + 1) * this.cols)));
     }
     return result;
   }
@@ -180,8 +168,8 @@ class Simulation {
       this._current[prevRow * this.cols + prevCol] +
       this._current[prevRow * this.cols + col] +
       this._current[prevRow * this.cols + nextCol] +
-      this._current[row    * this.cols + prevCol] +
-      this._current[row    * this.cols + nextCol] +
+      this._current[row * this.cols + prevCol] +
+      this._current[row * this.cols + nextCol] +
       this._current[nextRow * this.cols + prevCol] +
       this._current[nextRow * this.cols + col] +
       this._current[nextRow * this.cols + nextCol]

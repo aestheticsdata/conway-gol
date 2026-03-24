@@ -1,6 +1,6 @@
 import TileButtonGroup from "../shared/TileButtonGroup";
 
-export type Mode = 'random' | 'zoo' | 'drawing';
+export type Mode = "random" | "zoo" | "drawing";
 
 class ModeSelector extends TileButtonGroup<Mode> {
   constructor(setMode: (mode: Mode) => void, parent: ParentNode = document) {
@@ -12,4 +12,4 @@ class ModeSelector extends TileButtonGroup<Mode> {
   }
 }
 
-export default ModeSelector
+export default ModeSelector;

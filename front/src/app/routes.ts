@@ -1,5 +1,5 @@
+import type { AppPath } from "@navigation/NavigationAdapter";
 import type { Mode } from "@ui/controls/simulation/ModeSelector";
-import type { AppPath } from "@app/navigation/NavigationAdapter";
 
 export const LOGIN_ROUTE = "/login";
 export const SIMULATION_ROUTE = "/simulation";

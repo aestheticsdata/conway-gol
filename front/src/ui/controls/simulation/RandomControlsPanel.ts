@@ -1,14 +1,11 @@
-import {
-  DEFAULT_RANDOM_PRESET,
-  RANDOM_PRESETS,
-  isRandomPresetId,
-  type RandomPresetId,
-} from "@grid/randomPresets";
-import type { NoiseType } from "@grid/seeding/RandomPresetSeeder";
+import { DEFAULT_RANDOM_PRESET, isRandomPresetId, RANDOM_PRESETS } from "@grid/randomPresets";
 import { queryRequired } from "@helpers/dom";
 import { APP_TEXTS } from "@texts";
 import Tooltip from "@ui/lib/Tooltip";
 import NoiseTypeSelector from "./NoiseTypeSelector";
+
+import type { RandomPresetId } from "@grid/randomPresets";
+import type { NoiseType } from "@grid/seeding/RandomPresetSeeder";
 
 type RandomControlsPanelOptions = {
   root: HTMLElement;
@@ -51,7 +48,10 @@ class RandomControlsPanel {
     this._randomDensitySlider = queryRequired<HTMLInputElement>("#random-density", this.element);
     this._randomDensityValue = queryRequired<HTMLSpanElement>("#random-density-value", this.element);
     this._randomSeedSlider = queryRequired<HTMLInputElement>("#random-seed", this.element);
-    this._randomSeedSliderTooltipTarget = queryRequired<HTMLSpanElement>(".random-seed-slider__tooltip-target", this.element);
+    this._randomSeedSliderTooltipTarget = queryRequired<HTMLSpanElement>(
+      ".random-seed-slider__tooltip-target",
+      this.element,
+    );
     this._randomSeedValue = queryRequired<HTMLSpanElement>("#random-seed-value", this.element);
     this._randomSeedAuto = queryRequired<HTMLInputElement>("#random-seed-auto", this.element);
     this._seedDisabledTooltip = new Tooltip();
@@ -217,9 +217,10 @@ class RandomControlsPanel {
 
   private _syncPresetUI(): void {
     const currentValue = this._randomPresetSelect.value;
-    const currentOption = RANDOM_PRESETS.find(({ id }) => id === currentValue)
-      ?? RANDOM_PRESETS.find(({ id }) => id === DEFAULT_RANDOM_PRESET)
-      ?? RANDOM_PRESETS[0];
+    const currentOption =
+      RANDOM_PRESETS.find(({ id }) => id === currentValue) ??
+      RANDOM_PRESETS.find(({ id }) => id === DEFAULT_RANDOM_PRESET) ??
+      RANDOM_PRESETS[0];
 
     this._randomPresetValue.textContent = currentOption?.label ?? "";
 

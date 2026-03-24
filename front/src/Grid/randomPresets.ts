@@ -18,9 +18,7 @@ export const RANDOM_PRESETS = [
 
 export type RandomPresetId = (typeof RANDOM_PRESETS)[number]["id"];
 
-export const RANDOM_PRESET_IDS: readonly RandomPresetId[] = RANDOM_PRESETS.map(
-  (preset) => preset.id,
-);
+export const RANDOM_PRESET_IDS: readonly RandomPresetId[] = RANDOM_PRESETS.map((preset) => preset.id);
 
 export const DEFAULT_RANDOM_PRESET: RandomPresetId = RANDOM_PRESETS[0].id;
 

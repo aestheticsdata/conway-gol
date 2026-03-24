@@ -1,9 +1,11 @@
-import type { AppPath } from "@app/navigation/NavigationAdapter";
-import type { RouteContext, Screen } from "@app/router/Screen";
-import { LOGIN_ROUTE, type WorkspaceRoute } from "@app/routes";
+import { LOGIN_ROUTE } from "@app/routes";
+import { SimulationWorkspace } from "@simulation/SimulationWorkspace";
 import { APP_TEXTS } from "@texts";
-import { SimulationWorkspace } from "@app/simulation/SimulationWorkspace";
-import { createWorkspaceView } from "@app/views/html";
+import { createWorkspaceView } from "./html";
+
+import type { WorkspaceRoute } from "@app/routes";
+import type { AppPath } from "@navigation/NavigationAdapter";
+import type { RouteContext, Screen } from "@router/Screen";
 
 export class SimulationView implements Screen {
   private _root?: HTMLElement;
@@ -20,8 +22,7 @@ export class SimulationView implements Screen {
     htmlHost.innerHTML = createWorkspaceView(this._route);
     this._root = htmlHost.firstElementChild as HTMLElement;
     container.replaceChildren(this._root);
-    this._backToLoginButton =
-      this._root.querySelector<HTMLButtonElement>(".workspace-login-link") ?? undefined;
+    this._backToLoginButton = this._root.querySelector<HTMLButtonElement>(".workspace-login-link") ?? undefined;
   }
 
   public async enter(context: RouteContext): Promise<void> {

@@ -1,15 +1,15 @@
-type TooltipPoint = {
+interface TooltipPoint {
   clientX: number;
   clientY: number;
-};
+}
 
-type TooltipOptions = {
+interface TooltipOptions {
   className?: string;
   offsetX?: number;
   offsetY?: number;
   viewportPadding?: number;
   root?: HTMLElement;
-};
+}
 
 class Tooltip {
   private readonly _element: HTMLDivElement;

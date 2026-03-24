@@ -522,7 +522,7 @@ Design rules used by the current frontend:
 - `AppRouter` owns screen lifecycle and browser path changes, not screen business logic.
 - Required DOM access should go through `front/src/helpers/dom.ts`.
 - Data loading (`Data`) does not touch the DOM. Pattern comments are returned to the caller via `Data.comments` and rendered by `SimulationWorkspace._renderComments()`.
-- Cross-module imports use path aliases (`@cell`, `@controls`, `@data`, `@grid`, `@helpers`, `@services`). Intra-module imports (same folder or immediate subfolder) use relative `./` paths.
+- Cross-module imports use path aliases (`@app`, `@cell`, `@data`, `@grid`, `@helpers`, `@navigation`, `@router`, `@services`, `@simulation`, `@views`). Intra-module imports (same folder or immediate subfolder) use relative `./` paths.
 
 ## Running Locally
 
@@ -556,13 +556,26 @@ Default local API port is `6300`.
 ```bash
 cd front
 pnpm install
-pnpm typecheck
+pnpm check
 pnpm dev
 ```
 
 Open the Vite URL shown in the terminal, usually `http://localhost:5173`.
 
-Use `pnpm build` to verify the production bundle locally.
+Useful frontend scripts:
+
+- `pnpm check` runs the full local validation (`lint` + `typecheck`)
+- `pnpm lint` runs Biome checks from `front/biome.json`
+- `pnpm lint:fix` applies Biome fixes (`--write --unsafe`)
+- `pnpm format` reformats the frontend and re-runs Biome writes
+- `pnpm typecheck` runs TypeScript only
+- `pnpm build` verifies the production bundle locally
+
+Additional frontend tooling notes:
+
+- Vite now uses `lightningcss` for CSS transforms and production CSS minification.
+- Google Fonts loading is declared in `front/src/index.html` with `preconnect` hints instead of being imported from `main.css`.
+- `.vscode/settings.json` points the editor to `front/biome.json` so local formatting and linting stay aligned with the repo config.
 
 ## Deployment
 
@@ -655,6 +668,16 @@ Custom patterns are submitted in the same JSON shape through `POST /usercustom/:
 
 ## Refactoring History
 
+### Phase 7 - Frontend tooling and import cleanup (2026-03)
+
+The frontend toolchain and source layout were normalized so day-to-day changes follow one consistent path:
+
+- `Biome` was added as the frontend formatter/linter, with shared scripts in `front/package.json` and repository-level editor wiring via `.vscode/settings.json`.
+- `Vite` and `tsconfig` aliases were extended to cover app-level modules (`@navigation`, `@router`, `@simulation`, `@views`) so cross-module imports no longer depend on deep relative paths.
+- The Google Fonts stylesheet was moved from CSS imports into `index.html`, making external asset loading explicit and allowing `preconnect` hints.
+- `drawGrid` now uses a named-parameter helper signature, which keeps canvas call sites clearer where zoom and color are optional.
+- A broad frontend formatting pass aligned TypeScript and CSS files with the new Biome conventions without changing the main simulation architecture.
+
 ### Phase 6 - Left playback telemetry and FPS slider (2026-03)
 
 The left control column was reorganized into separated visual sections so that playback status reads as a single stack:
@@ -729,7 +752,7 @@ Several concerns that had been mixed together were separated and the import grap
 - `Data.factory()` was renamed to `Data.load()`. DOM manipulation (rendering pattern comments) was removed from `Data` entirely. `Data.comments` is now read by the caller after the promise resolves, and `Main._renderComments()` handles display using safe DOM APIs (`createElement`, `createTextNode`, `replaceChildren`) instead of `innerHTML`.
 - `Grid` gained an optional `onLoad` callback in its options. It is called with `data.comments` after a zoo or drawing pattern finishes loading, letting `Main` display comments without `Grid` or `Data` knowing about the DOM.
 - `ZoomBox` was updated to import `drawGrid` from `@helpers/canvas` (it was still using the old `Helpers` class).
-- Path aliases were added to `tsconfig.json` and `vite.config.ts`: `@cell`, `@controls`, `@data`, `@grid`, `@helpers`, `@services`. All cross-module imports across the frontend now use these aliases.
+- Path aliases were added to `tsconfig.json` and `vite.config.ts`: `@app`, `@cell`, `@data`, `@grid`, `@helpers`, `@navigation`, `@router`, `@services`, `@simulation`, `@views`. All cross-module imports across the frontend now use these aliases.
 
 ### Phase 2 - Simulation / Renderer split (2026-03)
 

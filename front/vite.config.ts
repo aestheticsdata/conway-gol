@@ -1,5 +1,5 @@
+import { resolve } from "node:path";
 import { defineConfig, loadEnv } from "vite";
-import { resolve } from "path";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
@@ -30,13 +30,22 @@ export default defineConfig(({ mode }) => {
         "@data": resolve(__dirname, "src/data"),
         "@grid": resolve(__dirname, "src/Grid"),
         "@helpers": resolve(__dirname, "src/helpers"),
+        "@navigation": resolve(__dirname, "src/app/navigation"),
+        "@router": resolve(__dirname, "src/app/router"),
         "@services": resolve(__dirname, "src/services"),
+        "@simulation": resolve(__dirname, "src/app/simulation"),
         "@texts": resolve(__dirname, "src/texts.ts"),
         "@ui": resolve(__dirname, "src/ui"),
+        "@views": resolve(__dirname, "src/app/views"),
       },
     },
 
+    css: {
+      transformer: "lightningcss",
+    },
+
     build: {
+      cssMinify: "lightningcss",
       outDir: "../dist",
       emptyOutDir: true,
     },

@@ -17,9 +17,13 @@
       "@data/*": ["src/data/*"],
       "@grid/*": ["src/Grid/*"],
       "@helpers/*": ["src/helpers/*"],
+      "@navigation/*": ["src/app/navigation/*"],
+      "@router/*": ["src/app/router/*"],
       "@services/*": ["src/services/*"],
+      "@simulation/*": ["src/app/simulation/*"],
       "@texts": ["src/texts.ts"],
-      "@ui/*": ["src/ui/*"]
+      "@ui/*": ["src/ui/*"],
+      "@views/*": ["src/app/views/*"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"]

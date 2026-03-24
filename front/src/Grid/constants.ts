@@ -30,11 +30,7 @@ export const DEFAULT_CANVAS_THEME: CanvasTheme = {
   zoomHighlightStrokeColor: "rgba(255,204,0,1)",
 };
 
-function readCssColorVariable(
-  styles: CSSStyleDeclaration,
-  variableName: string,
-  fallback: string,
-): string {
+function readCssColorVariable(styles: CSSStyleDeclaration, variableName: string, fallback: string): string {
   return styles.getPropertyValue(variableName).trim() || fallback;
 }
 
@@ -51,7 +47,11 @@ export function getCanvasTheme(): CanvasTheme {
     aliveCellColor: readCssColorVariable(styles, "--canvas-cell-alive-color", DEFAULT_CANVAS_THEME.aliveCellColor),
     deadCellColor: readCssColorVariable(styles, "--canvas-cell-dead-color", DEFAULT_CANVAS_THEME.deadCellColor),
     borderCellColor: readCssColorVariable(styles, "--canvas-cell-border-color", DEFAULT_CANVAS_THEME.borderCellColor),
-    outsideCellColor: readCssColorVariable(styles, "--canvas-cell-outside-color", DEFAULT_CANVAS_THEME.outsideCellColor),
+    outsideCellColor: readCssColorVariable(
+      styles,
+      "--canvas-cell-outside-color",
+      DEFAULT_CANVAS_THEME.outsideCellColor,
+    ),
     previewAliveCellColor: readCssColorVariable(
       styles,
       "--canvas-preview-alive-color",
@@ -71,12 +71,7 @@ export function getCanvasTheme(): CanvasTheme {
 }
 
 export function getCanvasCellColors(theme: CanvasTheme): readonly string[] {
-  return [
-    theme.deadCellColor,
-    theme.aliveCellColor,
-    theme.borderCellColor,
-    theme.outsideCellColor,
-  ] as const;
+  return [theme.deadCellColor, theme.aliveCellColor, theme.borderCellColor, theme.outsideCellColor] as const;
 }
 
 export function getCanvasPreviewCellColors(theme: CanvasTheme): readonly string[] {

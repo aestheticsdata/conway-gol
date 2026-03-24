@@ -84,7 +84,7 @@ class PositiveSeriesChart {
     const plotRight = width - 4;
     const plotTop = 5;
     const plotBottom = height - 6;
-    const plotHeight = Math.max(1, plotBottom - plotTop);
+    const _plotHeight = Math.max(1, plotBottom - plotTop);
     const plotWidth = Math.max(1, plotRight - plotLeft);
     const graphTop = plotTop + GRAPH_TOP_PADDING;
     const graphHeight = Math.max(1, plotBottom - graphTop);
@@ -104,8 +104,8 @@ class PositiveSeriesChart {
     const scale = this._updateVerticalScale(targetScale);
     const stepX = this._values.length > 1 ? plotWidth / (this._values.length - 1) : 0;
     const points = this._values.map((value, index) => ({
-      x: plotLeft + (stepX * index),
-      y: plotBottom - ((value / scale) * graphHeight),
+      x: plotLeft + stepX * index,
+      y: plotBottom - (value / scale) * graphHeight,
     }));
 
     this._drawLine(points);
@@ -132,10 +132,7 @@ class PositiveSeriesChart {
       return this._verticalScale;
     }
 
-    this._verticalScale = Math.max(
-      1,
-      this._verticalScale - ((this._verticalScale - targetScale) * SCALE_RELAXATION),
-    );
+    this._verticalScale = Math.max(1, this._verticalScale - (this._verticalScale - targetScale) * SCALE_RELAXATION);
     return this._verticalScale;
   }
 

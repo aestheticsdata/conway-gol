@@ -1,13 +1,6 @@
-import type {
-  AppPath,
-  NavigationAdapter,
-  NavigationChangeListener,
-} from "./NavigationAdapter";
-import {
-  normalizeAppPath,
-  stripBasePath,
-  toDocumentPath,
-} from "@app/router/paths";
+import { normalizeAppPath, stripBasePath, toDocumentPath } from "@router/paths";
+
+import type { AppPath, NavigationAdapter, NavigationChangeListener } from "@navigation/NavigationAdapter";
 
 type NavigationResult = {
   committed: Promise<unknown>;
@@ -67,10 +60,7 @@ export class NavigationApiAdapter implements NavigationAdapter {
     this._navigation.addEventListener("navigate", this._onNavigate as EventListener);
   }
 
-  public async navigate(
-    path: AppPath,
-    options: { replace?: boolean; state?: unknown } = {},
-  ): Promise<void> {
+  public async navigate(path: AppPath, options: { replace?: boolean; state?: unknown } = {}): Promise<void> {
     const result = this._navigation.navigate(this._toDocumentUrl(path), {
       history: options.replace ? "replace" : "push",
       state: options.state,
@@ -130,9 +120,11 @@ export class NavigationApiAdapter implements NavigationAdapter {
       return false;
     }
 
-    if (this._basePath
-      && normalizeAppPath(url.pathname) !== this._basePath
-      && !normalizeAppPath(url.pathname).startsWith(`${this._basePath}/`)) {
+    if (
+      this._basePath &&
+      normalizeAppPath(url.pathname) !== this._basePath &&
+      !normalizeAppPath(url.pathname).startsWith(`${this._basePath}/`)
+    ) {
       return false;
     }
 

@@ -1,17 +1,18 @@
-import { drawGrid } from "@helpers/canvas";
+import { CELL_STATE } from "@cell/constants";
 import {
   CELL_SIZE,
+  getCanvasCellColors,
+  getCanvasTheme,
   ZOOM_CANVAS_PX,
   ZOOM_CENTER,
   ZOOM_LEVEL,
   ZOOM_SIZE,
-  getCanvasCellColors,
-  getCanvasTheme,
-  type CanvasTheme,
 } from "@grid/constants";
-import { CELL_STATE } from "@cell/constants";
-import type { DrawingMode } from "@ui/controls/drawing/DrawingToolBox";
+import { drawGrid } from "@helpers/canvas";
 import { getRequiredContext2D, queryRequired } from "@helpers/dom";
+
+import type { CanvasTheme } from "@grid/constants";
+import type { DrawingMode } from "@ui/controls/drawing/DrawingToolBox";
 
 /**
  * ZoomBox — 4× magnified 7×7 neighbourhood view around the drawing cursor.
@@ -50,8 +51,8 @@ class ZoomBox {
     this._theme = getCanvasTheme();
     this._cellColors = getCanvasCellColors(this._theme);
     this._renderBlank();
-    this._xPosDisplay = queryRequired<HTMLElement>('.x-pos', this._zoombox);
-    this._yPosDisplay = queryRequired<HTMLElement>('.y-pos', this._zoombox);
+    this._xPosDisplay = queryRequired<HTMLElement>(".x-pos", this._zoombox);
+    this._yPosDisplay = queryRequired<HTMLElement>(".y-pos", this._zoombox);
   }
 
   public show(): void {
@@ -69,12 +70,7 @@ class ZoomBox {
    * @param x  Column coordinate (displayed in the HUD).
    * @param y  Row coordinate (displayed in the HUD).
    */
-  public displayArea(
-    area: number[][],
-    drawingMode: DrawingMode,
-    x = 0,
-    y = 0,
-  ): void {
+  public displayArea(area: number[][], drawingMode: DrawingMode, x = 0, y = 0): void {
     if (!area) return;
     this._renderArea(drawingMode, area);
     this._xPosDisplay.textContent = String(x);
@@ -94,12 +90,7 @@ class ZoomBox {
     for (let row = 0; row < ZOOM_SIZE; row++) {
       for (let col = 0; col < ZOOM_SIZE; col++) {
         this._zoomContext.fillStyle = this._cellColors[area[row][col]];
-        this._zoomContext.fillRect(
-          col * cellPx + 1,
-          row * cellPx + 1,
-          cellPx - 1,
-          cellPx - 1,
-        );
+        this._zoomContext.fillRect(col * cellPx + 1, row * cellPx + 1, cellPx - 1, cellPx - 1);
       }
     }
 
@@ -107,9 +98,7 @@ class ZoomBox {
     const cx = ZOOM_CENTER.x;
     const cy = ZOOM_CENTER.y;
     this._zoomContext.fillStyle =
-      drawingMode === "pencil"
-        ? this._theme.aliveCellColor
-        : this._theme.previewEraseCellColor;
+      drawingMode === "pencil" ? this._theme.aliveCellColor : this._theme.previewEraseCellColor;
     this._zoomContext.fillRect(cx * cellPx + 1, cy * cellPx + 1, cellPx - 1, cellPx - 1);
     this._zoomContext.strokeStyle = this._theme.zoomHighlightStrokeColor;
     this._zoomContext.strokeRect(cx * cellPx, cy * cellPx, cellPx + 1, cellPx + 1);
@@ -124,7 +113,12 @@ class ZoomBox {
   }
 
   private _drawGrid(ctx: CanvasRenderingContext2D): void {
-    drawGrid(ctx, this._zoomCanvas, ZOOM_LEVEL, this._theme.zoomGridColor);
+    drawGrid({
+      ctx,
+      canvas: this._zoomCanvas,
+      zoom: ZOOM_LEVEL,
+      color: this._theme.zoomGridColor,
+    });
   }
 }
 
