@@ -1,7 +1,10 @@
 import { getRequiredContext2D } from "@helpers/dom";
 import {
+  drawTelemetryAxes,
   drawTelemetrySurface,
+  getTelemetryAxisLayout,
   getTelemetryTheme,
+  TELEMETRY_LABEL_FONT,
 } from "@controls/telemetryTheme";
 
 const SCALE_RELAXATION = 0.12;
@@ -83,7 +86,7 @@ class SignedSeriesChart {
   private _draw(): void {
     const width = this._width;
     const height = this._height;
-    const plotLeft = 16;
+    const { axisX, labelCenter, plotLeft } = getTelemetryAxisLayout(this._ctx);
     const plotRight = width - 4;
     const plotTop = 5;
     const plotBottom = height - 6;
@@ -104,14 +107,9 @@ class SignedSeriesChart {
     this._ctx.stroke();
     this._ctx.setLineDash([]);
 
-    this._drawScaleLabels(theme, plotTop, zeroY, plotBottom);
+    this._drawScaleLabels(theme, labelCenter, plotTop, zeroY, plotBottom);
 
-    this._ctx.strokeStyle = theme.axis;
-    this._ctx.beginPath();
-    this._ctx.moveTo(plotLeft - 6.5, plotTop);
-    this._ctx.lineTo(plotLeft - 6.5, plotBottom);
-    this._ctx.lineTo(plotRight, plotBottom);
-    this._ctx.stroke();
+    drawTelemetryAxes(this._ctx, theme, axisX, plotTop, plotRight, plotBottom);
 
     if (this._values.length === 0) {
       return;
@@ -132,17 +130,18 @@ class SignedSeriesChart {
 
   private _drawScaleLabels(
     theme: ReturnType<typeof getTelemetryTheme>,
+    labelCenter: number,
     plotTop: number,
     zeroY: number,
     plotBottom: number,
   ): void {
     this._ctx.fillStyle = theme.label;
-    this._ctx.font = "10px 'JetBrains Mono', monospace";
-    this._ctx.textAlign = "left";
+    this._ctx.font = TELEMETRY_LABEL_FONT;
+    this._ctx.textAlign = "center";
     this._ctx.textBaseline = "middle";
-    this._ctx.fillText("+", 4, plotTop + 4);
-    this._ctx.fillText("0", 4, zeroY);
-    this._ctx.fillText("-", 4, plotBottom - 2);
+    this._ctx.fillText("+", labelCenter, plotTop + 4);
+    this._ctx.fillText("0", labelCenter, zeroY);
+    this._ctx.fillText("-", labelCenter, plotBottom - 2);
   }
 
   private _updateVerticalScale(targetScale: number): number {

@@ -14,6 +14,20 @@ export type TelemetryTheme = {
   neutral: string;
 };
 
+export const TELEMETRY_LABEL_FONT = "10px 'JetBrains Mono', monospace";
+
+type TelemetryAxisLayout = {
+  axisX: number;
+  labelLeft: number;
+  labelCenter: number;
+  plotLeft: number;
+};
+
+const AXIS_LABEL_SAMPLE = "max";
+const AXIS_LABEL_LEFT = 6;
+const AXIS_LABEL_GAP = 6;
+const AXIS_PLOT_GAP = 6.5;
+
 export const DEFAULT_TELEMETRY_THEME: TelemetryTheme = {
   radius: 5,
   surfaceTop: "rgba(32, 47, 71, 0.92)",
@@ -102,6 +116,45 @@ export function drawTelemetrySurface(
   buildRoundedRectPath(ctx, 0.5, 0.5, width - 1, height - 1, radius);
   ctx.strokeStyle = theme.border;
   ctx.lineWidth = 1;
+  ctx.stroke();
+}
+
+export function getTelemetryAxisLayout(ctx: CanvasRenderingContext2D): TelemetryAxisLayout {
+  const previousFont = ctx.font;
+  ctx.font = TELEMETRY_LABEL_FONT;
+  const widestLabel = ctx.measureText(AXIS_LABEL_SAMPLE).width;
+  ctx.font = previousFont;
+
+  const axisX = Math.ceil(AXIS_LABEL_LEFT + widestLabel + AXIS_LABEL_GAP) + 0.5;
+
+  return {
+    axisX,
+    labelLeft: AXIS_LABEL_LEFT,
+    labelCenter: (AXIS_LABEL_LEFT + axisX) / 2,
+    plotLeft: axisX + AXIS_PLOT_GAP,
+  };
+}
+
+export function drawTelemetryAxes(
+  ctx: CanvasRenderingContext2D,
+  theme: TelemetryTheme,
+  axisX: number,
+  plotTop: number,
+  plotRight: number,
+  plotBottom: number,
+): void {
+  const arrowSize = 4;
+
+  ctx.strokeStyle = theme.axis;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(axisX, plotTop);
+  ctx.lineTo(axisX, plotBottom);
+  ctx.lineTo(plotRight, plotBottom);
+  ctx.moveTo(axisX, plotTop);
+  ctx.lineTo(axisX + arrowSize, plotTop + arrowSize);
+  ctx.moveTo(plotRight, plotBottom);
+  ctx.lineTo(plotRight - arrowSize, plotBottom - arrowSize);
   ctx.stroke();
 }
 

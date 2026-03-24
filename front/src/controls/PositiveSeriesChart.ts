@@ -1,10 +1,14 @@
 import { getRequiredContext2D } from "@helpers/dom";
 import {
+  drawTelemetryAxes,
   drawTelemetrySurface,
+  getTelemetryAxisLayout,
   getTelemetryTheme,
+  TELEMETRY_LABEL_FONT,
 } from "@controls/telemetryTheme";
 
 const SCALE_RELAXATION = 0.12;
+const GRAPH_TOP_PADDING = 11;
 
 type ChartPoint = {
   x: number;
@@ -76,25 +80,21 @@ class PositiveSeriesChart {
   private _draw(): void {
     const width = this._width;
     const height = this._height;
-    const plotLeft = 16;
+    const { axisX, labelCenter, plotLeft } = getTelemetryAxisLayout(this._ctx);
     const plotRight = width - 4;
     const plotTop = 5;
     const plotBottom = height - 6;
     const plotHeight = Math.max(1, plotBottom - plotTop);
     const plotWidth = Math.max(1, plotRight - plotLeft);
-    const graphHeight = Math.max(1, plotHeight - 3);
+    const graphTop = plotTop + GRAPH_TOP_PADDING;
+    const graphHeight = Math.max(1, plotBottom - graphTop);
     const theme = getTelemetryTheme();
 
     drawTelemetrySurface(this._ctx, width, height, theme);
 
-    this._drawScaleLabels(theme, plotTop, plotBottom);
+    this._drawScaleLabels(theme, labelCenter, plotTop, plotBottom);
 
-    this._ctx.strokeStyle = theme.axis;
-    this._ctx.beginPath();
-    this._ctx.moveTo(plotLeft - 6.5, plotTop);
-    this._ctx.lineTo(plotLeft - 6.5, plotBottom);
-    this._ctx.lineTo(plotRight, plotBottom);
-    this._ctx.stroke();
+    drawTelemetryAxes(this._ctx, theme, axisX, plotTop, plotRight, plotBottom);
 
     if (this._values.length === 0) {
       return;
@@ -114,15 +114,16 @@ class PositiveSeriesChart {
 
   private _drawScaleLabels(
     theme: ReturnType<typeof getTelemetryTheme>,
+    labelCenter: number,
     plotTop: number,
     plotBottom: number,
   ): void {
     this._ctx.fillStyle = theme.label;
-    this._ctx.font = "10px 'JetBrains Mono', monospace";
-    this._ctx.textAlign = "left";
+    this._ctx.font = TELEMETRY_LABEL_FONT;
+    this._ctx.textAlign = "center";
     this._ctx.textBaseline = "middle";
-    this._ctx.fillText("max", 2, plotTop + 4);
-    this._ctx.fillText("0", 4, plotBottom - 2);
+    this._ctx.fillText("max", labelCenter, plotTop + 4);
+    this._ctx.fillText("0", labelCenter, plotBottom - 2);
   }
 
   private _updateVerticalScale(targetScale: number): number {
