@@ -205,17 +205,40 @@ export class SimulationWorkspace {
     const density = this._randomControls.currentDensity();
     const noiseType = this._randomControls.currentNoiseType();
     const seed = this._randomControls.isAutoSeedEnabled()
-      ? (this._randomPresetVariation ? (this._randomAutoSeed ??= this._nextRandomSeed()) : null)
+      ? this._ensureAutoSeed()
       : this._randomControls.currentSeedValue();
     return { density, noiseType, seed };
   }
 
+  private _ensureAutoSeed(): number {
+    if (this._randomAutoSeed === null) {
+      this._randomAutoSeed = this._nextRandomSeed();
+      this._randomControls.setSeedValue(this._randomAutoSeed);
+    }
+    return this._randomAutoSeed;
+  }
+
+  private _refreshAutoSeed(): number | null {
+    if (!this._randomControls.isAutoSeedEnabled()) {
+      this._randomAutoSeed = null;
+      return null;
+    }
+
+    this._randomAutoSeed = this._nextRandomSeed();
+    this._randomControls.setSeedValue(this._randomAutoSeed);
+    return this._randomAutoSeed;
+  }
+
   private _nextRandomSeed(): number {
-    return Math.floor(Math.random() * 0x100000000) >>> 0;
+    const { min, max } = this._randomControls.seedBounds();
+    return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
   private _onRandomParamChange = (): void => {
     if (this._selectedMode !== "random" || !this._grid) return;
+    if (!this._randomControls.isAutoSeedEnabled()) {
+      this._randomAutoSeed = null;
+    }
     this._resetIterationCounter();
     this._aliveVariationChart.reset();
     this._aliveCountChart.reset();
@@ -255,7 +278,7 @@ export class SimulationWorkspace {
     }
 
     this._randomPresetVariation = false;
-    this._randomAutoSeed = null;
+    this._refreshAutoSeed();
     this._resetIterationCounter();
     this._aliveVariationChart.reset();
     this._aliveCountChart.reset();
@@ -272,7 +295,7 @@ export class SimulationWorkspace {
     }
 
     this._randomPresetVariation = true;
-    this._randomAutoSeed = this._randomControls.isAutoSeedEnabled() ? this._nextRandomSeed() : null;
+    this._refreshAutoSeed();
     this._resetIterationCounter();
     this._aliveVariationChart.reset();
     this._aliveCountChart.reset();
@@ -377,7 +400,7 @@ export class SimulationWorkspace {
         this._zoomBox?.hide();
         this._userCustomSelector?.hide();
         this._randomPresetVariation = false;
-        this._randomAutoSeed = null;
+        this._refreshAutoSeed();
         this._grid = new Grid({
           canvas: this._canvas,
           ctx: this._stage,

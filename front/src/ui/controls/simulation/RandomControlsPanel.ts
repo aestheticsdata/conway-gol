@@ -57,6 +57,7 @@ class RandomControlsPanel {
     this._applyStaticTexts();
     this._renderPresetOptions();
     this._updateValueLabels();
+    this._syncSeedState();
 
     this._randomPresetTrigger.addEventListener("click", this._togglePresetMenu);
     this._randomPresetSelect.addEventListener("change", this._handlePresetChange);
@@ -92,8 +93,22 @@ class RandomControlsPanel {
     return Number(this._randomSeedSlider.value);
   }
 
+  public seedBounds(): { min: number; max: number } {
+    return {
+      min: Number(this._randomSeedSlider.min) || 0,
+      max: Number(this._randomSeedSlider.max) || 0,
+    };
+  }
+
   public isAutoSeedEnabled(): boolean {
     return this._randomSeedAuto.checked;
+  }
+
+  public setSeedValue(value: number): void {
+    const { min, max } = this.seedBounds();
+    const boundedValue = Math.min(max, Math.max(min, Math.round(value)));
+    this._randomSeedSlider.value = String(boundedValue);
+    this._updateValueLabels();
   }
 
   public handleDocumentPointerDown(event: PointerEvent): void {
@@ -197,6 +212,10 @@ class RandomControlsPanel {
     this._randomSeedValue.textContent = String(this._randomSeedSlider.value);
   }
 
+  private _syncSeedState(): void {
+    this._randomSeedSlider.disabled = this._randomSeedAuto.checked;
+  }
+
   private _handlePresetChange = (): void => {
     this._syncPresetUI();
     this._onPresetChange();
@@ -216,7 +235,7 @@ class RandomControlsPanel {
   };
 
   private _handleAutoSeedChange = (): void => {
-    this._updateValueLabels();
+    this._syncSeedState();
     this._onParamsChange();
   };
 }
