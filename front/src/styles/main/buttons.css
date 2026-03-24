@@ -31,6 +31,7 @@
 .workspace-login-link,
 .playback-controls button,
 .random-preset-selector .random-generate,
+.random-preset-selector .random-reset,
 .image-import .image-import-btn {
   position: relative;
   overflow: hidden;
@@ -52,6 +53,7 @@
 .workspace-login-link::before,
 .playback-controls button::before,
 .random-preset-selector .random-generate::before,
+.random-preset-selector .random-reset::before,
 .image-import .image-import-btn::before {
   content: "";
   position: absolute;
@@ -77,6 +79,8 @@
 .playback-controls button:focus-visible,
 .random-preset-selector .random-generate:hover,
 .random-preset-selector .random-generate:focus-visible,
+.random-preset-selector .random-reset:hover,
+.random-preset-selector .random-reset:focus-visible,
 .image-import .image-import-btn:hover,
 .image-import .image-import-btn:focus-visible {
   border-color: rgba(67, 243, 255, 0.65);
@@ -98,6 +102,8 @@
 .playback-controls button:focus-visible::before,
 .random-preset-selector .random-generate:hover::before,
 .random-preset-selector .random-generate:focus-visible::before,
+.random-preset-selector .random-reset:hover::before,
+.random-preset-selector .random-reset:focus-visible::before,
 .image-import .image-import-btn:hover::before,
 .image-import .image-import-btn:focus-visible::before {
   opacity: 1;
@@ -107,6 +113,7 @@
 .workspace-login-link:active,
 .playback-controls button:active,
 .random-preset-selector .random-generate:active,
+.random-preset-selector .random-reset:active,
 .image-import .image-import-btn:active {
   border-color: rgba(67, 243, 255, 0.65);
   background: linear-gradient(135deg, rgba(9, 198, 255, 0.9), rgba(67, 243, 255, 0.95));
@@ -123,6 +130,7 @@
 .workspace-login-link:active::before,
 .playback-controls button:active::before,
 .random-preset-selector .random-generate:active::before,
+.random-preset-selector .random-reset:active::before,
 .image-import .image-import-btn:active::before {
   opacity: 0;
 }

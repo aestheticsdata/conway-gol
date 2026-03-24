@@ -23,7 +23,7 @@ A full-stack implementation of [Conway's Game of Life](https://en.wikipedia.org/
 - Client-side app shell with real routes: `/login`, `/simulation`, `/zoo`, `/drawing`
 - Navigation API based router behind a framework-agnostic adapter and screen abstraction
 - Login screen used as a fake auth entry point for the future connected-user flow
-- Random mode with 13 named presets (geometric, fractal, and noise families), three generation controls (density, noise type, seed), and a `Generate` action for a new variation
+- Random mode with 13 named presets (geometric, fractal, and noise families), five generation controls (density, rotation, zoom, noise type, seed), a `Generate` action for a new variation, and a `Reset` button that restores all controls to their initial values
 - Zoo mode with 1,400+ catalog patterns
 - Drawing mode with save/load for custom patterns
 - Image import in drawing mode: upload any common image format, automatically converted to a cell pattern via grayscale + Floyd-Steinberg dithering, with a live threshold slider for post-import tuning
@@ -83,8 +83,10 @@ conway-gol/
 │   │   │   └── constants.ts
 │   │   ├── Grid/
 │   │   │   ├── Grid.ts
+│   │   │   ├── GridDrawingHandler.ts
 │   │   │   ├── Simulation.ts
 │   │   │   ├── constants.ts
+│   │   │   ├── gridTransforms.ts
 │   │   │   ├── randomPresets.ts
 │   │   │   ├── texts.ts
 │   │   │   ├── seeding/
@@ -375,22 +377,28 @@ All presets are calibrated so that `density = 1` nearly fills the 156 × 156 gri
 `Grid` in `front/src/Grid/Grid.ts` owns one `Simulation` and does two things:
 
 - render simulation state to the main canvas
-- translate drawing-mode mouse events into simulation edits
+- delegate drawing-mode mouse interactions to `GridDrawingHandler`
 
 Mode-specific initialization is split into private methods:
 
-- `_initializeRandom()` seeds the selected random preset
+- `_initializeRandom()` seeds the selected random preset and saves the base grid snapshot
 - `_initializeZoo()` loads a catalog pattern through `Data`
-- `_initializeDrawing()` wires the toolbox, zoom box, and custom save selector
+- `_initializeDrawing()` wires the toolbox, zoom box, custom save selector, and `GridDrawingHandler`
 
-This keeps Conway logic out of the renderer and keeps DOM event handling out of `Simulation`.
+`GridDrawingHandler` in `front/src/Grid/GridDrawingHandler.ts` owns all drawing-mode state and mouse handling (cursor visibility, zoom area, pencil/eraser paint, hover overlay). It communicates with `Grid` exclusively through callbacks (`getCell`, `setCell`, `renderCell`, `emitStateChange`, `getPreviewCellColor`) — no direct reference to `Grid` or `Simulation`.
+
+`gridTransforms.ts` in `front/src/Grid/gridTransforms.ts` exposes `transformGrid(baseGrid, angleDeg, zoomLevel)`, a pure function that applies rotation and zoom to a cell grid in a single inverse-mapping pass. Positive `angleDeg` rotates clockwise; `zoomLevel` maps linearly to a scale factor via `scale = 2^(zoomLevel / 50)`. The original grid is never mutated.
+
+`Grid` stores a `_baseGrid` snapshot each time a preset is seeded. Rotation and zoom sliders call `setRotation()` / `setZoom()`, which re-apply `transformGrid` against the stored snapshot and re-seed the simulation — no new random generation is triggered.
+
+This keeps Conway logic out of the renderer, DOM event handling out of `Simulation`, and drawing interaction out of `Grid`.
 
 `SimulationWorkspace` in `front/src/app/simulation/SimulationWorkspace.ts` is the workspace orchestrator. It sits above `Grid` and owns:
 
 - the shell DOM for left pane, canvas area, and right pane
 - mode-specific UI visibility
 - telemetry counters and charts
-- random preset controls and the custom dropdown
+- random preset controls and the custom dropdown, including rotation, zoom, and reset
 - reusable tile-button groups for route mode selection and random noise type selection
 - route-to-mode synchronization between `/simulation`, `/zoo`, and `/drawing`
 
@@ -401,7 +409,7 @@ This keeps Conway logic out of the renderer and keeps DOM event handling out of 
 - `shared/TileButtonGroup.ts`: reusable tile-button primitive used by typed selectors
 - `simulation/ModeSelector.ts`: tile-button mode switching
 - `simulation/NoiseTypeSelector.ts`: tile-button random noise switching
-- `simulation/RandomControlsPanel.ts`: random preset dropdown plus density/noise/seed controls
+- `simulation/RandomControlsPanel.ts`: random preset dropdown plus density, rotation, zoom, noise type, and seed controls, and the Generate / Reset buttons
 - `simulation/ZooSelector.ts`: pattern selection in zoo mode
 - `drawing/DrawingToolBox.ts`: pencil/eraser selection
 - `drawing/ImageImporter.ts`: image-to-grid import control (file picker, threshold slider, tooltip)
@@ -554,6 +562,8 @@ index.ts
   │           ├── Grid
   │           │   ├── Simulation
   │           │   │   └── IRandomPresetSeeder -> RandomPresetSeeder
+  │           │   ├── GridDrawingHandler (drawing mode only)
+  │           │   ├── gridTransforms (rotation + zoom — pure function)
   │           │   ├── Data -> PatternService -> HttpClient
   │           │   └── ZoomBox (drawing mode only)
   │           ├── ModeSelector
@@ -796,6 +806,79 @@ Catalog patterns are stored as JSON with the `.hxf` extension:
 Custom patterns are submitted in the same JSON shape through `POST /usercustom/:filename`, but are persisted in the database rather than the filesystem.
 
 ## Refactoring History
+
+### Phase 11 - Random mode transforms, Grid split, and Reset (2026-03)
+
+#### Rotation and zoom sliders
+
+Two new sliders were added to the random mode right pane below the density slider.
+
+**Rotation** (−180° → +180°, centred at 0):
+
+- Rotates the seeded cell pattern around the grid centre.
+- Positive values rotate clockwise (screen coordinates).
+
+**Zoom** (−100 → +100, centred at 0):
+
+- Maps to a scale factor via `scale = 2^(level / 50)`: 0 → ×1.00, 50 → ×2.00, −50 → ×0.50, ±100 → ×4.00 / ×0.25.
+- Values greater than 0 zoom in (pattern fills more of the grid); values less than 0 zoom out.
+- The displayed label shows the computed factor in real time (e.g. "×2.00").
+
+Both transforms are applied to the stored base-grid snapshot via a single inverse-mapping pass in `transformGrid`. No re-seeding is triggered; the base pattern remains stable while rotation and zoom are adjusted freely.
+
+**Reset button** was added to the right of Generate. It restores all controls — preset, density, rotation, zoom, noise type, seed — to their initial values and re-seeds the grid from scratch (`randomPresetVariation = false`, iteration counter and charts cleared).
+
+#### Grid module split
+
+`Grid.ts` was split into three focused files:
+
+| File | Responsibility |
+|------|----------------|
+| `Grid.ts` | Orchestration: constructor, public API (`processNextGeneration`, `reseedRandomPreset`, `setRotation`, `setZoom`, `resetTransforms`, `seedFromGrid`), rendering (`_render`, `_renderCell`, `_drawGrid`), and `_applyTransforms` |
+| `GridDrawingHandler.ts` | All drawing-mode mouse handling: cursor visibility, zoom area, pencil/eraser paint, hover overlay. Communicates with `Grid` through five callbacks only — no direct reference to `Grid` or `Simulation` |
+| `gridTransforms.ts` | `transformGrid(baseGrid, angleDeg, zoomLevel)` — a pure, DOM-free function combining rotation and zoom in one inverse-mapping pass |
+
+#### Algorithm — `transformGrid`
+
+For each target cell `(row, col)`:
+
+```
+dx = (col − cx) / scale        // inverse zoom
+dy = (row − cy) / scale
+srcCol = cx + dx·cos(θ) + dy·sin(θ)   // inverse rotation
+srcRow = cy − dx·sin(θ) + dy·cos(θ)
+```
+
+Nearest-neighbour rounding maps each source coordinate back to a grid cell. At 0° + ×1.00 the base grid is returned unchanged (identity fast-path). At angles that are not multiples of 90°, discrete sampling introduces expected aliasing on a 156×156 cell grid.
+
+**New files:**
+
+| File | Role |
+|------|------|
+| `front/src/Grid/GridDrawingHandler.ts` | Drawing-mode mouse handler, decoupled from Grid via callbacks |
+| `front/src/Grid/gridTransforms.ts` | Pure `transformGrid` function (rotation + zoom) |
+
+### Phase 12 - Workspace layout: viewport-relative vertical positioning (2026-03)
+
+The workspace layout was reworked so that the canvas and both side panes are always positioned relative to the viewport height, independently of each other's content height.
+
+**Problem:** after adding rotation and zoom sliders to the right pane in Phase 11, the right pane became significantly taller. Because the flex container used `align-items: center`, a taller pane pushed its top edge upward and overlapped the "Back to login" button in the top-right corner.
+
+**Root cause:** all three flex children (left pane, canvas wrapper, right pane) shared the same vertical centering anchor. Any change in one item's height shifted the others' visual positions.
+
+**Fix — three independent anchors, all `align-self: flex-start` with `padding-top` driven by `100vh`:**
+
+| Element | Rule | Effect |
+|---|---|---|
+| `.canvas-wrapper` | `align-self: flex-start; padding-top: max(0px, calc((100vh - 826px) / 2))` | Canvas is vertically centred in the viewport at all times, regardless of pane heights |
+| `.left-pane` | `align-self: flex-start; margin-top: max(60px, calc(60px + (100vh - 826px) / 2))` | Left pane top is 60 px below the canvas top on any viewport |
+| `.right-pane` | `align-self: flex-start; padding-top: max(60px, calc(60px + (100vh - 826px) / 2))` | Right pane top is 60 px below the canvas top on any viewport |
+
+The `826px` constant is `canvas height (780 px) + container vertical padding (46 px)`. The `max(60px, …)` floor prevents the panes from riding above the canvas top on very short viewports.
+
+This makes vertical layout a pure function of `100vh` rather than a side-effect of whichever flex child is tallest.
+
+**File changed:** `front/src/styles/main/workspace.css`
 
 ### Phase 10 - Client-side image import (2026-03)
 

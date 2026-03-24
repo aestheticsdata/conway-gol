@@ -41,10 +41,13 @@ export const APP_TEXTS = {
       edgeBias: "Edge bias",
       centerBurst: "Center burst",
     },
+    rotation: "Rotation:",
+    zoom: "Zoom:",
     seed: "Seed:",
     autoSeed: "Random seed",
     seedSliderDisabledHint: "Uncheck Random seed to enable slider",
     generate: "Generate",
+    reset: "Reset",
   },
   zoo: {
     species: "Species:",

@@ -157,7 +157,8 @@
   border-color: rgba(87, 221, 255, 0.24);
 }
 
-.random-preset-selector .random-generate {
+.random-preset-selector .random-generate,
+.random-preset-selector .random-reset {
   display: inline-flex;
   margin-top: 10px;
   width: fit-content;
@@ -168,6 +169,7 @@
 .random-generate-wrapper {
   display: flex;
   justify-content: flex-start;
+  gap: 8px;
   margin-top: 14px;
   padding-top: 14px;
   border-top: 1px solid var(--border);

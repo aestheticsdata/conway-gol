@@ -105,6 +105,9 @@ export class SimulationWorkspace {
       onPresetChange: this._onRandomPresetChange,
       onGenerate: this._onRandomPresetGenerate,
       onParamsChange: this._onRandomParamChange,
+      onRotationChange: this._onRotationChange,
+      onZoomChange: this._onZoomChange,
+      onReset: this._onReset,
     });
     this._customCursor = queryRequired<HTMLElement>(".custom-cursor", this._root);
 
@@ -219,6 +222,27 @@ export class SimulationWorkspace {
     const { min, max } = this._randomControls.seedBounds();
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
+
+  private _onRotationChange = (deg: number): void => {
+    if (this._selectedMode !== "random" || !this._grid) return;
+    this._grid.setRotation(deg);
+  };
+
+  private _onZoomChange = (level: number): void => {
+    if (this._selectedMode !== "random" || !this._grid) return;
+    this._grid.setZoom(level);
+  };
+
+  private _onReset = (): void => {
+    if (this._selectedMode !== "random" || !this._grid) return;
+    this._randomPresetVariation = false;
+    this._randomAutoSeed = null;
+    this._resetIterationCounter();
+    this._aliveVariationChart.reset();
+    this._aliveCountChart.reset();
+    this._grid.resetTransforms();
+    this._grid.reseedRandomPreset(this._currentRandomPreset(), false, this._currentRandomParams());
+  };
 
   private _onRandomParamChange = (): void => {
     if (this._selectedMode !== "random" || !this._grid) return;

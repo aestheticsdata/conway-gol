@@ -12,6 +12,9 @@ type RandomControlsPanelOptions = {
   onPresetChange: () => void;
   onGenerate: () => void;
   onParamsChange: () => void;
+  onRotationChange: (deg: number) => void;
+  onZoomChange: (level: number) => void;
+  onReset: () => void;
 };
 
 const NOISE_TYPE_TILE_LABELS: readonly { value: NoiseType; label: string }[] = [
@@ -28,14 +31,22 @@ class RandomControlsPanel {
   private readonly _onPresetChange: () => void;
   private readonly _onGenerate: () => void;
   private readonly _onParamsChange: () => void;
+  private readonly _onRotationChange: (deg: number) => void;
+  private readonly _onZoomChange: (level: number) => void;
+  private readonly _onReset: () => void;
   private readonly _randomPresetSelect: HTMLSelectElement;
   private readonly _randomPresetTrigger: HTMLButtonElement;
   private readonly _randomPresetValue: HTMLElement;
   private readonly _randomPresetMenu: HTMLElement;
   private readonly _randomPresetOptions: HTMLElement;
   private readonly _randomGenerateBtn: HTMLButtonElement;
+  private readonly _randomResetBtn: HTMLButtonElement;
   private readonly _randomDensitySlider: HTMLInputElement;
   private readonly _randomDensityValue: HTMLSpanElement;
+  private readonly _randomRotationSlider: HTMLInputElement;
+  private readonly _randomRotationValue: HTMLSpanElement;
+  private readonly _randomZoomSlider: HTMLInputElement;
+  private readonly _randomZoomValue: HTMLSpanElement;
   private readonly _randomSeedSlider: HTMLInputElement;
   private readonly _randomSeedSliderTooltipTarget: HTMLSpanElement;
   private readonly _randomSeedValue: HTMLSpanElement;
@@ -48,14 +59,22 @@ class RandomControlsPanel {
     this._onPresetChange = options.onPresetChange;
     this._onGenerate = options.onGenerate;
     this._onParamsChange = options.onParamsChange;
+    this._onRotationChange = options.onRotationChange;
+    this._onZoomChange = options.onZoomChange;
+    this._onReset = options.onReset;
     this._randomPresetSelect = queryRequired<HTMLSelectElement>("#random-preset", this.element);
     this._randomPresetTrigger = queryRequired<HTMLButtonElement>("#random-preset-trigger", this.element);
     this._randomPresetValue = queryRequired<HTMLElement>(".custom-select__value", this.element);
     this._randomPresetMenu = queryRequired<HTMLElement>(".custom-select__menu", this.element);
     this._randomPresetOptions = queryRequired<HTMLElement>(".custom-select__options", this.element);
     this._randomGenerateBtn = queryRequired<HTMLButtonElement>(".random-generate", this.element);
+    this._randomResetBtn = queryRequired<HTMLButtonElement>(".random-reset", this.element);
     this._randomDensitySlider = queryRequired<HTMLInputElement>("#random-density", this.element);
     this._randomDensityValue = queryRequired<HTMLSpanElement>("#random-density-value", this.element);
+    this._randomRotationSlider = queryRequired<HTMLInputElement>("#random-rotation", this.element);
+    this._randomRotationValue = queryRequired<HTMLSpanElement>("#random-rotation-value", this.element);
+    this._randomZoomSlider = queryRequired<HTMLInputElement>("#random-zoom", this.element);
+    this._randomZoomValue = queryRequired<HTMLSpanElement>("#random-zoom-value", this.element);
     this._randomSeedSlider = queryRequired<HTMLInputElement>("#random-seed", this.element);
     this._randomSeedSliderTooltipTarget = queryRequired<HTMLSpanElement>(
       ".random-seed-slider__tooltip-target",
@@ -76,7 +95,10 @@ class RandomControlsPanel {
     this._randomPresetTrigger.addEventListener("click", this._togglePresetMenu);
     this._randomPresetSelect.addEventListener("change", this._handlePresetChange);
     this._randomGenerateBtn.addEventListener("click", this._onGenerate);
+    this._randomResetBtn.addEventListener("click", this._handleReset);
     this._randomDensitySlider.addEventListener("input", this._handleDensityInput);
+    this._randomRotationSlider.addEventListener("input", this._handleRotationInput);
+    this._randomZoomSlider.addEventListener("input", this._handleZoomInput);
     this._randomSeedSlider.addEventListener("input", this._handleSeedInput);
     this._randomSeedAuto.addEventListener("change", this._handleAutoSeedChange);
     this._randomSeedSliderTooltipTarget.addEventListener("pointerenter", this._handleSeedTooltipPointerEnter);
@@ -98,7 +120,10 @@ class RandomControlsPanel {
     this._randomPresetTrigger.removeEventListener("click", this._togglePresetMenu);
     this._randomPresetSelect.removeEventListener("change", this._handlePresetChange);
     this._randomGenerateBtn.removeEventListener("click", this._onGenerate);
+    this._randomResetBtn.removeEventListener("click", this._handleReset);
     this._randomDensitySlider.removeEventListener("input", this._handleDensityInput);
+    this._randomRotationSlider.removeEventListener("input", this._handleRotationInput);
+    this._randomZoomSlider.removeEventListener("input", this._handleZoomInput);
     this._randomSeedSlider.removeEventListener("input", this._handleSeedInput);
     this._randomSeedAuto.removeEventListener("change", this._handleAutoSeedChange);
     this._randomSeedSliderTooltipTarget.removeEventListener("pointerenter", this._handleSeedTooltipPointerEnter);
@@ -116,6 +141,14 @@ class RandomControlsPanel {
   public currentDensity(): number {
     const t = Number(this._randomDensitySlider.value) / 100;
     return t * t;
+  }
+
+  public currentRotation(): number {
+    return Number(this._randomRotationSlider.value);
+  }
+
+  public currentZoom(): number {
+    return Number(this._randomZoomSlider.value);
   }
 
   public currentNoiseType(): NoiseType {
@@ -168,6 +201,8 @@ class RandomControlsPanel {
     queryRequired<HTMLLabelElement>('label[for="random-preset-trigger"]', this.element).textContent =
       APP_TEXTS.random.preset;
     queryRequired<HTMLElement>("#random-density-label", this.element).textContent = `${APP_TEXTS.random.density} `;
+    queryRequired<HTMLElement>("#random-rotation-label", this.element).textContent = `${APP_TEXTS.random.rotation} `;
+    queryRequired<HTMLElement>("#random-zoom-label", this.element).textContent = `${APP_TEXTS.random.zoom} `;
     queryRequired<HTMLElement>("#random-noise-type-label", this.element).textContent = APP_TEXTS.random.noiseType;
     for (const { value, label } of NOISE_TYPE_TILE_LABELS) {
       queryRequired<HTMLElement>(`[data-noise-type="${value}"]`, this.element).textContent = label;
@@ -175,6 +210,7 @@ class RandomControlsPanel {
     queryRequired<HTMLElement>("#random-seed-label", this.element).textContent = `${APP_TEXTS.random.seed} `;
     queryRequired<HTMLElement>("#random-seed-auto-label", this.element).textContent = APP_TEXTS.random.autoSeed;
     this._randomGenerateBtn.textContent = APP_TEXTS.random.generate;
+    this._randomResetBtn.textContent = APP_TEXTS.random.reset;
   }
 
   private _renderPresetOptions(): void {
@@ -240,6 +276,8 @@ class RandomControlsPanel {
 
   private _updateValueLabels(): void {
     this._randomDensityValue.textContent = `${this._randomDensitySlider.value}%`;
+    this._randomRotationValue.textContent = `${this._randomRotationSlider.value}°`;
+    this._randomZoomValue.textContent = `×${(2 ** (Number(this._randomZoomSlider.value) / 50)).toFixed(2)}`;
     this._randomSeedValue.textContent = String(this._randomSeedSlider.value);
   }
 
@@ -261,6 +299,29 @@ class RandomControlsPanel {
   private _handleDensityInput = (): void => {
     this._updateValueLabels();
     this._onParamsChange();
+  };
+
+  private _handleRotationInput = (): void => {
+    this._updateValueLabels();
+    this._onRotationChange(this.currentRotation());
+  };
+
+  private _handleZoomInput = (): void => {
+    this._updateValueLabels();
+    this._onZoomChange(this.currentZoom());
+  };
+
+  private _handleReset = (): void => {
+    this._selectPreset(DEFAULT_RANDOM_PRESET);
+    this._randomDensitySlider.value = "30";
+    this._randomRotationSlider.value = "0";
+    this._randomZoomSlider.value = "0";
+    this._noiseTypeSelector.select("uniform");
+    this._randomSeedSlider.value = "0";
+    this._randomSeedAuto.checked = true;
+    this._syncSeedState();
+    this._updateValueLabels();
+    this._onReset();
   };
 
   private _handleSeedInput = (): void => {

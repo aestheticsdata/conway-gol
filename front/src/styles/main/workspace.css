@@ -32,7 +32,8 @@
   display: flex;
   flex-direction: column;
   margin-left: 0;
-  padding-top: var(--workspace-top-offset);
+  align-self: flex-start;
+  padding-top: max(60px, calc(60px + (100vh - 826px) / 2));
 }
 
 .right-pane .custom-drawing-files button:focus {
@@ -53,6 +54,8 @@
   flex-direction: column;
   justify-content: flex-start;
   align-items: stretch;
+  align-self: flex-start;
+  margin-top: max(60px, calc(60px + (100vh - 826px) / 2));
   width: var(--workspace-left-pane-width);
   flex: 0 0 var(--workspace-left-pane-width);
   padding: 28px 24px;
@@ -95,7 +98,8 @@
   display: flex;
   align-items: flex-start;
   justify-content: center;
-  padding-top: var(--workspace-top-offset);
+  align-self: flex-start;
+  padding-top: max(0px, calc((100vh - 826px) / 2));
   overflow-x: auto;
   overflow-y: visible;
 }

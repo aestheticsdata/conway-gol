@@ -1,4 +1,3 @@
-import { CELL_STATE } from "@cell/constants";
 import Data from "@data/Data";
 import { drawGrid } from "@helpers/canvas";
 import {
@@ -8,15 +7,14 @@ import {
   getCanvasCellColors,
   getCanvasPreviewCellColors,
   getCanvasTheme,
-  ZOOM_RADIUS,
-  ZOOM_SIZE,
 } from "./constants";
+import GridDrawingHandler from "./GridDrawingHandler";
+import { transformGrid } from "./gridTransforms";
 import { DEFAULT_RANDOM_PRESET } from "./randomPresets";
 import Simulation from "./Simulation";
 import { DEFAULT_RANDOM_PARAMS } from "./seeding/RandomPresetSeeder";
 
 import type DrawingToolBox from "@ui/controls/drawing/DrawingToolBox";
-import type { DrawingMode } from "@ui/controls/drawing/DrawingToolBox";
 import type UserCustomSelector from "@ui/controls/drawing/UserCustomSelector";
 import type { CanvasTheme } from "./constants";
 import type { RandomPresetId } from "./randomPresets";
@@ -54,21 +52,12 @@ type DrawingGridOptions = GridBaseOptions & {
 
 type GridOptions = RandomGridOptions | ZooGridOptions | DrawingGridOptions;
 
-type DrawingDependencies = {
-  cursor: HTMLElement;
-  drawingCanvas: HTMLCanvasElement;
-  drawingContext: CanvasRenderingContext2D;
-  drawingToolbox: DrawingToolBox;
-  userCustomSelector: UserCustomSelector;
-  zoombox: ZoomBox;
-};
-
 /**
  * Grid — canvas renderer + drawing-mode interaction layer.
  *
  * Owns a Simulation instance and is responsible for two things only:
  *   1. Rendering: read state from Simulation, paint pixels on the canvas.
- *   2. Drawing mode: translate mouse events into Simulation.setCell() calls.
+ *   2. Drawing mode: delegate mouse interactions to GridDrawingHandler.
  *
  * No Conway logic lives here. No cell objects are created here.
  */
@@ -77,13 +66,13 @@ class Grid {
   private readonly _ctx: CanvasRenderingContext2D;
   private readonly _simulation: Simulation;
   private readonly _onStateChange?: (stats: SimulationStateStats) => void;
-  private readonly _drawing?: DrawingDependencies;
   private readonly _theme: CanvasTheme;
   private readonly _cellColors: readonly string[];
   private readonly _previewCellColors: readonly string[];
-  private _previousCellPos: { xPos: number; yPos: number } | null = null;
-  private _isDown = false;
-  private _drawingMode: DrawingMode = "pencil";
+  private readonly _drawingHandler?: GridDrawingHandler;
+  private _rotationDeg = 0;
+  private _zoomLevel = 0;
+  private _baseGrid: number[][] | null = null;
 
   constructor(options: GridOptions) {
     this._canvas = options.canvas;
@@ -104,17 +93,24 @@ class Grid {
       case "zoo":
         this._initializeZoo(options.species, options.onLoad);
         break;
-      case "drawing":
-        this._drawing = {
+      case "drawing": {
+        const handler = new GridDrawingHandler({
           cursor: options.cursor,
           drawingCanvas: options.drawingCanvas,
           drawingContext: options.drawingContext,
-          drawingToolbox: options.drawingToolbox,
-          userCustomSelector: options.userCustomSelector,
           zoombox: options.zoombox,
-        };
-        this._initializeDrawing(options.species, options.onLoad);
+          initialDrawingMode: options.drawingToolbox.selectedMode,
+          getCell: (row, col) => this._simulation.getCell(row, col),
+          setCell: (row, col, state) => this._simulation.setCell(row, col, state),
+          renderCell: (row, col) => this._renderCell(row, col),
+          emitStateChange: () => this._emitStateChange(),
+          getPreviewCellColor: (state) => this._previewCellColors[state],
+        });
+        this._drawingHandler = handler;
+        options.drawingToolbox.register((mode) => handler.setDrawingMode(mode));
+        this._initializeDrawing(options.species, options.onLoad, options.userCustomSelector);
         break;
+      }
     }
   }
 
@@ -122,25 +118,11 @@ class Grid {
   // https://stackoverflow.com/a/56775919/5671836
 
   public initListener(): void {
-    if (!this._drawing) {
-      return;
-    }
-    this._drawing.drawingCanvas.addEventListener("mousemove", this._drawOnMouseMove);
-    this._drawing.drawingCanvas.addEventListener("mouseenter", this._mouseenter);
-    this._drawing.drawingCanvas.addEventListener("mouseleave", this._mouseLeave);
-    this._drawing.drawingCanvas.addEventListener("mousedown", this._mouseDown);
-    this._drawing.drawingCanvas.addEventListener("mouseup", this._mouseUp);
+    this._drawingHandler?.initListeners();
   }
 
   public destroyListener(): void {
-    if (!this._drawing) {
-      return;
-    }
-    this._drawing.drawingCanvas.removeEventListener("mousemove", this._drawOnMouseMove);
-    this._drawing.drawingCanvas.removeEventListener("mouseenter", this._mouseenter);
-    this._drawing.drawingCanvas.removeEventListener("mouseleave", this._mouseLeave);
-    this._drawing.drawingCanvas.removeEventListener("mousedown", this._mouseDown);
-    this._drawing.drawingCanvas.removeEventListener("mouseup", this._mouseUp);
+    this._drawingHandler?.destroyListeners();
   }
 
   // ── Public API ─────────────────────────────────────────────────────────────
@@ -154,6 +136,31 @@ class Grid {
     this._render();
     this._drawGrid();
     this._emitStateChange();
+  }
+
+  public setRotation(deg: number): void {
+    this._rotationDeg = deg;
+    if (this._baseGrid) {
+      this._applyTransforms();
+      this._render();
+      this._drawGrid();
+      this._emitStateChange();
+    }
+  }
+
+  public resetTransforms(): void {
+    this._rotationDeg = 0;
+    this._zoomLevel = 0;
+  }
+
+  public setZoom(level: number): void {
+    this._zoomLevel = level;
+    if (this._baseGrid) {
+      this._applyTransforms();
+      this._render();
+      this._drawGrid();
+      this._emitStateChange();
+    }
   }
 
   /** Load a pre-built 156×156 grid (e.g. from an imported image) and repaint. */
@@ -174,6 +181,8 @@ class Grid {
     params: RandomSeedParams = DEFAULT_RANDOM_PARAMS,
   ): void {
     this._simulation.seedByPreset(preset, randomVariation, params);
+    this._baseGrid = this._simulation.toGrid();
+    this._applyTransforms();
     this._render();
     this._drawGrid();
     this._emitStateChange();
@@ -183,6 +192,7 @@ class Grid {
 
   private _initializeRandom(randomPreset: RandomPresetId, params: RandomSeedParams): void {
     this._simulation.seedByPreset(randomPreset, false, params);
+    this._baseGrid = this._simulation.toGrid();
     this._render();
     this._drawGrid();
     this._emitStateChange();
@@ -199,14 +209,12 @@ class Grid {
     });
   }
 
-  private _initializeDrawing(species?: string, onLoad?: (comments: string[]) => void): void {
-    if (!this._drawing) {
-      return;
-    }
-
-    this._drawing.userCustomSelector.getGridData = () => this._simulation.toGrid();
-    this._drawing.drawingToolbox.register(this._setDrawingMode);
-    this._drawingMode = this._drawing.drawingToolbox.selectedMode;
+  private _initializeDrawing(
+    species: string | undefined,
+    onLoad: ((comments: string[]) => void) | undefined,
+    userCustomSelector: UserCustomSelector,
+  ): void {
+    userCustomSelector.getGridData = () => this._simulation.toGrid();
 
     if (species) {
       const data = new Data();
@@ -226,174 +234,7 @@ class Grid {
     this._drawGrid();
   }
 
-  // ── Drawing mode handlers ──────────────────────────────────────────────────
-
-  private _setDrawingMode = (drawingMode: DrawingMode): void => {
-    this._drawingMode = drawingMode;
-  };
-
-  private _mouseenter = (_e: MouseEvent): void => {
-    if (!this._drawing) {
-      return;
-    }
-
-    const { cursor } = this._drawing;
-    cursor.style.display = "block";
-
-    const pencilCursor = cursor.querySelector<HTMLElement>(".cursor.pencil");
-    const eraserCursor = cursor.querySelector<HTMLElement>(".cursor.eraser");
-    if (!pencilCursor || !eraserCursor) {
-      return;
-    }
-
-    if (this._drawingMode === "pencil") {
-      pencilCursor.style.display = "block";
-      eraserCursor.style.display = "none";
-    } else {
-      pencilCursor.style.display = "none";
-      eraserCursor.style.display = "block";
-    }
-  };
-
-  private _mouseLeave = (_e: MouseEvent): void => {
-    if (!this._drawing) {
-      return;
-    }
-    this._drawing.cursor.style.display = "none";
-  };
-
-  private _drawOnMouseMove = (e: MouseEvent): void => {
-    if (!this._drawing) {
-      return;
-    }
-
-    const { cursor, drawingCanvas, drawingContext, zoombox } = this._drawing;
-    cursor.style.left = `${e.clientX}px`;
-    cursor.style.top = `${e.clientY - 27}px`;
-
-    const res = this._getCellCoords(e.offsetX, e.offsetY);
-    const hoverState = this._drawingMode === "pencil" ? CELL_STATE.ALIVE : CELL_STATE.DEAD;
-
-    if (!res) {
-      return;
-    }
-
-    zoombox.displayArea(this._getZoomArea(res.xPos, res.yPos), this._drawingMode, res.xPos, res.yPos);
-
-    if (!this._previousCellPos) {
-      this._renderCellOnOverlay(hoverState, res.yPos, res.xPos);
-      this._previousCellPos = { xPos: res.xPos, yPos: res.yPos };
-      return;
-    }
-
-    this._renderCellOnOverlay(hoverState, res.yPos, res.xPos);
-
-    if (this._previousCellPos.xPos !== res.xPos || this._previousCellPos.yPos !== res.yPos) {
-      if (this._isDown) {
-        this._paintCell(e);
-      } else {
-        drawingContext.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
-      }
-      this._previousCellPos = { xPos: res.xPos, yPos: res.yPos };
-    }
-  };
-
-  private _mouseDown = (e: MouseEvent): void => {
-    if (!this._drawing) {
-      return;
-    }
-
-    this._isDown = true;
-    this._paintCell(e);
-
-    const res = this._getCellCoords(e.offsetX, e.offsetY);
-    if (res) {
-      this._drawing.zoombox.displayArea(this._getZoomArea(res.xPos, res.yPos), this._drawingMode);
-    }
-  };
-
-  private _mouseUp = (): void => {
-    this._isDown = false;
-  };
-
-  // ── Private helpers ────────────────────────────────────────────────────────
-
-  /**
-   * Convert a pixel position on the canvas to a cell coordinate.
-   * Returns null if the position falls on the 1-cell border (x or y <= 0).
-   */
-  private _getCellCoords(x: number, y: number): { xPos: number; yPos: number } | null {
-    if (x > 0 && y > 0) {
-      return {
-        xPos: Math.floor(x / CELL_SIZE) - 1,
-        yPos: Math.floor(y / CELL_SIZE) - 1,
-      };
-    }
-    return null;
-  }
-
-  /**
-   * Extract the 7×7 neighbourhood around (x, y) from the simulation state.
-   * Cells outside [0, GRID_COLS-1] / [0, GRID_ROWS-1] are marked as BORDER.
-   * Returns [[OUTSIDE]] when the cursor is outside the valid cell range.
-   */
-  private _getZoomArea(x: number, y: number): number[][] {
-    if (x >= 0 && y >= 0 && x <= GRID_COLS - 1 && y <= GRID_ROWS - 1) {
-      const area: number[][] = [];
-      for (let i = 0; i < ZOOM_SIZE; i++) {
-        area.push([]);
-        for (let j = 0; j < ZOOM_SIZE; j++) {
-          const row = i + y - ZOOM_RADIUS;
-          const col = j + x - ZOOM_RADIUS;
-          if (row < 0 || row >= GRID_ROWS || col < 0 || col >= GRID_COLS) {
-            area[i].push(CELL_STATE.BORDER);
-          } else {
-            area[i].push(this._simulation.getCell(row, col));
-          }
-        }
-      }
-      return area;
-    }
-    return [[CELL_STATE.OUTSIDE]];
-  }
-
-  /** Commit a pencil/eraser stroke to the simulation and repaint that cell. */
-  private _paintCell = (e: MouseEvent): void => {
-    const coords = this._getCellCoords(e.offsetX, e.offsetY);
-    if (!coords) {
-      return;
-    }
-
-    const { xPos, yPos } = coords;
-    const newState = this._drawingMode === "pencil" ? CELL_STATE.ALIVE : CELL_STATE.DEAD;
-    this._simulation.setCell(yPos, xPos, newState);
-    this._renderCell(yPos, xPos);
-    this._emitStateChange();
-  };
-
-  /** Draw a single cell on the overlay (hover preview) canvas. */
-  private _renderCellOnOverlay(state: number, row: number, col: number): void {
-    if (!this._drawing) {
-      return;
-    }
-
-    const x = col * CELL_SIZE + 1;
-    const y = row * CELL_SIZE + 1;
-    const size = CELL_SIZE - 1;
-    this._drawing.drawingContext.clearRect(x, y, size, size);
-    this._drawing.drawingContext.fillStyle = this._previewCellColors[state];
-    this._drawing.drawingContext.fillRect(x, y, size, size);
-  }
-
-  /** Draw a single cell on the main canvas from current simulation state. */
-  private _renderCell(row: number, col: number): void {
-    const x = col * CELL_SIZE + 1;
-    const y = row * CELL_SIZE + 1;
-    const size = CELL_SIZE - 1;
-    this._ctx.clearRect(x, y, size, size);
-    this._ctx.fillStyle = this._cellColors[this._simulation.getCell(row, col)];
-    this._ctx.fillRect(x, y, size, size);
-  }
+  // ── Rendering ─────────────────────────────────────────────────────────────
 
   /** Repaint every cell on the canvas from current simulation state. */
   private _render(): void {
@@ -406,6 +247,16 @@ class Grid {
     }
   }
 
+  /** Draw a single cell on the main canvas from current simulation state. */
+  private _renderCell(row: number, col: number): void {
+    const x = col * CELL_SIZE + 1;
+    const y = row * CELL_SIZE + 1;
+    const size = CELL_SIZE - 1;
+    this._ctx.clearRect(x, y, size, size);
+    this._ctx.fillStyle = this._cellColors[this._simulation.getCell(row, col)];
+    this._ctx.fillRect(x, y, size, size);
+  }
+
   private _drawGrid(): void {
     drawGrid({
       ctx: this._ctx,
@@ -413,6 +264,15 @@ class Grid {
       color: this._theme.gridColor,
     });
   }
+
+  // ── Rotation ──────────────────────────────────────────────────────────────
+
+  private _applyTransforms(): void {
+    if (!this._baseGrid) return;
+    this._simulation.seedFromGrid(transformGrid(this._baseGrid, this._rotationDeg, this._zoomLevel));
+  }
+
+  // ── State ─────────────────────────────────────────────────────────────────
 
   private _emitStateChange(): void {
     this._onStateChange?.(this._simulation.getStateStats());

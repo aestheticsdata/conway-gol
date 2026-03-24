@@ -241,6 +241,20 @@ function createRandomControls(): string {
           <input type="range" id="random-density" min="0" max="100" value="30" step="1">
         </div>
         <div class="random-param random-param--separated">
+          <label for="random-rotation">
+            <span id="random-rotation-label"></span>
+            <span id="random-rotation-value"></span>
+          </label>
+          <input type="range" id="random-rotation" min="-180" max="180" value="0" step="1">
+        </div>
+        <div class="random-param random-param--separated">
+          <label for="random-zoom">
+            <span id="random-zoom-label"></span>
+            <span id="random-zoom-value"></span>
+          </label>
+          <input type="range" id="random-zoom" min="-100" max="100" value="0" step="1">
+        </div>
+        <div class="random-param random-param--separated">
           <label id="random-noise-type-label"></label>
           <div class="random-noise-type-group tile-selector">
             ${createRandomNoiseSelector()}
@@ -263,6 +277,7 @@ function createRandomControls(): string {
       </div>
       <div class="random-generate-wrapper">
         <button type="button" class="random-generate"></button>
+        <button type="button" class="random-reset"></button>
       </div>
     </div>
   `;
