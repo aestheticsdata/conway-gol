@@ -10,7 +10,7 @@ import {
   type CanvasTheme,
 } from "@grid/constants";
 import { CELL_STATE } from "@cell/constants";
-import type { DrawingMode } from "@controls/DrawingToolBox";
+import type { DrawingMode } from "@ui/controls/drawing/DrawingToolBox";
 import { getRequiredContext2D, queryRequired } from "@helpers/dom";
 
 /**

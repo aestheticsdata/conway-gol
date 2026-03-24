@@ -1,5 +1,5 @@
-import SignedSeriesChart from "@controls/SignedSeriesChart";
-import { getTelemetryTheme } from "@controls/telemetryTheme";
+import SignedSeriesChart from "./SignedSeriesChart";
+import { getTelemetryTheme } from "./telemetryTheme";
 
 const MAX_HISTORY_POINTS = 1024;
 

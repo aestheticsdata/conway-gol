@@ -25,10 +25,8 @@ function createTileLabel(
 }
 
 function createTileSelectorOption(options: {
-  id: string;
-  name: string;
   value: string;
-  checked?: boolean;
+  selected?: boolean;
   size?: TileSelectorSize;
   icon: string;
   dataAttributeName: string;
@@ -37,10 +35,8 @@ function createTileSelectorOption(options: {
   ariaLabel?: string;
 }): string {
   const {
-    id,
-    name,
     value,
-    checked = false,
+    selected = false,
     size = "md",
     icon,
     dataAttributeName,
@@ -51,8 +47,11 @@ function createTileSelectorOption(options: {
 
   return `
     <div class="tile-selector__option" data-size="${size}">
-      <input type="radio" id="${id}" name="${name}" value="${value}"${checked ? " checked" : ""}${ariaLabel ? ` aria-label="${ariaLabel}"` : ""}>
-      <label for="${id}"${title ? ` title="${title}"` : ""}>${createTileLabel(icon, dataAttributeName, dataAttributeValue)}</label>
+      <button
+        type="button"
+        class="tile-selector__button${selected ? " is-selected" : ""}"
+        data-value="${value}"${title ? ` title="${title}"` : ""}${ariaLabel ? ` aria-label="${ariaLabel}"` : ""}
+      >${createTileLabel(icon, dataAttributeName, dataAttributeValue)}</button>
     </div>
   `;
 }
@@ -94,30 +93,24 @@ export function createWorkspaceMarkup(route: WorkspaceRoute): string {
             <div class="pane-section-label mode-selector-label" data-ui="mode-label"></div>
             <div class="mode-selector tile-selector">
               ${createTileSelectorOption({
-                id: "random",
-                name: "mode",
                 value: "random",
-                checked: route === SIMULATION_ROUTE,
+                selected: route === SIMULATION_ROUTE,
                 size: "md",
                 icon: SHUFFLE_ICON,
                 dataAttributeName: "mode",
                 dataAttributeValue: "random",
               })}
               ${createTileSelectorOption({
-                id: "zoo",
-                name: "mode",
                 value: "zoo",
-                checked: route === ZOO_ROUTE,
+                selected: route === ZOO_ROUTE,
                 size: "md",
                 icon: PAW_ICON,
                 dataAttributeName: "mode",
                 dataAttributeValue: "zoo",
               })}
               ${createTileSelectorOption({
-                id: "drawing",
-                name: "mode",
                 value: "drawing",
-                checked: route === DRAWING_ROUTE,
+                selected: route === DRAWING_ROUTE,
                 size: "md",
                 icon: PENCIL_ICON,
                 dataAttributeName: "mode",
@@ -202,10 +195,8 @@ export function createWorkspaceMarkup(route: WorkspaceRoute): string {
                 <label id="random-noise-type-label"></label>
                 <div class="random-noise-type-group tile-selector">
                   ${createTileSelectorOption({
-                    id: "random-noise-uniform",
-                    name: "random-noise-type",
                     value: "uniform",
-                    checked: true,
+                    selected: true,
                     size: "md",
                     icon: NOISE_UNIFORM_ICON,
                     dataAttributeName: "noise-type",
@@ -214,8 +205,6 @@ export function createWorkspaceMarkup(route: WorkspaceRoute): string {
                     ariaLabel: "Uniform",
                   })}
                   ${createTileSelectorOption({
-                    id: "random-noise-perlin-like",
-                    name: "random-noise-type",
                     value: "perlin-like",
                     size: "md",
                     icon: NOISE_PERLIN_ICON,
@@ -225,8 +214,6 @@ export function createWorkspaceMarkup(route: WorkspaceRoute): string {
                     ariaLabel: "Perlin-like",
                   })}
                   ${createTileSelectorOption({
-                    id: "random-noise-clusters",
-                    name: "random-noise-type",
                     value: "clusters",
                     size: "md",
                     icon: NOISE_CLUSTERS_ICON,

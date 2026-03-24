@@ -30,7 +30,7 @@ A full-stack implementation of [Conway's Game of Life](https://en.wikipedia.org/
 - Left-side playback telemetry with iteration count, live/dead cell counts, a real-time alive-cell variation graph, and a real-time absolute alive-cell graph
 - Tokens-based visual system for colors, radius, spacing, form fields, telemetry, and canvas rendering
 - Custom-styled random-preset dropdown consistent with the app visual language
-- Reusable tile-style radio buttons used for workspace mode selection and random noise type selection
+- Reusable tile-style buttons used for workspace mode selection and random noise type selection
 - Inline SVG icons stored in shared assets for mode buttons and random-noise selectors
 - Adjustable FPS from 0 to 60 via slider
 - Toroidal grid with wraparound edges
@@ -89,17 +89,6 @@ conway-gol/
 │   │   │   │   └── RandomPresetSeeder.ts
 │   │   │   └── zoom/
 │   │   │       └── ZoomBox.ts
-│   │   ├── controls/
-│   │   │   ├── AliveCountChart.ts
-│   │   │   ├── AliveVariationChart.ts
-│   │   │   ├── DrawingToolBox.ts
-│   │   │   ├── ModeSelector.ts
-│   │   │   ├── PositiveSeriesChart.ts
-│   │   │   ├── SignedSeriesChart.ts
-│   │   │   ├── telemetryTheme.ts
-│   │   │   ├── UserCustomSelector.ts
-│   │   │   ├── ZooSelector.ts
-│   │   │   └── texts.ts
 │   │   ├── data/
 │   │   │   ├── Data.ts
 │   │   │   └── species/
@@ -121,6 +110,25 @@ conway-gol/
 │   │   │       ├── effects.css
 │   │   │       ├── layout.css
 │   │   │       └── radius.css
+│   │   ├── ui/
+│   │   │   └── controls/
+│   │   │       ├── drawing/
+│   │   │       │   ├── DrawingToolBox.ts
+│   │   │       │   ├── UserCustomSelector.ts
+│   │   │       │   └── texts.ts
+│   │   │       ├── shared/
+│   │   │       │   └── TileButtonGroup.ts
+│   │   │       ├── simulation/
+│   │   │       │   ├── ModeSelector.ts
+│   │   │       │   ├── NoiseTypeSelector.ts
+│   │   │       │   ├── RandomControlsPanel.ts
+│   │   │       │   └── ZooSelector.ts
+│   │   │       └── telemetry/
+│   │   │           ├── AliveCountChart.ts
+│   │   │           ├── AliveVariationChart.ts
+│   │   │           ├── PositiveSeriesChart.ts
+│   │   │           ├── SignedSeriesChart.ts
+│   │   │           └── telemetryTheme.ts
 │   │   └── texts.ts
 │   ├── tsconfig.json
 │   ├── vite.config.ts
@@ -364,20 +372,23 @@ This keeps Conway logic out of the renderer and keeps DOM event handling out of 
 
 #### UI helpers and data access
 
-`front/src/controls/` contains DOM-facing UI components:
+`front/src/ui/controls/` contains DOM-facing UI controls, split by domain:
 
-- `AliveVariationChart.ts`: left-panel playback graph that renders the signed per-step change in living cells
-- `AliveCountChart.ts`: left-panel playback graph that renders the absolute number of living cells over time
-- `ModeSelector.ts`: radio-button mode switching
-- `DrawingToolBox.ts`: pencil/eraser selection
-- `ZooSelector.ts`: pattern selection in zoo mode
-- `UserCustomSelector.ts`: save/load of custom drawings
-- `telemetryTheme.ts`: reads CSS design tokens and provides the shared telemetry chart drawing theme
+- `shared/TileButtonGroup.ts`: reusable tile-button primitive used by typed selectors
+- `simulation/ModeSelector.ts`: tile-button mode switching
+- `simulation/NoiseTypeSelector.ts`: tile-button random noise switching
+- `simulation/RandomControlsPanel.ts`: random preset dropdown plus density/noise/seed controls
+- `simulation/ZooSelector.ts`: pattern selection in zoo mode
+- `drawing/DrawingToolBox.ts`: pencil/eraser selection
+- `drawing/UserCustomSelector.ts`: save/load of custom drawings
+- `telemetry/telemetryTheme.ts`: reads CSS design tokens and provides the shared telemetry chart drawing theme
 
-The telemetry charts share reusable renderers:
+The telemetry charts share reusable renderers under `front/src/ui/controls/telemetry/`:
 
 - `SignedSeriesChart.ts`: compact signed chart used for metrics centered around zero, such as alive-cell variation
 - `PositiveSeriesChart.ts`: compact positive-only chart used for monotonic-from-zero metrics, such as the absolute alive-cell count
+- `AliveVariationChart.ts`: left-panel playback graph that renders the signed per-step change in living cells
+- `AliveCountChart.ts`: left-panel playback graph that renders the absolute number of living cells over time
 
 `Data` in `front/src/data/Data.ts` fetches catalog or custom patterns, centers them on the 156x156 grid, and exposes a plain `number[][]` seed for the simulation. After `load()` resolves, `Data.comments` holds the pattern's metadata lines for the caller to display.
 
@@ -436,7 +447,7 @@ Those files centralize:
 
 `front/src/styles/main.css` consumes those tokens for layout and component styling.
 
-For canvas-based telemetry, `front/src/controls/telemetryTheme.ts` reads the CSS tokens at runtime and converts them into a JS theme object. This keeps the DOM/CSS layer and the canvas rendering layer visually aligned.
+For canvas-based telemetry, `front/src/ui/controls/telemetry/telemetryTheme.ts` reads the CSS tokens at runtime and converts them into a JS theme object. This keeps the DOM/CSS layer and the canvas rendering layer visually aligned.
 
 ### Visual principles
 
@@ -465,7 +476,7 @@ Important token families:
 
 The current visual system includes a few custom controls that are intentionally styled outside the browser defaults:
 
-- reusable tile-style radio buttons with inline SVG icons
+- reusable tile-style buttons with inline SVG icons
 - telemetry charts drawn directly on canvas with a shared theme
 - custom random preset dropdown in the right pane
 - custom random noise type selector using the same tile-button primitive as the route mode selector
@@ -648,7 +659,7 @@ Custom patterns are submitted in the same JSON shape through `POST /usercustom/:
 
 The left control column was reorganized into separated visual sections so that playback status reads as a single stack:
 
-- mode radio buttons
+- mode buttons
 - iteration counter
 - a telemetry block with alive cells, dead cells, and a live variation graph
 - an FPS slider with inline numeric readout
@@ -688,7 +699,7 @@ This made the random mode easier to extend without pushing more UI concerns into
 Three interactive controls were added to random mode, separated by visual dividers:
 
 - **Density slider** (0–100 %) — controls how much of the canvas is filled. A quadratic curve (`t²`) is applied so that small values stay sparse and 100 % gives a nearly full grid.
-- **Noise type radio buttons** (`Uniform` / `Perlin-like` / `Clusters`) — for the `noise` preset these drive the generation algorithm directly; for all other presets a smooth large-scale spatial mask (scale = 30 cells) is applied after generation to concentrate the pattern in coherent regions.
+- **Noise type buttons** (`Uniform` / `Perlin-like` / `Clusters`) — for the `noise` preset these drive the generation algorithm directly; for all other presets a smooth large-scale spatial mask (scale = 30 cells) is applied after generation to concentrate the pattern in coherent regions.
 - **Seed slider + "Random seed" checkbox** — a fixed seed feeds the Mulberry32 PRNG for exact replay. When the checkbox is checked, `seed = null` and either the preset's deterministic FNV-1a hash or `Math.random()` is used instead. The slider is always enabled; the checkbox governs whether its value matters.
 
 `RandomSeedParams` (`density`, `noiseType`, `seed`) threads through the full call chain: `Main` → `Grid.reseedRandomPreset` → `Simulation.seedByPreset` → `RandomPresetSeeder.seedInto`.

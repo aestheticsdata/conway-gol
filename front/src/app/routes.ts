@@ -1,4 +1,4 @@
-import type { Mode } from "@controls/ModeSelector";
+import type { Mode } from "@ui/controls/simulation/ModeSelector";
 import type { AppPath } from "@app/navigation/NavigationAdapter";
 
 export const LOGIN_ROUTE = "/login";

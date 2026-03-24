@@ -5,49 +5,43 @@ import {
   getTelemetryAxisLayout,
   getTelemetryTheme,
   TELEMETRY_LABEL_FONT,
-} from "@controls/telemetryTheme";
+} from "./telemetryTheme";
 
 const SCALE_RELAXATION = 0.12;
+const GRAPH_TOP_PADDING = 11;
 
 type ChartPoint = {
   x: number;
   y: number;
-  value: number;
 };
 
-type SignedSeriesChartOptions = {
+type PositiveSeriesChartOptions = {
   canvas: HTMLCanvasElement;
   lineColor: string;
+  markerColor?: string;
 };
 
 /**
- * Reusable signed-series canvas chart.
+ * Reusable compact chart for non-negative time series.
  *
- * It is designed for compact telemetry panels where values can be positive or
- * negative around a central zero line:
- * - left to right = oldest to newest sample
- * - center dashed line = zero
- * - above center = positive values
- * - below center = negative values
- *
- * The chart owns only rendering concerns. Call `setValues()` with the full
- * series to display, and it will handle sizing, scaling, axes and the latest
- * marker. This makes it reusable for raw deltas, moving averages, or any other
- * signed metric that should be shown in the same visual language.
+ * It keeps the same telemetry styling as the signed variation chart, but uses
+ * the full chart height for values that evolve from zero upwards.
  */
-class SignedSeriesChart {
+class PositiveSeriesChart {
   private readonly _canvas: HTMLCanvasElement;
   private readonly _ctx: CanvasRenderingContext2D;
   private readonly _lineColor: string;
+  private readonly _markerColor: string;
   private _values: number[] = [];
   private _width = 1;
   private _height = 1;
   private _verticalScale = 1;
 
-  constructor(options: SignedSeriesChartOptions) {
+  constructor(options: PositiveSeriesChartOptions) {
     this._canvas = options.canvas;
     this._ctx = getRequiredContext2D(options.canvas);
     this._lineColor = options.lineColor;
+    this._markerColor = options.markerColor ?? options.lineColor;
     window.addEventListener("resize", this._resize);
     this._resize();
   }
@@ -92,22 +86,13 @@ class SignedSeriesChart {
     const plotBottom = height - 6;
     const plotHeight = Math.max(1, plotBottom - plotTop);
     const plotWidth = Math.max(1, plotRight - plotLeft);
-    const zeroY = plotTop + (plotHeight / 2);
-    const graphAmplitude = Math.max(1, (plotHeight / 2) - 3);
+    const graphTop = plotTop + GRAPH_TOP_PADDING;
+    const graphHeight = Math.max(1, plotBottom - graphTop);
     const theme = getTelemetryTheme();
 
     drawTelemetrySurface(this._ctx, width, height, theme);
 
-    this._ctx.strokeStyle = theme.zeroLine;
-    this._ctx.lineWidth = 1;
-    this._ctx.setLineDash([3, 3]);
-    this._ctx.beginPath();
-    this._ctx.moveTo(plotLeft, Math.round(zeroY) + 0.5);
-    this._ctx.lineTo(plotRight, Math.round(zeroY) + 0.5);
-    this._ctx.stroke();
-    this._ctx.setLineDash([]);
-
-    this._drawScaleLabels(theme, labelCenter, plotTop, zeroY, plotBottom);
+    this._drawScaleLabels(theme, labelCenter, plotTop, plotBottom);
 
     drawTelemetryAxes(this._ctx, theme, axisX, plotTop, plotRight, plotBottom);
 
@@ -115,13 +100,12 @@ class SignedSeriesChart {
       return;
     }
 
-    const targetScale = Math.max(1, ...this._values.map((value) => Math.abs(value)));
+    const targetScale = Math.max(1, ...this._values);
     const scale = this._updateVerticalScale(targetScale);
     const stepX = this._values.length > 1 ? plotWidth / (this._values.length - 1) : 0;
     const points = this._values.map((value, index) => ({
       x: plotLeft + (stepX * index),
-      y: zeroY - ((value / scale) * graphAmplitude),
-      value,
+      y: plotBottom - ((value / scale) * graphHeight),
     }));
 
     this._drawLine(points);
@@ -132,16 +116,14 @@ class SignedSeriesChart {
     theme: ReturnType<typeof getTelemetryTheme>,
     labelCenter: number,
     plotTop: number,
-    zeroY: number,
     plotBottom: number,
   ): void {
     this._ctx.fillStyle = theme.label;
     this._ctx.font = TELEMETRY_LABEL_FONT;
     this._ctx.textAlign = "center";
     this._ctx.textBaseline = "middle";
-    this._ctx.fillText("+", labelCenter, plotTop + 4);
-    this._ctx.fillText("0", labelCenter, zeroY);
-    this._ctx.fillText("-", labelCenter, plotBottom - 2);
+    this._ctx.fillText("max", labelCenter, plotTop + 4);
+    this._ctx.fillText("0", labelCenter, plotBottom - 2);
   }
 
   private _updateVerticalScale(targetScale: number): number {
@@ -182,22 +164,11 @@ class SignedSeriesChart {
   }
 
   private _drawLatestMarker(point: ChartPoint): void {
-    this._ctx.fillStyle = this._colorForDelta(point.value);
+    this._ctx.fillStyle = this._markerColor;
     this._ctx.beginPath();
     this._ctx.arc(point.x, point.y, 2.4, 0, Math.PI * 2);
     this._ctx.fill();
   }
-
-  private _colorForDelta(delta: number): string {
-    const theme = getTelemetryTheme();
-    if (delta > 0) {
-      return theme.positive;
-    }
-    if (delta < 0) {
-      return theme.negative;
-    }
-    return theme.neutral;
-  }
 }
 
-export default SignedSeriesChart;
+export default PositiveSeriesChart;

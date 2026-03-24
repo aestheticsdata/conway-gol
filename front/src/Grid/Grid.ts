@@ -1,8 +1,8 @@
 import Data from "@data/Data";
 import { CELL_STATE } from "@cell/constants";
-import DrawingToolBox, { type DrawingMode } from "@controls/DrawingToolBox";
+import DrawingToolBox, { type DrawingMode } from "@ui/controls/drawing/DrawingToolBox";
 import { drawGrid } from "@helpers/canvas";
-import type UserCustomSelector from "@controls/UserCustomSelector";
+import type UserCustomSelector from "@ui/controls/drawing/UserCustomSelector";
 import Simulation from "./Simulation";
 import {
   CELL_SIZE,

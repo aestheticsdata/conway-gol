@@ -14,12 +14,12 @@
       "@app/*": ["src/app/*"],
       "@assets/*": ["src/assets/*"],
       "@cell/*": ["src/Cell/*"],
-      "@controls/*": ["src/controls/*"],
       "@data/*": ["src/data/*"],
       "@grid/*": ["src/Grid/*"],
       "@helpers/*": ["src/helpers/*"],
       "@services/*": ["src/services/*"],
-      "@texts": ["src/texts.ts"]
+      "@texts": ["src/texts.ts"],
+      "@ui/*": ["src/ui/*"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"]

@@ -9,24 +9,23 @@ import {
 } from "@grid/constants";
 import {
   DEFAULT_RANDOM_PRESET,
-  RANDOM_PRESETS,
   isRandomPresetId,
   type RandomPresetId,
 } from "@grid/randomPresets";
 import ZoomBox from "@grid/zoom/ZoomBox";
-import AliveVariationChart from "@controls/AliveVariationChart";
-import AliveCountChart from "@controls/AliveCountChart";
-import DrawingToolBox from "@controls/DrawingToolBox";
-import ModeSelector, { type Mode } from "@controls/ModeSelector";
-import UserCustomSelector from "@controls/UserCustomSelector";
-import ZooSelector from "@controls/ZooSelector";
+import AliveVariationChart from "@ui/controls/telemetry/AliveVariationChart";
+import AliveCountChart from "@ui/controls/telemetry/AliveCountChart";
+import DrawingToolBox from "@ui/controls/drawing/DrawingToolBox";
+import ModeSelector, { type Mode } from "@ui/controls/simulation/ModeSelector";
+import RandomControlsPanel from "@ui/controls/simulation/RandomControlsPanel";
+import UserCustomSelector from "@ui/controls/drawing/UserCustomSelector";
+import ZooSelector from "@ui/controls/simulation/ZooSelector";
 import type { SimulationStateStats } from "@grid/Simulation";
-import { CONTROL_TEXTS } from "@controls/texts";
+import { CONTROL_TEXTS } from "@ui/controls/drawing/texts";
 import { getRequiredContext2D, queryAll, queryRequired } from "@helpers/dom";
 import { getRequestURL } from "@helpers/api";
 import { URLS } from "@helpers/constants";
 import {
-  type NoiseType,
   type RandomSeedParams,
 } from "@grid/seeding/RandomPresetSeeder";
 import {
@@ -60,18 +59,7 @@ export class SimulationWorkspace {
   private readonly _speedValue: HTMLElement;
   private readonly _commentsDOMSelector: HTMLElement;
   private readonly _zooPrimitivesDOMSelector: HTMLElement;
-  private readonly _randomPresetContainer: HTMLElement;
-  private readonly _randomPresetSelect: HTMLSelectElement;
-  private readonly _randomPresetTrigger: HTMLButtonElement;
-  private readonly _randomPresetValue: HTMLElement;
-  private readonly _randomPresetMenu: HTMLElement;
-  private readonly _randomPresetOptions: HTMLElement;
-  private readonly _randomGenerateBtn: HTMLButtonElement;
-  private readonly _randomDensitySlider: HTMLInputElement;
-  private readonly _randomDensityValue: HTMLSpanElement;
-  private readonly _randomSeedSlider: HTMLInputElement;
-  private readonly _randomSeedValue: HTMLSpanElement;
-  private readonly _randomSeedAuto: HTMLInputElement;
+  private readonly _randomControls: RandomControlsPanel;
   private readonly _customCursor: HTMLElement;
   private readonly _changeZoo: (species: string) => void;
   private _requestAnimationID = 0;
@@ -126,18 +114,12 @@ export class SimulationWorkspace {
     this._speedValue = queryRequired<HTMLElement>(".speed-value", this._root);
     this._commentsDOMSelector = queryRequired<HTMLElement>(".critter-comments", this._root);
     this._zooPrimitivesDOMSelector = queryRequired<HTMLElement>(".zoo-selector", this._root);
-    this._randomPresetContainer = queryRequired<HTMLElement>(".random-preset-selector", this._root);
-    this._randomPresetSelect = queryRequired<HTMLSelectElement>("#random-preset", this._root);
-    this._randomPresetTrigger = queryRequired<HTMLButtonElement>("#random-preset-trigger", this._root);
-    this._randomPresetValue = queryRequired<HTMLElement>(".custom-select__value", this._randomPresetContainer);
-    this._randomPresetMenu = queryRequired<HTMLElement>(".custom-select__menu", this._randomPresetContainer);
-    this._randomPresetOptions = queryRequired<HTMLElement>(".custom-select__options", this._randomPresetContainer);
-    this._randomGenerateBtn = queryRequired<HTMLButtonElement>(".random-generate", this._root);
-    this._randomDensitySlider = queryRequired<HTMLInputElement>("#random-density", this._root);
-    this._randomDensityValue = queryRequired<HTMLSpanElement>("#random-density-value", this._root);
-    this._randomSeedSlider = queryRequired<HTMLInputElement>("#random-seed", this._root);
-    this._randomSeedValue = queryRequired<HTMLSpanElement>("#random-seed-value", this._root);
-    this._randomSeedAuto = queryRequired<HTMLInputElement>("#random-seed-auto", this._root);
+    this._randomControls = new RandomControlsPanel({
+      root: this._root,
+      onPresetChange: this._onRandomPresetChange,
+      onGenerate: this._onRandomPresetGenerate,
+      onParamsChange: this._onRandomParamChange,
+    });
     this._customCursor = queryRequired<HTMLElement>(".custom-cursor", this._root);
 
     this._changeZoo = (species: string) => {
@@ -146,26 +128,12 @@ export class SimulationWorkspace {
     };
 
     this._applyStaticTexts();
-    this._renderRandomPresetOptions();
     this._pauseBtn.addEventListener("click", this._togglePause);
     this._setFPS();
     this._pauseBtn.textContent = APP_TEXTS.playback.start;
     this._resetIterationCounter();
-    this._randomDensityValue.textContent = `${this._randomDensitySlider.value}%`;
-    this._randomSeedValue.textContent = String(this._randomSeedSlider.value);
 
     new ModeSelector(this._changeMode, this._root);
-    this._randomPresetTrigger.addEventListener("click", this._toggleRandomPresetMenu);
-    this._randomPresetSelect.addEventListener("change", this._onRandomPresetChange);
-    this._randomGenerateBtn.addEventListener("click", this._onRandomPresetGenerate);
-    this._randomDensitySlider.addEventListener("input", this._onRandomParamChange);
-    this._randomSeedSlider.addEventListener("input", this._onRandomParamChange);
-    this._randomSeedAuto.addEventListener("change", this._onRandomParamChange);
-    this._root
-      .querySelectorAll('input[name="random-noise-type"]')
-      .forEach((radio) => {
-        radio.addEventListener("change", this._onRandomParamChange);
-      });
     document.addEventListener("pointerdown", this._handleDocumentPointerDown);
     document.addEventListener("keydown", this._handleDocumentKeyDown);
   }
@@ -191,33 +159,6 @@ export class SimulationWorkspace {
     this._onRouteModeChange(MODE_TO_WORKSPACE_ROUTE[mode]);
   };
 
-  private _renderRandomPresetOptions(): void {
-    this._randomPresetSelect.replaceChildren(
-      ...RANDOM_PRESETS.map(({ id, label }) => {
-        const option = document.createElement("option");
-        option.value = id;
-        option.textContent = label;
-        option.selected = id === DEFAULT_RANDOM_PRESET;
-        return option;
-      }),
-    );
-    this._randomPresetOptions.replaceChildren(
-      ...RANDOM_PRESETS.map(({ id, label }) => {
-        const option = document.createElement("button");
-        option.type = "button";
-        option.className = "custom-select__option";
-        option.dataset.value = id;
-        option.setAttribute("role", "option");
-        option.textContent = label;
-        option.addEventListener("click", () => {
-          this._selectRandomPreset(id);
-        });
-        return option;
-      }),
-    );
-    this._syncRandomPresetUI();
-  }
-
   private _applyStaticTexts(): void {
     queryRequired<HTMLElement>('[data-ui="mode-label"]', this._root).textContent = APP_TEXTS.modes.label;
     queryRequired<HTMLElement>('.tile-selector__text[data-mode="random"]', this._root).textContent =
@@ -232,19 +173,6 @@ export class SimulationWorkspace {
     queryRequired<HTMLLabelElement>('label[for="speed-slider"]', this._root).textContent = `${APP_TEXTS.playback.fps} `;
     queryRequired<HTMLElement>(".alive-variation-legend", this._root).textContent = APP_TEXTS.playback.aliveVariation;
     queryRequired<HTMLElement>(".alive-count-legend", this._root).textContent = APP_TEXTS.playback.aliveCount;
-    queryRequired<HTMLLabelElement>('label[for="random-preset-trigger"]', this._root).textContent =
-      APP_TEXTS.random.preset;
-    queryRequired<HTMLElement>("#random-density-label", this._root).textContent = `${APP_TEXTS.random.density} `;
-    queryRequired<HTMLElement>("#random-noise-type-label", this._root).textContent = APP_TEXTS.random.noiseType;
-    queryRequired<HTMLElement>('[data-noise-type="uniform"]', this._root).textContent =
-      APP_TEXTS.random.noiseTypeTiles.uniform;
-    queryRequired<HTMLElement>('[data-noise-type="perlin-like"]', this._root).textContent =
-      APP_TEXTS.random.noiseTypeTiles.perlinLike;
-    queryRequired<HTMLElement>('[data-noise-type="clusters"]', this._root).textContent =
-      APP_TEXTS.random.noiseTypeTiles.clusters;
-    queryRequired<HTMLElement>("#random-seed-label", this._root).textContent = `${APP_TEXTS.random.seed} `;
-    queryRequired<HTMLElement>("#random-seed-auto-label", this._root).textContent = APP_TEXTS.random.autoSeed;
-    this._randomGenerateBtn.textContent = APP_TEXTS.random.generate;
     queryRequired<HTMLButtonElement>(".custom-drawing-files .save", this._root).textContent =
       CONTROL_TEXTS.drawing.saveButton;
     queryRequired<HTMLLabelElement>('label[for="custom-file"]', this._root).textContent =
@@ -261,71 +189,24 @@ export class SimulationWorkspace {
   }
 
   private _currentRandomPreset(): RandomPresetId {
-    const value = this._randomPresetSelect.value;
+    const value = this._randomControls.currentPreset();
     return isRandomPresetId(value) ? value : DEFAULT_RANDOM_PRESET;
   }
 
-  private _toggleRandomPresetMenu = (): void => {
-    this._setRandomPresetMenuOpen(this._randomPresetMenu.hidden);
-  };
-
-  private _setRandomPresetMenuOpen(open: boolean): void {
-    this._randomPresetMenu.hidden = !open;
-    this._randomPresetTrigger.setAttribute("aria-expanded", open ? "true" : "false");
-    this._randomPresetContainer.classList.toggle("custom-select--open", open);
-  }
-
-  private _selectRandomPreset(value: string): void {
-    this._randomPresetSelect.value = value;
-    this._syncRandomPresetUI();
-    this._setRandomPresetMenuOpen(false);
-    this._randomPresetSelect.dispatchEvent(new Event("change", { bubbles: true }));
-  }
-
-  private _syncRandomPresetUI(): void {
-    const currentValue = this._randomPresetSelect.value;
-    const currentOption = RANDOM_PRESETS.find(({ id }) => id === currentValue)
-      ?? RANDOM_PRESETS.find(({ id }) => id === DEFAULT_RANDOM_PRESET)
-      ?? RANDOM_PRESETS[0];
-
-    this._randomPresetValue.textContent = currentOption?.label ?? "";
-
-    Array.from(this._randomPresetOptions.children).forEach((child) => {
-      const option = child as HTMLElement;
-      const selected = option.dataset.value === currentValue;
-      option.classList.toggle("is-selected", selected);
-      option.setAttribute("aria-selected", selected ? "true" : "false");
-    });
-  }
-
   private _handleDocumentPointerDown = (event: PointerEvent): void => {
-    if (this._randomPresetMenu.hidden) {
-      return;
-    }
-    const target = event.target;
-    if (!(target instanceof Node)) {
-      return;
-    }
-    if (!this._randomPresetContainer.contains(target)) {
-      this._setRandomPresetMenuOpen(false);
-    }
+    this._randomControls.handleDocumentPointerDown(event);
   };
 
   private _handleDocumentKeyDown = (event: KeyboardEvent): void => {
-    if (event.key === "Escape" && !this._randomPresetMenu.hidden) {
-      this._setRandomPresetMenuOpen(false);
-      this._randomPresetTrigger.focus();
-    }
+    this._randomControls.handleDocumentKeyDown(event);
   };
 
   private _currentRandomParams(): RandomSeedParams {
-    const t = Number(this._randomDensitySlider.value) / 100;
-    const density = t * t;
-    const noiseTypeRadio = this._root.querySelector<HTMLInputElement>('input[name="random-noise-type"]:checked');
-    const noiseType = (noiseTypeRadio?.value ?? "uniform") as NoiseType;
-    const seed = this._randomSeedAuto.checked
+    const density = this._randomControls.currentDensity();
+    const noiseType = this._randomControls.currentNoiseType();
+    const seed = this._randomControls.isAutoSeedEnabled()
       ? (this._randomPresetVariation ? (this._randomAutoSeed ??= this._nextRandomSeed()) : null)
-      : Number(this._randomSeedSlider.value);
+      : this._randomControls.currentSeedValue();
     return { density, noiseType, seed };
   }
 
@@ -333,12 +214,7 @@ export class SimulationWorkspace {
     return Math.floor(Math.random() * 0x100000000) >>> 0;
   }
 
-  private _onRandomParamChange = (event?: Event): void => {
-    this._randomDensityValue.textContent = `${this._randomDensitySlider.value}%`;
-    this._randomSeedValue.textContent = String(this._randomSeedSlider.value);
-    if (event?.currentTarget === this._randomSeedSlider && this._randomSeedAuto.checked) {
-      return;
-    }
+  private _onRandomParamChange = (): void => {
     if (this._selectedMode !== "random" || !this._grid) return;
     this._resetIterationCounter();
     this._aliveVariationChart.reset();
@@ -374,7 +250,6 @@ export class SimulationWorkspace {
   }
 
   private _onRandomPresetChange = (): void => {
-    this._syncRandomPresetUI();
     if (this._selectedMode !== "random" || !this._grid) {
       return;
     }
@@ -397,7 +272,7 @@ export class SimulationWorkspace {
     }
 
     this._randomPresetVariation = true;
-    this._randomAutoSeed = this._randomSeedAuto.checked ? this._nextRandomSeed() : null;
+    this._randomAutoSeed = this._randomControls.isAutoSeedEnabled() ? this._nextRandomSeed() : null;
     this._resetIterationCounter();
     this._aliveVariationChart.reset();
     this._aliveCountChart.reset();
@@ -496,7 +371,7 @@ export class SimulationWorkspace {
       case "random":
         this._drawingToolBox?.hide();
         this._setDisplay(this._zooPrimitivesDOMSelector, false);
-        this._setDisplay(this._randomPresetContainer, true);
+        this._randomControls.show();
         this._commentsDOMSelector.replaceChildren();
         this._setDisplay(this._drawingCanvas, false);
         this._zoomBox?.hide();
@@ -516,7 +391,7 @@ export class SimulationWorkspace {
       case "zoo": {
         const critterList = await this._loadCritterList();
         this._drawingToolBox?.hide();
-        this._setDisplay(this._randomPresetContainer, false);
+        this._randomControls.hide();
         this._zooSelector ??= new ZooSelector();
         this._zooSelector.createSelectButton(
           this._zooPrimitivesDOMSelector,
@@ -540,7 +415,7 @@ export class SimulationWorkspace {
       }
 
       case "drawing":
-        this._setDisplay(this._randomPresetContainer, false);
+        this._randomControls.hide();
         this._setDisplay(this._zooPrimitivesDOMSelector, false);
         this._commentsDOMSelector.replaceChildren();
         this._setDisplay(this._drawingCanvas, true);

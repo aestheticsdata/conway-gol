@@ -1,5 +1,5 @@
-import PositiveSeriesChart from "@controls/PositiveSeriesChart";
-import { getTelemetryTheme } from "@controls/telemetryTheme";
+import PositiveSeriesChart from "./PositiveSeriesChart";
+import { getTelemetryTheme } from "./telemetryTheme";
 
 const MAX_HISTORY_POINTS = 1024;
 
