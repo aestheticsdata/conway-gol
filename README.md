@@ -23,7 +23,7 @@ A full-stack implementation of [Conway's Game of Life](https://en.wikipedia.org/
 - Client-side app shell with real routes: `/login`, `/simulation`, `/zoo`, `/drawing`
 - Navigation API based router behind a framework-agnostic adapter and screen abstraction
 - Login screen used as a fake auth entry point for the future connected-user flow
-- Random mode with named presets, three generation controls (density, noise type, seed), and a `Generate` action for a new variation
+- Random mode with 13 named presets (geometric, fractal, and noise families), three generation controls (density, noise type, seed), and a `Generate` action for a new variation
 - Zoo mode with 1,400+ catalog patterns
 - Drawing mode with save/load for custom patterns
 - Zoom view around the cursor
@@ -31,6 +31,7 @@ A full-stack implementation of [Conway's Game of Life](https://en.wikipedia.org/
 - Tokens-based visual system for colors, radius, spacing, form fields, telemetry, and canvas rendering
 - Custom-styled random-preset dropdown consistent with the app visual language
 - Reusable tile-style buttons used for workspace mode selection and random noise type selection
+- Six noise types for the `noise` preset and as spatial masks for pattern presets: `uniform`, `perlin-like`, `clusters`, `gradient`, `edge-bias`, `center-burst`
 - Inline SVG icons stored in shared assets for mode buttons and random-noise selectors
 - Adjustable FPS from 0 to 60 via slider
 - Toroidal grid with wraparound edges
@@ -86,7 +87,12 @@ conway-gol/
 │   │   │   ├── randomPresets.ts
 │   │   │   ├── texts.ts
 │   │   │   ├── seeding/
-│   │   │   │   └── RandomPresetSeeder.ts
+│   │   │   │   ├── RandomPresetSeeder.ts
+│   │   │   │   ├── randomPresetFractalSeeders.ts
+│   │   │   │   ├── randomPresetNoise.ts
+│   │   │   │   ├── randomPresetShapeSeeders.ts
+│   │   │   │   ├── randomPresetTypes.ts
+│   │   │   │   └── randomPresetUtils.ts
 │   │   │   └── zoom/
 │   │   │       └── ZoomBox.ts
 │   │   ├── data/
@@ -332,7 +338,13 @@ The current route registry is intentionally small:
 - exposes read/write methods for cells
 - delegates random-mode initialization to a seeding strategy
 
-`RandomPresetSeeder` in `front/src/Grid/seeding/RandomPresetSeeder.ts` owns random-mode initial states. It receives a flat cell buffer plus grid dimensions and fills the buffer for named families such as `stars`, `rings`, `checker`, or `noise`.
+`RandomPresetSeeder` in `front/src/Grid/seeding/RandomPresetSeeder.ts` is the entry point for random-mode initial states. It receives a flat cell buffer plus grid dimensions and dispatches to one of three focused modules:
+
+- `randomPresetShapeSeeders.ts` — geometric presets: `stars`, `circles`, `sinus`, `rings`, `stripes`, `checker`, `clusters`, `diagonal`, `cross`
+- `randomPresetFractalSeeders.ts` — fractal presets: `sierpinski` (Sierpiński triangle), `cantor` (Cantor dust), `hilbert` (Hilbert curve)
+- `randomPresetNoise.ts` — the `noise` preset and the `applySpatialNoiseMask` post-processing step shared by all other presets
+
+Shared types and interfaces live in `randomPresetTypes.ts`; the Mulberry32 PRNG and FNV-1a preset hasher live in `randomPresetUtils.ts`.
 
 Each preset supports two behaviours:
 
@@ -344,7 +356,7 @@ Generation is controlled by a `RandomSeedParams` object:
 | Field | Type | Description |
 |---|---|---|
 | `density` | `number` 0–1 | Fill fraction applied with a quadratic curve (`t²`), so the slider feels sparse at the low end and full at 100 % |
-| `noiseType` | `"uniform" \| "perlin-like" \| "clusters"` | Spatial distribution; for non-noise presets a smooth mask is applied post-generation |
+| `noiseType` | `"uniform" \| "perlin-like" \| "clusters" \| "gradient" \| "edge-bias" \| "center-burst"` | Spatial distribution; for non-noise presets a smooth mask is applied post-generation |
 | `seed` | `number \| null` | Non-null seeds the Mulberry32 PRNG for deterministic replay; `null` uses the preset's FNV-1a hash (stable default) or `Math.random()` (Generate) |
 
 All presets are calibrated so that `density = 1` nearly fills the 156 × 156 grid.
@@ -433,7 +445,7 @@ As a result, frontend code outside `front/src/infra/http/` should not import Axi
 `front/src/assets/icons/` contains the shared inline SVG icons used by the workspace shell, including:
 
 - route mode icons (`random`, `zoo`, `drawing`)
-- random noise type icons (`uniform`, `perlin-like`, `clusters`)
+- random noise type icons (`uniform`, `perlin-like`, `clusters`, `gradient`, `edge-bias`, `center-burst`)
 
 ### API
 
@@ -697,6 +709,28 @@ Custom patterns are submitted in the same JSON shape through `POST /usercustom/:
 
 ## Refactoring History
 
+### Phase 9 - Fractal presets, new noise types, and seeder module split (2026-03)
+
+Three fractal random presets were added:
+
+| Preset | Algorithm |
+|---|---|
+| `sierpinski` | Sierpiński triangle drawn recursively via subdivision |
+| `cantor` | Cantor dust — repeated removal of middle thirds in both axes |
+| `hilbert` | Hilbert space-filling curve drawn iteratively |
+
+Three new noise types were added to `NoiseType`, raising the total from three to six:
+
+| Type | Behaviour |
+|---|---|
+| `gradient` | Linear directional gradient at a random angle; cells in the "bright" half of the sweep are kept alive |
+| `edge-bias` | Density concentrates toward the grid edges; the centre is sparser |
+| `center-burst` | Density radiates outward from the centre; the centre is densest |
+
+These types work both as the direct generation algorithm for the `noise` preset and as spatial post-processing masks for all other presets, consistent with the existing `perlin-like` and `clusters` behaviour.
+
+The monolithic `RandomPresetSeeder.ts` (~660 lines) was split into five focused modules so each preset family and its supporting utilities can be read and extended independently. `RandomPresetSeeder.ts` is now a thin orchestrator; all implementation lives in `randomPresetShapeSeeders.ts`, `randomPresetFractalSeeders.ts`, `randomPresetNoise.ts`, `randomPresetTypes.ts`, and `randomPresetUtils.ts`. The public API exported from `RandomPresetSeeder.ts` is unchanged.
+
 ### Phase 8 - Shared HTTP facade and service composition (2026-03)
 
 HTTP access in the frontend was moved behind a shared transport layer so domain code no longer calls Axios directly:
@@ -763,7 +797,7 @@ This made the random mode easier to extend without pushing more UI concerns into
 Three interactive controls were added to random mode, separated by visual dividers:
 
 - **Density slider** (0–100 %) — controls how much of the canvas is filled. A quadratic curve (`t²`) is applied so that small values stay sparse and 100 % gives a nearly full grid.
-- **Noise type buttons** (`Uniform` / `Perlin-like` / `Clusters`) — for the `noise` preset these drive the generation algorithm directly; for all other presets a smooth large-scale spatial mask (scale = 30 cells) is applied after generation to concentrate the pattern in coherent regions.
+- **Noise type buttons** (`Uniform` / `Perlin-like` / `Clusters` / `Gradient` / `Edge bias` / `Center burst`) — for the `noise` preset these drive the generation algorithm directly; for all other presets a smooth large-scale spatial mask is applied after generation to concentrate the pattern in coherent regions. Three new types were added: `gradient` (linear directional sweep), `edge-bias` (density concentrated toward edges), and `center-burst` (density radiating outward from the centre).
 - **Seed slider + "Random seed" checkbox** — a fixed seed feeds the Mulberry32 PRNG for exact replay. When the checkbox is checked, `seed = null` and either the preset's deterministic FNV-1a hash or `Math.random()` is used instead. The slider is always enabled; the checkbox governs whether its value matters.
 
 `RandomSeedParams` (`density`, `noiseType`, `seed`) threads through the full call chain: `Main` → `Grid.reseedRandomPreset` → `Simulation.seedByPreset` → `RandomPresetSeeder.seedInto`.
