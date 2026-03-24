@@ -8,8 +8,8 @@ import {
   SIMULATION_ROUTE,
   ZOO_ROUTE,
 } from "@app/routes";
-import { LoginScreen } from "@app/screens/LoginScreen";
-import { SimulationScreen } from "@app/screens/SimulationScreen";
+import { LoginView } from "@app/views/LoginView";
+import { SimulationView } from "@app/views/SimulationView";
 import { queryRequired } from "@helpers/dom";
 import type { AppPath } from "@app/navigation/NavigationAdapter";
 
@@ -26,19 +26,19 @@ router = new AppRouter(
   [
     {
       path: LOGIN_ROUTE,
-      create: () => new LoginScreen(navigate),
+      create: () => new LoginView(navigate),
     },
     {
       path: SIMULATION_ROUTE,
-      create: () => new SimulationScreen(SIMULATION_ROUTE, navigate),
+      create: () => new SimulationView(SIMULATION_ROUTE, navigate),
     },
     {
       path: ZOO_ROUTE,
-      create: () => new SimulationScreen(ZOO_ROUTE, navigate),
+      create: () => new SimulationView(ZOO_ROUTE, navigate),
     },
     {
       path: DRAWING_ROUTE,
-      create: () => new SimulationScreen(DRAWING_ROUTE, navigate),
+      create: () => new SimulationView(DRAWING_ROUTE, navigate),
     },
   ],
   DEFAULT_APP_ROUTE,

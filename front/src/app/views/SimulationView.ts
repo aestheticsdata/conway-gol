@@ -2,13 +2,13 @@ import type { AppPath } from "@app/navigation/NavigationAdapter";
 import type { RouteContext, Screen } from "@app/router/Screen";
 import { LOGIN_ROUTE, type WorkspaceRoute } from "@app/routes";
 import { APP_TEXTS } from "@texts";
-import { createWorkspaceMarkup } from "./templates";
 import { SimulationWorkspace } from "@app/simulation/SimulationWorkspace";
+import { createWorkspaceView } from "@app/views/html";
 
-export class SimulationScreen implements Screen {
+export class SimulationView implements Screen {
   private _root?: HTMLElement;
   private _workspace?: SimulationWorkspace;
-  private _backToLoginBtn?: HTMLButtonElement;
+  private _backToLoginButton?: HTMLButtonElement;
 
   constructor(
     private readonly _route: WorkspaceRoute,
@@ -16,16 +16,17 @@ export class SimulationScreen implements Screen {
   ) {}
 
   public mount(container: HTMLElement): void {
-    const root = document.createElement("div");
-    root.innerHTML = createWorkspaceMarkup(this._route);
-    this._root = root.firstElementChild as HTMLElement;
+    const htmlHost = document.createElement("div");
+    htmlHost.innerHTML = createWorkspaceView(this._route);
+    this._root = htmlHost.firstElementChild as HTMLElement;
     container.replaceChildren(this._root);
-    this._backToLoginBtn = this._root.querySelector<HTMLButtonElement>(".workspace-login-link") ?? undefined;
+    this._backToLoginButton =
+      this._root.querySelector<HTMLButtonElement>(".workspace-login-link") ?? undefined;
   }
 
   public async enter(context: RouteContext): Promise<void> {
     document.title = `${APP_TEXTS.document.title} | ${this._route.slice(1)}`;
-    this._backToLoginBtn?.addEventListener("click", this._onBackToLogin);
+    this._backToLoginButton?.addEventListener("click", this._onBackToLogin);
 
     if (!this._root) {
       return;
@@ -43,13 +44,13 @@ export class SimulationScreen implements Screen {
   }
 
   public leave(): void {
-    this._backToLoginBtn?.removeEventListener("click", this._onBackToLogin);
+    this._backToLoginButton?.removeEventListener("click", this._onBackToLogin);
     this._workspace?.destroy();
   }
 
   public destroy(): void {
     this._workspace = undefined;
-    this._backToLoginBtn = undefined;
+    this._backToLoginButton = undefined;
     this._root = undefined;
   }
 

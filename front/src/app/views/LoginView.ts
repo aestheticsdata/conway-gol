@@ -1,19 +1,19 @@
 import type { AppPath } from "@app/navigation/NavigationAdapter";
 import type { Screen, RouteContext } from "@app/router/Screen";
 import { SIMULATION_ROUTE } from "@app/routes";
+import { createLoginView } from "@app/views/html";
 import { APP_TEXTS } from "@texts";
-import { createLoginMarkup } from "./templates";
 
-export class LoginScreen implements Screen {
+export class LoginView implements Screen {
   private _root?: HTMLElement;
   private _form?: HTMLFormElement;
 
   constructor(private readonly _navigate: (path: AppPath) => Promise<void>) {}
 
   public mount(container: HTMLElement): void {
-    const root = document.createElement("div");
-    root.innerHTML = createLoginMarkup();
-    this._root = root.firstElementChild as HTMLElement;
+    const htmlHost = document.createElement("div");
+    htmlHost.innerHTML = createLoginView();
+    this._root = htmlHost.firstElementChild as HTMLElement;
     container.replaceChildren(this._root);
     this._form = this._root.querySelector<HTMLFormElement>(".auth-form") ?? undefined;
   }
