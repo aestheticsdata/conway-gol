@@ -30,6 +30,7 @@ export default defineConfig(({ mode }) => {
         "@data": resolve(__dirname, "src/data"),
         "@grid": resolve(__dirname, "src/Grid"),
         "@helpers": resolve(__dirname, "src/helpers"),
+        "@infra": resolve(__dirname, "src/infra"),
         "@navigation": resolve(__dirname, "src/app/navigation"),
         "@router": resolve(__dirname, "src/app/router"),
         "@services": resolve(__dirname, "src/services"),

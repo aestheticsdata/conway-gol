@@ -1,24 +1,38 @@
-import { getRequestURL } from "@helpers/api";
 import { URLS } from "@helpers/constants";
-import axios from "axios";
+import { httpClient } from "@infra/http/HttpClient";
+import CritterService from "@services/CritterService";
 
-import type { AxiosResponse } from "axios";
+import type HttpClient from "@infra/http/HttpClient";
+
+type CustomDrawingPayload = {
+  comments: string[];
+  automata: number[][];
+};
 
 class UserCustomService {
-  public getCustomdrawingList(): Promise<AxiosResponse<string[]>> {
-    return axios.get<string[]>(`${getRequestURL(URLS.critterList)}?subdir=user-custom`);
+  private readonly _http: HttpClient;
+  private readonly _critterService: CritterService;
+
+  constructor(http: HttpClient = httpClient, critterService: CritterService = new CritterService(http)) {
+    this._http = http;
+    this._critterService = critterService;
+  }
+
+  public getCustomDrawingList(): Promise<string[]> {
+    return this._critterService.getCritterList("user-custom");
   }
 
   /**
    * Save a custom drawing to the server.
    * @param data  Full grid state as number[][] (0=DEAD, 1=ALIVE) from Simulation.toGrid().
    */
-  public postCustomDrawing(data: number[][], filename: string): Promise<AxiosResponse> {
-    const o = {
+  public async postCustomDrawing(data: number[][], filename: string): Promise<void> {
+    const payload: CustomDrawingPayload = {
       comments: [""],
       automata: data,
     };
-    return axios.post(`${getRequestURL(URLS.usercustom + filename)}`, o);
+
+    await this._http.post<void, CustomDrawingPayload>(`${URLS.usercustom}${filename}`, payload);
   }
 }
 

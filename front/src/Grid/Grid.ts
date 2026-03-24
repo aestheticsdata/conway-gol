@@ -202,7 +202,7 @@ class Grid {
 
     if (species) {
       const data = new Data();
-      void data.load(species, [0, 0], "custom").then(() => {
+      void data.load(species, [0, 0], true).then(() => {
         this._simulation.seedFromGrid(data.grid);
         this._render();
         this._drawGrid();

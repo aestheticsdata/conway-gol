@@ -17,6 +17,7 @@
       "@data/*": ["src/data/*"],
       "@grid/*": ["src/Grid/*"],
       "@helpers/*": ["src/helpers/*"],
+      "@infra/*": ["src/infra/*"],
       "@navigation/*": ["src/app/navigation/*"],
       "@router/*": ["src/app/router/*"],
       "@services/*": ["src/services/*"],

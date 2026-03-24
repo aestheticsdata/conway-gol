@@ -3,9 +3,8 @@ import { CANVAS_PX_HEIGHT, CANVAS_PX_WIDTH, GRID_COLS, GRID_ROWS } from "@grid/c
 import Grid from "@grid/Grid";
 import { DEFAULT_RANDOM_PRESET, isRandomPresetId } from "@grid/randomPresets";
 import ZoomBox from "@grid/zoom/ZoomBox";
-import { getRequestURL } from "@helpers/api";
-import { URLS } from "@helpers/constants";
 import { getRequiredContext2D, queryAll, queryRequired } from "@helpers/dom";
+import CritterService from "@services/CritterService";
 import { APP_TEXTS } from "@texts";
 import DrawingToolBox from "@ui/controls/drawing/DrawingToolBox";
 import { CONTROL_TEXTS } from "@ui/controls/drawing/texts";
@@ -15,7 +14,6 @@ import RandomControlsPanel from "@ui/controls/simulation/RandomControlsPanel";
 import ZooSelector from "@ui/controls/simulation/ZooSelector";
 import AliveCountChart from "@ui/controls/telemetry/AliveCountChart";
 import AliveVariationChart from "@ui/controls/telemetry/AliveVariationChart";
-import axios from "axios";
 
 import type { WorkspaceRoute } from "@app/routes";
 import type { RandomPresetId } from "@grid/randomPresets";
@@ -41,6 +39,7 @@ export class SimulationWorkspace {
   private readonly _deadCellsCounter: HTMLElement;
   private readonly _aliveVariationChart: AliveVariationChart;
   private readonly _aliveCountChart: AliveCountChart;
+  private readonly _critterService = new CritterService();
   private readonly _pauseBtn: HTMLButtonElement;
   private readonly _speedSlider: HTMLInputElement;
   private readonly _speedValue: HTMLElement;
@@ -343,7 +342,7 @@ export class SimulationWorkspace {
     }
 
     try {
-      this._critterList = (await axios.get<string[]>(`${getRequestURL(URLS.critterList)}`)).data;
+      this._critterList = await this._critterService.getCritterList();
       return this._critterList;
     } catch (err) {
       console.error(err);

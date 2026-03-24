@@ -1,19 +1,12 @@
 import { CELL_STATE } from "@cell/constants";
 import { CELL_SIZE, GRID, GRID_COLS, GRID_ROWS } from "@grid/constants";
-import { getRequestURL } from "@helpers/api";
-import { URLS } from "@helpers/constants";
-import axios from "axios";
+import PatternService from "@services/PatternService";
 import { species } from "./species/species";
 import { DATA_TEXTS } from "./texts";
 
 type PatternContent = {
   position?: number[];
   content: number[][];
-};
-
-type RemotePattern = {
-  automata: number[][];
-  comments: string[];
 };
 
 /**
@@ -30,14 +23,13 @@ class Data {
   /** Full-grid state: number[GRID_ROWS][GRID_COLS], values 0 or 1. */
   public grid: number[][] = [];
   public comments: string[] = [];
+  private readonly _patternService = new PatternService();
 
-  private async _makeEntity(entity: string, startIndex: number[], custom?: string): Promise<void> {
+  private async _makeEntity(entity: string, startIndex: number[], custom = false): Promise<void> {
     let pattern: PatternContent | null = null;
-    const url = custom ? `${URLS.pattern}${entity}-custom` : `${URLS.pattern}${entity}`;
 
     try {
-      const critter = (await axios.get<RemotePattern | string>(`${getRequestURL(url)}`)).data;
-      const critterParsed: RemotePattern = typeof critter === "string" ? JSON.parse(critter) : critter;
+      const critterParsed = await this._patternService.getPattern(entity, custom);
 
       // Center the pattern on the grid
       const position = [
@@ -78,9 +70,9 @@ class Data {
    *
    * @param entity     Pattern name (maps to a .hxf file on the server).
    * @param startIndex Fallback offset [row, col] if the pattern has no position.
-   * @param custom     Pass "custom" to look in the user-custom subdirectory.
+   * @param custom     Set to true to load the user-custom variant from the server.
    */
-  public async load(entity: string, startIndex: number[], custom?: string): Promise<void> {
+  public async load(entity: string, startIndex: number[], custom = false): Promise<void> {
     // Build a blank grid first, then overlay the pattern cells.
     this.grid = Array.from({ length: GRID_ROWS }, () => new Array(GRID_COLS).fill(CELL_STATE.DEAD));
     await this._makeEntity(entity, startIndex, custom);

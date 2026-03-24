@@ -73,8 +73,7 @@ class UserCustomSelector {
   };
 
   public getCustomList = async (): Promise<void> => {
-    const { data } = await this._userCustomService.getCustomdrawingList();
-    this._userCustomList = data;
+    this._userCustomList = await this._userCustomService.getCustomDrawingList();
     this._createSelectButton();
   };
 
