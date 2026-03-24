@@ -1,0 +1,41 @@
+@media (max-width: 1520px) {
+  :root {
+    --workspace-left-pane-width: 300px;
+    --workspace-right-pane-width: 336px;
+  }
+
+  .container {
+    padding-inline: 24px;
+    gap: 18px;
+  }
+}
+
+@media (max-width: 1260px) {
+  .container {
+    flex-direction: column;
+    align-items: center;
+    padding-top: 72px;
+    gap: 24px;
+  }
+
+  .left-pane,
+  .right-pane {
+    width: min(100%, 1080px);
+    padding-top: 0;
+    flex: 0 1 auto;
+  }
+
+  .canvas-wrapper {
+    width: 100%;
+    padding-top: 0;
+    justify-content: center;
+  }
+
+  .canvas-stack {
+    margin-inline: auto;
+  }
+
+  .right-pane {
+    padding-top: 0;
+  }
+}

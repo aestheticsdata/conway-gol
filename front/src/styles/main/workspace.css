@@ -1,0 +1,130 @@
+.workspace-login-link {
+  position: absolute;
+  top: 18px;
+  right: 36px;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-width: 0;
+  height: 46px;
+  padding: 0 22px;
+  margin: 0;
+  line-height: 1;
+  text-align: center;
+  border-radius: var(--radius);
+}
+
+.container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 22px 36px 24px;
+  gap: 28px;
+}
+
+.right-pane {
+  width: var(--workspace-right-pane-width);
+  flex: 0 0 var(--workspace-right-pane-width);
+  display: flex;
+  flex-direction: column;
+  margin-left: 0;
+  padding-top: var(--workspace-top-offset);
+}
+
+.right-pane .custom-drawing-files button:focus {
+  outline: 0;
+}
+
+.right-pane .user-select-container {
+  margin: 10px 0;
+}
+
+.right-pane .custom-cursor {
+  position: absolute;
+}
+
+.left-pane {
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  width: var(--workspace-left-pane-width);
+  flex: 0 0 var(--workspace-left-pane-width);
+  padding: 28px 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(20px);
+}
+
+.pane-section {
+  width: 100%;
+}
+
+.pane-section--mode {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.pane-section-label {
+  font-size: 12px;
+  line-height: 1;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.pane-section--separated {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.canvas-wrapper {
+  height: auto;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: var(--workspace-top-offset);
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
+.canvas-stack {
+  position: relative;
+  flex: 0 0 auto;
+  width: max-content;
+  height: max-content;
+  margin-inline: auto;
+}
+
+#canvasID {
+  display: block;
+  position: relative;
+  top: 0;
+  background: transparent;
+  border-radius: var(--radius);
+  clip-path: inset(0 round var(--radius));
+}
+
+#canvas-drawing {
+  display: none;
+  cursor: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 120;
+  background: transparent;
+  border-radius: var(--radius);
+  clip-path: inset(0 round var(--radius));
+}
