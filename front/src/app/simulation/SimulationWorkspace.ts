@@ -150,6 +150,7 @@ export class SimulationWorkspace {
     this._stop();
     this._isPlaying = false;
     this._grid?.destroyListener();
+    this._randomControls.destroy();
     document.removeEventListener("pointerdown", this._handleDocumentPointerDown);
     document.removeEventListener("keydown", this._handleDocumentKeyDown);
   }

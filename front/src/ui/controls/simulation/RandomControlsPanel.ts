@@ -7,6 +7,7 @@ import {
 import type { NoiseType } from "@grid/seeding/RandomPresetSeeder";
 import { queryRequired } from "@helpers/dom";
 import { APP_TEXTS } from "@texts";
+import Tooltip from "@ui/lib/Tooltip";
 import NoiseTypeSelector from "./NoiseTypeSelector";
 
 type RandomControlsPanelOptions = {
@@ -30,8 +31,10 @@ class RandomControlsPanel {
   private readonly _randomDensitySlider: HTMLInputElement;
   private readonly _randomDensityValue: HTMLSpanElement;
   private readonly _randomSeedSlider: HTMLInputElement;
+  private readonly _randomSeedSliderTooltipTarget: HTMLSpanElement;
   private readonly _randomSeedValue: HTMLSpanElement;
   private readonly _randomSeedAuto: HTMLInputElement;
+  private readonly _seedDisabledTooltip: Tooltip;
   private readonly _noiseTypeSelector: NoiseTypeSelector;
 
   constructor(options: RandomControlsPanelOptions) {
@@ -48,8 +51,10 @@ class RandomControlsPanel {
     this._randomDensitySlider = queryRequired<HTMLInputElement>("#random-density", this.element);
     this._randomDensityValue = queryRequired<HTMLSpanElement>("#random-density-value", this.element);
     this._randomSeedSlider = queryRequired<HTMLInputElement>("#random-seed", this.element);
+    this._randomSeedSliderTooltipTarget = queryRequired<HTMLSpanElement>(".random-seed-slider__tooltip-target", this.element);
     this._randomSeedValue = queryRequired<HTMLSpanElement>("#random-seed-value", this.element);
     this._randomSeedAuto = queryRequired<HTMLInputElement>("#random-seed-auto", this.element);
+    this._seedDisabledTooltip = new Tooltip();
     this._noiseTypeSelector = new NoiseTypeSelector(() => {
       this._onParamsChange();
     }, this.element);
@@ -65,6 +70,10 @@ class RandomControlsPanel {
     this._randomDensitySlider.addEventListener("input", this._handleDensityInput);
     this._randomSeedSlider.addEventListener("input", this._handleSeedInput);
     this._randomSeedAuto.addEventListener("change", this._handleAutoSeedChange);
+    this._randomSeedSliderTooltipTarget.addEventListener("pointerenter", this._handleSeedTooltipPointerEnter);
+    this._randomSeedSliderTooltipTarget.addEventListener("pointermove", this._handleSeedTooltipPointerMove);
+    this._randomSeedSliderTooltipTarget.addEventListener("pointerleave", this._hideSeedTooltip);
+    this._randomSeedSliderTooltipTarget.addEventListener("pointercancel", this._hideSeedTooltip);
   }
 
   public show(): void {
@@ -73,6 +82,21 @@ class RandomControlsPanel {
 
   public hide(): void {
     this.element.style.display = "none";
+    this._seedDisabledTooltip.hide();
+  }
+
+  public destroy(): void {
+    this._randomPresetTrigger.removeEventListener("click", this._togglePresetMenu);
+    this._randomPresetSelect.removeEventListener("change", this._handlePresetChange);
+    this._randomGenerateBtn.removeEventListener("click", this._onGenerate);
+    this._randomDensitySlider.removeEventListener("input", this._handleDensityInput);
+    this._randomSeedSlider.removeEventListener("input", this._handleSeedInput);
+    this._randomSeedAuto.removeEventListener("change", this._handleAutoSeedChange);
+    this._randomSeedSliderTooltipTarget.removeEventListener("pointerenter", this._handleSeedTooltipPointerEnter);
+    this._randomSeedSliderTooltipTarget.removeEventListener("pointermove", this._handleSeedTooltipPointerMove);
+    this._randomSeedSliderTooltipTarget.removeEventListener("pointerleave", this._hideSeedTooltip);
+    this._randomSeedSliderTooltipTarget.removeEventListener("pointercancel", this._hideSeedTooltip);
+    this._seedDisabledTooltip.destroy();
   }
 
   public currentPreset(): RandomPresetId {
@@ -213,7 +237,13 @@ class RandomControlsPanel {
   }
 
   private _syncSeedState(): void {
-    this._randomSeedSlider.disabled = this._randomSeedAuto.checked;
+    const isAutoSeedEnabled = this._randomSeedAuto.checked;
+    this._randomSeedSlider.disabled = isAutoSeedEnabled;
+    this._randomSeedSliderTooltipTarget.hidden = !isAutoSeedEnabled;
+    this._randomSeedSlider.removeAttribute("title");
+    if (!isAutoSeedEnabled) {
+      this._seedDisabledTooltip.hide();
+    }
   }
 
   private _handlePresetChange = (): void => {
@@ -238,6 +268,30 @@ class RandomControlsPanel {
     this._syncSeedState();
     this._onParamsChange();
   };
+
+  private _handleSeedTooltipPointerEnter = (event: PointerEvent): void => {
+    this._showSeedTooltip(event);
+  };
+
+  private _handleSeedTooltipPointerMove = (event: PointerEvent): void => {
+    this._showSeedTooltip(event);
+  };
+
+  private _hideSeedTooltip = (): void => {
+    this._seedDisabledTooltip.hide();
+  };
+
+  private _showSeedTooltip(event: PointerEvent): void {
+    if (event.pointerType === "touch" || !this._randomSeedAuto.checked) {
+      this._seedDisabledTooltip.hide();
+      return;
+    }
+
+    this._seedDisabledTooltip.show(APP_TEXTS.random.seedSliderDisabledHint, {
+      clientX: event.clientX,
+      clientY: event.clientY,
+    });
+  }
 }
 
 export default RandomControlsPanel;

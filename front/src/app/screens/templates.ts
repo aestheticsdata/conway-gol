@@ -229,7 +229,10 @@ export function createWorkspaceMarkup(route: WorkspaceRoute): string {
                   <span id="random-seed-label"></span>
                   <span id="random-seed-value"></span>
                 </label>
-                <input type="range" id="random-seed" min="0" max="9999999" value="0" step="1">
+                <div class="random-seed-slider">
+                  <input type="range" id="random-seed" min="0" max="9999999" value="0" step="1">
+                  <span class="random-seed-slider__tooltip-target" aria-hidden="true" hidden></span>
+                </div>
                 <label class="random-seed-random">
                   <input type="checkbox" id="random-seed-auto" checked>
                   <span id="random-seed-auto-label"></span>

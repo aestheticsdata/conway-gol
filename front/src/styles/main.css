@@ -906,6 +906,56 @@ body {
   margin-top: 3px;
 }
 
+.random-seed-slider {
+  position: relative;
+}
+
+.random-seed-slider__tooltip-target {
+  position: absolute;
+  inset: 0;
+  cursor: not-allowed;
+}
+
+.ui-tooltip {
+  --tooltip-x: 0px;
+  --tooltip-y: 0px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 200;
+  max-width: min(280px, calc(100vw - 24px));
+  padding: 9px 12px;
+  border: 1px solid var(--field-border-strong);
+  border-radius: calc(var(--radius) + 4px);
+  background:
+    linear-gradient(180deg, rgba(21, 36, 58, 0.96), rgba(8, 15, 28, 0.96)),
+    radial-gradient(circle at top left, rgba(37, 219, 255, 0.16), transparent 58%);
+  box-shadow:
+    0 0 0 1px rgba(37, 219, 255, 0.08),
+    0 18px 42px rgba(0, 0, 0, 0.42),
+    0 0 24px rgba(37, 219, 255, 0.1);
+  color: var(--text-main);
+  font-size: 12px;
+  line-height: 1.45;
+  letter-spacing: 0.01em;
+  backdrop-filter: blur(16px);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform, opacity;
+  transform: translate3d(var(--tooltip-x), var(--tooltip-y), 0) scale(0.97);
+  transition:
+    opacity 120ms ease,
+    visibility 120ms ease,
+    transform 120ms ease;
+}
+
+.ui-tooltip.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translate3d(var(--tooltip-x), var(--tooltip-y), 0) scale(1);
+}
+
 .random-seed-random input[type="checkbox"] {
   cursor: pointer;
   accent-color: var(--accent);
