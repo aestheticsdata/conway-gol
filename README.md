@@ -10,6 +10,7 @@ A full-stack implementation of [Conway's Game of Life](https://en.wikipedia.org/
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
 - [Architecture](#architecture)
+- [Frontend Design System](#frontend-design-system)
 - [Frontend Code Map](#frontend-code-map)
 - [Running Locally](#running-locally)
 - [Deployment](#deployment)
@@ -19,11 +20,17 @@ A full-stack implementation of [Conway's Game of Life](https://en.wikipedia.org/
 
 ## Features
 
+- Client-side app shell with real routes: `/login`, `/simulation`, `/zoo`, `/drawing`
+- Navigation API based router behind a framework-agnostic adapter and screen abstraction
+- Login screen used as a fake auth entry point for the future connected-user flow
 - Random mode with named presets, three generation controls (density, noise type, seed), and a `Generate` action for a new variation
 - Zoo mode with 1,400+ catalog patterns
 - Drawing mode with save/load for custom patterns
 - Zoom view around the cursor
 - Left-side playback telemetry with iteration count, live/dead cell counts, a real-time alive-cell variation graph, and a real-time absolute alive-cell graph
+- Tokens-based visual system for colors, radius, spacing, form fields, telemetry, and canvas rendering
+- Custom-styled random-preset dropdown consistent with the app visual language
+- Inline SVG mode icons stored in shared assets
 - Adjustable FPS from 0 to 60 via slider
 - Toroidal grid with wraparound edges
 
@@ -59,6 +66,16 @@ conway-gol/
 │   ├── src/
 │   │   ├── index.ts
 │   │   ├── index.html
+│   │   ├── app/
+│   │   │   ├── navigation/
+│   │   │   ├── router/
+│   │   │   ├── screens/
+│   │   │   ├── simulation/
+│   │   │   └── routes.ts
+│   │   ├── assets/
+│   │   │   ├── icons/
+│   │   │   ├── pencil/
+│   │   │   └── eraser/
 │   │   ├── Cell/
 │   │   │   └── constants.ts
 │   │   ├── Grid/
@@ -66,6 +83,7 @@ conway-gol/
 │   │   │   ├── Simulation.ts
 │   │   │   ├── constants.ts
 │   │   │   ├── randomPresets.ts
+│   │   │   ├── texts.ts
 │   │   │   ├── seeding/
 │   │   │   │   └── RandomPresetSeeder.ts
 │   │   │   └── zoom/
@@ -76,21 +94,28 @@ conway-gol/
 │   │   │   ├── DrawingToolBox.ts
 │   │   │   ├── ModeSelector.ts
 │   │   │   ├── PositiveSeriesChart.ts
-│   │   │   ├── UserCustomSelector.ts
 │   │   │   ├── SignedSeriesChart.ts
-│   │   │   ├── constants.ts
-│   │   │   └── ZooSelector.ts
+│   │   │   ├── telemetryTheme.ts
+│   │   │   ├── UserCustomSelector.ts
+│   │   │   ├── ZooSelector.ts
+│   │   │   └── texts.ts
 │   │   ├── data/
 │   │   │   ├── Data.ts
 │   │   │   └── species/
+│   │   │       └── species.ts
 │   │   ├── helpers/
-│   │   │   ├── api.ts
+│   │   │   ├── Helpers.ts
 │   │   │   ├── canvas.ts
+│   │   │   ├── api.ts
 │   │   │   ├── constants.ts
 │   │   │   └── dom.ts
 │   │   ├── services/
 │   │   │   └── UserCustomService.ts
-│   │   └── styles/
+│   │   ├── styles/
+│   │   │   ├── main.css
+│   │   │   ├── reset.css
+│   │   │   └── tokens.css
+│   │   └── texts.ts
 │   ├── tsconfig.json
 │   ├── vite.config.ts
 │   └── package.json
@@ -103,18 +128,29 @@ conway-gol/
 
 ### Frontend
 
-The frontend is split between orchestration, simulation, rendering, and DOM-facing controls.
+The frontend is now split between routing, screen composition, simulation orchestration, rendering, and DOM-facing controls.
 
-#### Entry point and app wiring
+#### Entry point, routing, and screens
 
-`Main` in `front/src/index.ts` is the composition root. It:
+`front/src/index.ts` is the composition root. It:
 
-- resolves required DOM nodes and canvas contexts up front
-- owns the animation loop and FPS control
-- switches between `random`, `zoo`, and `drawing` modes
-- shows or hides mode-specific UI blocks
-- instantiates `Grid` with typed mode-specific options instead of a long positional constructor
-- populates the random preset selector from shared preset metadata
+- creates the app router
+- wires a `NavigationApiAdapter` behind a framework-agnostic `NavigationAdapter` interface
+- registers concrete screens for `/login`, `/simulation`, `/zoo`, and `/drawing`
+- normalizes the Vite base path so the app can run under `/conway-gol/`
+
+`AppRouter` in `front/src/app/router/AppRouter.ts` owns route resolution and screen lifecycle:
+
+- mount the active screen into `#app`
+- call `enter()` / `leave()` / `destroy()` consistently
+- redirect `/` and unknown paths to the fallback route
+
+`NavigationApiAdapter` in `front/src/app/navigation/NavigationApiAdapter.ts` wraps the browser Navigation API while keeping the rest of the app decoupled from browser-specific details.
+
+The screen layer is intentionally small:
+
+- `LoginScreen.ts` renders the fake-auth entry route
+- `SimulationScreen.ts` renders the shared workspace shell for random, zoo, and drawing routes
 
 #### Simulation and seeding
 
@@ -159,6 +195,14 @@ Mode-specific initialization is split into private methods:
 
 This keeps Conway logic out of the renderer and keeps DOM event handling out of `Simulation`.
 
+`SimulationWorkspace` in `front/src/app/simulation/SimulationWorkspace.ts` is the workspace orchestrator. It sits above `Grid` and owns:
+
+- the shell DOM for left pane, canvas area, and right pane
+- mode-specific UI visibility
+- telemetry counters and charts
+- random preset controls and the custom dropdown
+- route-to-mode synchronization between `/simulation`, `/zoo`, and `/drawing`
+
 #### UI helpers and data access
 
 `front/src/controls/` contains DOM-facing UI components:
@@ -169,6 +213,7 @@ This keeps Conway logic out of the renderer and keeps DOM event handling out of 
 - `DrawingToolBox.ts`: pencil/eraser selection
 - `ZooSelector.ts`: pattern selection in zoo mode
 - `UserCustomSelector.ts`: save/load of custom drawings
+- `telemetryTheme.ts`: reads CSS design tokens and provides the shared telemetry chart drawing theme
 
 The telemetry charts share reusable renderers:
 
@@ -186,6 +231,8 @@ The telemetry charts share reusable renderers:
 `front/src/helpers/api.ts` exposes `getRequestURL()`, which constructs absolute API URLs from the shared `API_BASE_PATH` constant in `helpers/constants.ts`.
 
 `front/src/helpers/canvas.ts` exposes `drawGrid()`, a standalone canvas utility used by both `Grid` and `ZoomBox`.
+
+`front/src/assets/icons/` contains the shared inline SVG mode icons used by the workspace shell.
 
 ### API
 
@@ -205,30 +252,95 @@ The frontend always calls the same-origin API prefix `/conway-gol/api`.
 
 In local development, Vite proxies that prefix to `http://localhost:6300`, so frontend code does not need separate dev vs prod URLs.
 
+## Frontend Design System
+
+The current UI refactor introduces a lightweight design system intended to make visual iteration fast without tying the app to a framework or component library.
+
+### Source of truth
+
+The main design tokens live in `front/src/styles/tokens.css`.
+
+This file centralizes:
+
+- shared surfaces and text colors
+- accent colors
+- one global radius token
+- left/right pane layout widths
+- canvas rendering colors
+- telemetry chart colors
+- field and dropdown styling tokens
+
+`front/src/styles/main.css` consumes those tokens for layout and component styling.
+
+For canvas-based telemetry, `front/src/controls/telemetryTheme.ts` reads the CSS tokens at runtime and converts them into a JS theme object. This keeps the DOM/CSS layer and the canvas rendering layer visually aligned.
+
+### Visual principles
+
+The design system currently follows these rules:
+
+- dark base surfaces with cyan/blue accents
+- a single radius token for geometric consistency
+- muted secondary text and bright numeric accents
+- glass-like panels used sparingly on structural panes and charts
+- no default browser blue on custom interactive controls
+- Conway canvas remains readable first; decorative effects should never compete with the grid
+
+### Token groups
+
+Important token groups in `tokens.css`:
+
+| Group | Purpose |
+|---|---|
+| `--bg-*`, `--text-*`, `--accent*` | Core shell colors |
+| `--radius` | Global corner radius used across panes, buttons, fields, charts, and canvas |
+| `--workspace-*` | Shell layout widths and top offset |
+| `--canvas-*` | Grid line, cell, preview, and zoom rendering colors |
+| `--telemetry-*` | Chart surfaces, axes, lines, markers, and positive/negative state colors |
+| `--field-*` | Input and custom dropdown surfaces, borders, highlights, and hover glow |
+
+### Current custom components
+
+The current visual system includes a few custom controls that are intentionally styled outside the browser defaults:
+
+- mode selector buttons with inline SVG icons from `front/src/assets/icons/`
+- telemetry charts drawn directly on canvas with a shared theme
+- custom random preset dropdown in the right pane
+- gradient CTA buttons with alternate hover/active states
+
+When extending the UI, prefer adding or reusing tokens before introducing one-off colors, radii, or shadows directly in component CSS.
+
 ## Frontend Code Map
 
 Main dependency direction in the frontend:
 
 ```text
-Main (index.ts)
-  ├── Grid
-  │   ├── Simulation
-  │   │   └── IRandomPresetSeeder -> RandomPresetSeeder
-  │   ├── Data
-  │   └── ZoomBox (drawing mode only)
-  ├── ModeSelector
-  ├── DrawingToolBox
-  ├── ZooSelector
-  └── UserCustomSelector -> UserCustomService
+index.ts
+  ├── NavigationApiAdapter
+  ├── AppRouter
+  │   ├── LoginScreen
+  │   └── SimulationScreen
+  │       └── SimulationWorkspace
+  │           ├── Grid
+  │           │   ├── Simulation
+  │           │   │   └── IRandomPresetSeeder -> RandomPresetSeeder
+  │           │   ├── Data
+  │           │   └── ZoomBox (drawing mode only)
+  │           ├── ModeSelector
+  │           ├── AliveVariationChart -> SignedSeriesChart -> telemetryTheme
+  │           ├── AliveCountChart -> PositiveSeriesChart -> telemetryTheme
+  │           ├── DrawingToolBox
+  │           ├── ZooSelector
+  │           └── UserCustomSelector -> UserCustomService
 ```
 
 Design rules used by the current frontend:
 
 - `Simulation` and random seeding stay free of DOM and canvas logic.
 - `Grid` reads simulation state and handles canvas interaction, but does not implement Conway rules.
-- `Main` orchestrates mode transitions and shared UI state, but does not manipulate cell state directly.
+- `SimulationWorkspace` orchestrates the shell, mode-specific controls, and route-aware workspace state, but does not implement Conway rules itself.
+- `AppRouter` owns screen lifecycle and browser path changes, not screen business logic.
 - Required DOM access should go through `front/src/helpers/dom.ts`.
-- Data loading (`Data`) does not touch the DOM. Pattern comments are returned to the caller via `Data.comments` and rendered by `Main._renderComments()`.
+- Data loading (`Data`) does not touch the DOM. Pattern comments are returned to the caller via `Data.comments` and rendered by `SimulationWorkspace._renderComments()`.
 - Cross-module imports use path aliases (`@cell`, `@controls`, `@data`, `@grid`, `@helpers`, `@services`). Intra-module imports (same folder or immediate subfolder) use relative `./` paths.
 
 ## Running Locally

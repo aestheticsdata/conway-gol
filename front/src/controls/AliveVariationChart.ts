@@ -1,5 +1,5 @@
 import SignedSeriesChart from "@controls/SignedSeriesChart";
-import { ALIVE_VARIATION_CHART_COLORS } from "@controls/constants";
+import { getTelemetryTheme } from "@controls/telemetryTheme";
 
 const MAX_HISTORY_POINTS = 1024;
 
@@ -20,9 +20,10 @@ class AliveVariationChart {
   private _lastAliveCount: number | null = null;
 
   constructor(rawCanvas: HTMLCanvasElement) {
+    const theme = getTelemetryTheme();
     this._rawChart = new SignedSeriesChart({
       canvas: rawCanvas,
-      lineColor: ALIVE_VARIATION_CHART_COLORS.line,
+      lineColor: theme.line,
     });
   }
 

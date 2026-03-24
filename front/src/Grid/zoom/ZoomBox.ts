@@ -1,5 +1,14 @@
 import { drawGrid } from "@helpers/canvas";
-import { GRID, CELL_COLORS, CELL_SIZE, ZOOM_CANVAS_PX, ZOOM_CENTER, ZOOM_LEVEL, ZOOM_SIZE } from "@grid/constants";
+import {
+  CELL_SIZE,
+  ZOOM_CANVAS_PX,
+  ZOOM_CENTER,
+  ZOOM_LEVEL,
+  ZOOM_SIZE,
+  getCanvasCellColors,
+  getCanvasTheme,
+  type CanvasTheme,
+} from "@grid/constants";
 import { CELL_STATE } from "@cell/constants";
 import type { DrawingMode } from "@controls/DrawingToolBox";
 import { getRequiredContext2D, queryRequired } from "@helpers/dom";
@@ -28,6 +37,8 @@ class ZoomBox {
   private readonly _zoomContext: CanvasRenderingContext2D;
   private readonly _xPosDisplay: HTMLElement;
   private readonly _yPosDisplay: HTMLElement;
+  private readonly _theme: CanvasTheme;
+  private readonly _cellColors: readonly string[];
 
   constructor() {
     queryRequired<HTMLElement>(".zoombox-container").insertAdjacentHTML("afterbegin", this._html);
@@ -36,6 +47,8 @@ class ZoomBox {
     this._zoomCanvas.width = ZOOM_CANVAS_PX;
     this._zoomCanvas.height = ZOOM_CANVAS_PX;
     this._zoomContext = getRequiredContext2D(this._zoomCanvas);
+    this._theme = getCanvasTheme();
+    this._cellColors = getCanvasCellColors(this._theme);
     this._renderBlank();
     this._xPosDisplay = queryRequired<HTMLElement>('.x-pos', this._zoombox);
     this._yPosDisplay = queryRequired<HTMLElement>('.y-pos', this._zoombox);
@@ -76,10 +89,11 @@ class ZoomBox {
     if (area[0][0] === CELL_STATE.OUTSIDE) return;
 
     const cellPx = CELL_SIZE * ZOOM_LEVEL;
+    this._zoomContext.clearRect(0, 0, this._zoomCanvas.width, this._zoomCanvas.height);
 
     for (let row = 0; row < ZOOM_SIZE; row++) {
       for (let col = 0; col < ZOOM_SIZE; col++) {
-        this._zoomContext.fillStyle = CELL_COLORS[area[row][col]];
+        this._zoomContext.fillStyle = this._cellColors[area[row][col]];
         this._zoomContext.fillRect(
           col * cellPx + 1,
           row * cellPx + 1,
@@ -93,9 +107,11 @@ class ZoomBox {
     const cx = ZOOM_CENTER.x;
     const cy = ZOOM_CENTER.y;
     this._zoomContext.fillStyle =
-      drawingMode === "pencil" ? CELL_COLORS[CELL_STATE.ALIVE] : CELL_COLORS[CELL_STATE.DEAD];
+      drawingMode === "pencil"
+        ? this._theme.aliveCellColor
+        : this._theme.previewEraseCellColor;
     this._zoomContext.fillRect(cx * cellPx + 1, cy * cellPx + 1, cellPx - 1, cellPx - 1);
-    this._zoomContext.strokeStyle = 'rgba(255,204,0,1)';
+    this._zoomContext.strokeStyle = this._theme.zoomHighlightStrokeColor;
     this._zoomContext.strokeRect(cx * cellPx, cy * cellPx, cellPx + 1, cellPx + 1);
 
     this._drawGrid(this._zoomContext);
@@ -103,13 +119,12 @@ class ZoomBox {
 
   /** Fill the zoom canvas with DEAD color on first render. */
   private _renderBlank(): void {
-    this._zoomContext.fillStyle = CELL_COLORS[CELL_STATE.DEAD];
-    this._zoomContext.fillRect(0, 0, this._zoomCanvas.width, this._zoomCanvas.height);
+    this._zoomContext.clearRect(0, 0, this._zoomCanvas.width, this._zoomCanvas.height);
     this._drawGrid(this._zoomContext);
   }
 
   private _drawGrid(ctx: CanvasRenderingContext2D): void {
-    drawGrid(ctx, this._zoomCanvas, ZOOM_LEVEL, GRID.COLORZOOM);
+    drawGrid(ctx, this._zoomCanvas, ZOOM_LEVEL, this._theme.zoomGridColor);
   }
 }
 

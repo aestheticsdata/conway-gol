@@ -1,5 +1,5 @@
 import PositiveSeriesChart from "@controls/PositiveSeriesChart";
-import { ALIVE_COUNT_CHART_COLORS } from "@controls/constants";
+import { getTelemetryTheme } from "@controls/telemetryTheme";
 
 const MAX_HISTORY_POINTS = 1024;
 
@@ -11,10 +11,11 @@ class AliveCountChart {
   private _history: number[] = [];
 
   constructor(canvas: HTMLCanvasElement) {
+    const theme = getTelemetryTheme();
     this._chart = new PositiveSeriesChart({
       canvas,
-      lineColor: ALIVE_COUNT_CHART_COLORS.line,
-      markerColor: ALIVE_COUNT_CHART_COLORS.marker,
+      lineColor: theme.line,
+      markerColor: theme.marker,
     });
   }
 

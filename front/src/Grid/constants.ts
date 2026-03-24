@@ -1,13 +1,91 @@
 // ── Grid rendering ─────────────────────────────────────────────────────────────
 export const GRID = {
-  // Grid line color. Alpha=0 keeps lines invisible on the main canvas.
-  // See: https://stackoverflow.com/questions/33723384/how-to-reset-transparency-when-drawing-overlapping-content-on-html-canvas
-  COLOR: 'rgba(5,36,103,0)',
-  COLORZOOM: 'rgb(175,175,175)',
   SIZE: {
     X: 780,
     Y: 780,
   },
+} as const;
+
+export type CanvasTheme = {
+  gridColor: string;
+  zoomGridColor: string;
+  aliveCellColor: string;
+  deadCellColor: string;
+  borderCellColor: string;
+  outsideCellColor: string;
+  previewAliveCellColor: string;
+  previewEraseCellColor: string;
+  zoomHighlightStrokeColor: string;
+};
+
+export const DEFAULT_CANVAS_THEME: CanvasTheme = {
+  gridColor: "rgb(204, 204, 204)",
+  zoomGridColor: "rgb(175, 175, 175)",
+  aliveCellColor: "rgb(112, 186, 223)",
+  deadCellColor: "transparent",
+  borderCellColor: "rgb(204, 204, 204)",
+  outsideCellColor: "transparent",
+  previewAliveCellColor: "rgba(112, 186, 223, 0.75)",
+  previewEraseCellColor: "rgba(204, 204, 204, 0.35)",
+  zoomHighlightStrokeColor: "rgba(255,204,0,1)",
+};
+
+function readCssColorVariable(
+  styles: CSSStyleDeclaration,
+  variableName: string,
+  fallback: string,
+): string {
+  return styles.getPropertyValue(variableName).trim() || fallback;
+}
+
+export function getCanvasTheme(): CanvasTheme {
+  if (typeof window === "undefined") {
+    return DEFAULT_CANVAS_THEME;
+  }
+
+  const styles = window.getComputedStyle(document.documentElement);
+
+  return {
+    gridColor: readCssColorVariable(styles, "--canvas-grid-color", DEFAULT_CANVAS_THEME.gridColor),
+    zoomGridColor: readCssColorVariable(styles, "--canvas-zoom-grid-color", DEFAULT_CANVAS_THEME.zoomGridColor),
+    aliveCellColor: readCssColorVariable(styles, "--canvas-cell-alive-color", DEFAULT_CANVAS_THEME.aliveCellColor),
+    deadCellColor: readCssColorVariable(styles, "--canvas-cell-dead-color", DEFAULT_CANVAS_THEME.deadCellColor),
+    borderCellColor: readCssColorVariable(styles, "--canvas-cell-border-color", DEFAULT_CANVAS_THEME.borderCellColor),
+    outsideCellColor: readCssColorVariable(styles, "--canvas-cell-outside-color", DEFAULT_CANVAS_THEME.outsideCellColor),
+    previewAliveCellColor: readCssColorVariable(
+      styles,
+      "--canvas-preview-alive-color",
+      DEFAULT_CANVAS_THEME.previewAliveCellColor,
+    ),
+    previewEraseCellColor: readCssColorVariable(
+      styles,
+      "--canvas-preview-erase-color",
+      DEFAULT_CANVAS_THEME.previewEraseCellColor,
+    ),
+    zoomHighlightStrokeColor: readCssColorVariable(
+      styles,
+      "--canvas-zoom-highlight-stroke-color",
+      DEFAULT_CANVAS_THEME.zoomHighlightStrokeColor,
+    ),
+  };
+}
+
+export function getCanvasCellColors(theme: CanvasTheme): readonly string[] {
+  return [
+    theme.deadCellColor,
+    theme.aliveCellColor,
+    theme.borderCellColor,
+    theme.outsideCellColor,
+  ] as const;
+}
+
+export function getCanvasPreviewCellColors(theme: CanvasTheme): readonly string[] {
+  return [
+    theme.previewEraseCellColor,
+    theme.previewAliveCellColor,
+    theme.borderCellColor,
+    theme.outsideCellColor,
+  ] as const;
 }
 
 // ── Cell geometry ──────────────────────────────────────────────────────────────
@@ -17,6 +95,10 @@ export const CELL_SIZE = 5;
 /** Number of columns (and rows) in the main grid. */
 export const GRID_COLS = GRID.SIZE.X / CELL_SIZE; // 156
 export const GRID_ROWS = GRID.SIZE.Y / CELL_SIZE; // 156
+
+/** Physical canvas size in pixels, including the extra outer border line. */
+export const CANVAS_PX_WIDTH = GRID_COLS * CELL_SIZE + 1;
+export const CANVAS_PX_HEIGHT = GRID_ROWS * CELL_SIZE + 1;
 
 /** Fraction of cells seeded as ALIVE on random initialisation (~18%). */
 export const INITIAL_DENSITY = 0.18;
@@ -36,18 +118,3 @@ export const ZOOM_CANVAS_PX = 140;
 
 /** Grid coordinates of the center cell inside the zoom area. */
 export const ZOOM_CENTER = { x: ZOOM_RADIUS, y: ZOOM_RADIUS };
-
-// ── Color lookup ───────────────────────────────────────────────────────────────
-/**
- * Maps a cell state integer to its CSS color string.
- * Index matches CELL_STATE values: 0=DEAD, 1=ALIVE, 2=BORDER, 3=OUTSIDE.
- *
- * Centralised here so colors are defined once and the renderer never
- * needs to instantiate Cell objects or run a switch statement.
- */
-export const CELL_COLORS: readonly string[] = [
-  'rgb(255, 255, 255)', // 0 — DEAD
-  'rgb(0,105,159)',     // 1 — ALIVE
-  'rgb(204, 204, 204)', // 2 — BORDER (ZoomBox only)
-  'rgb(255, 255, 255)', // 3 — OUTSIDE (same as DEAD, ZoomBox only)
-];

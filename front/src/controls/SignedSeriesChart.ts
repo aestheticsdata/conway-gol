@@ -1,5 +1,8 @@
 import { getRequiredContext2D } from "@helpers/dom";
-import { ALIVE_VARIATION_CHART_COLORS, TELEMETRY_CHART_COLORS } from "@controls/constants";
+import {
+  drawTelemetrySurface,
+  getTelemetryTheme,
+} from "@controls/telemetryTheme";
 
 const SCALE_RELAXATION = 0.12;
 
@@ -88,12 +91,11 @@ class SignedSeriesChart {
     const plotWidth = Math.max(1, plotRight - plotLeft);
     const zeroY = plotTop + (plotHeight / 2);
     const graphAmplitude = Math.max(1, (plotHeight / 2) - 3);
+    const theme = getTelemetryTheme();
 
-    this._ctx.clearRect(0, 0, width, height);
-    this._ctx.fillStyle = TELEMETRY_CHART_COLORS.background;
-    this._ctx.fillRect(0, 0, width, height);
+    drawTelemetrySurface(this._ctx, width, height, theme);
 
-    this._ctx.strokeStyle = TELEMETRY_CHART_COLORS.zeroLine;
+    this._ctx.strokeStyle = theme.zeroLine;
     this._ctx.lineWidth = 1;
     this._ctx.setLineDash([3, 3]);
     this._ctx.beginPath();
@@ -102,17 +104,13 @@ class SignedSeriesChart {
     this._ctx.stroke();
     this._ctx.setLineDash([]);
 
-    this._drawScaleLabels(plotTop, zeroY, plotBottom);
+    this._drawScaleLabels(theme, plotTop, zeroY, plotBottom);
 
-    this._ctx.strokeStyle = TELEMETRY_CHART_COLORS.axis;
+    this._ctx.strokeStyle = theme.axis;
     this._ctx.beginPath();
-    this._ctx.moveTo(0.5, 0.5);
-    this._ctx.lineTo(0.5, height - 0.5);
-    this._ctx.lineTo(width - 0.5, height - 0.5);
-    this._ctx.moveTo(0.5, 0.5);
-    this._ctx.lineTo(4.5, 4.5);
-    this._ctx.moveTo(width - 0.5, height - 0.5);
-    this._ctx.lineTo(width - 4.5, height - 4.5);
+    this._ctx.moveTo(plotLeft - 6.5, plotTop);
+    this._ctx.lineTo(plotLeft - 6.5, plotBottom);
+    this._ctx.lineTo(plotRight, plotBottom);
     this._ctx.stroke();
 
     if (this._values.length === 0) {
@@ -132,9 +130,14 @@ class SignedSeriesChart {
     this._drawLatestMarker(points[points.length - 1]);
   }
 
-  private _drawScaleLabels(plotTop: number, zeroY: number, plotBottom: number): void {
-    this._ctx.fillStyle = TELEMETRY_CHART_COLORS.label;
-    this._ctx.font = "10px sans-serif";
+  private _drawScaleLabels(
+    theme: ReturnType<typeof getTelemetryTheme>,
+    plotTop: number,
+    zeroY: number,
+    plotBottom: number,
+  ): void {
+    this._ctx.fillStyle = theme.label;
+    this._ctx.font = "10px 'JetBrains Mono', monospace";
     this._ctx.textAlign = "left";
     this._ctx.textBaseline = "middle";
     this._ctx.fillText("+", 4, plotTop + 4);
@@ -187,13 +190,14 @@ class SignedSeriesChart {
   }
 
   private _colorForDelta(delta: number): string {
+    const theme = getTelemetryTheme();
     if (delta > 0) {
-      return ALIVE_VARIATION_CHART_COLORS.positive;
+      return theme.positive;
     }
     if (delta < 0) {
-      return ALIVE_VARIATION_CHART_COLORS.negative;
+      return theme.negative;
     }
-    return ALIVE_VARIATION_CHART_COLORS.neutral;
+    return theme.neutral;
   }
 }
 

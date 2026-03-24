@@ -24,12 +24,15 @@ export default defineConfig(({ mode }) => {
 
     resolve: {
       alias: {
+        "@app": resolve(__dirname, "src/app"),
+        "@assets": resolve(__dirname, "src/assets"),
         "@cell": resolve(__dirname, "src/Cell"),
         "@controls": resolve(__dirname, "src/controls"),
         "@data": resolve(__dirname, "src/data"),
         "@grid": resolve(__dirname, "src/Grid"),
         "@helpers": resolve(__dirname, "src/helpers"),
         "@services": resolve(__dirname, "src/services"),
+        "@texts": resolve(__dirname, "src/texts.ts"),
       },
     },
 

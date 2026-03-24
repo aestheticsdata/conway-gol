@@ -3,14 +3,17 @@ import { CELL_STATE } from "@cell/constants";
 import DrawingToolBox, { type DrawingMode } from "@controls/DrawingToolBox";
 import { drawGrid } from "@helpers/canvas";
 import type UserCustomSelector from "@controls/UserCustomSelector";
-import Simulation, { type SimulationStateStats } from "./Simulation";
+import Simulation from "./Simulation";
 import {
-  CELL_COLORS,
   CELL_SIZE,
   GRID_COLS,
   GRID_ROWS,
   ZOOM_RADIUS,
   ZOOM_SIZE,
+  getCanvasCellColors,
+  getCanvasPreviewCellColors,
+  getCanvasTheme,
+  type CanvasTheme,
 } from "./constants";
 import {
   DEFAULT_RANDOM_PRESET,
@@ -20,7 +23,9 @@ import {
   DEFAULT_RANDOM_PARAMS,
   type RandomSeedParams,
 } from "./seeding/RandomPresetSeeder";
+
 import type ZoomBox from "./zoom/ZoomBox";
+import type { SimulationStateStats } from "./Simulation";
 
 type GridBaseOptions = {
   canvas: HTMLCanvasElement;
@@ -76,6 +81,9 @@ class Grid {
   private readonly _simulation: Simulation;
   private readonly _onStateChange?: (stats: SimulationStateStats) => void;
   private readonly _drawing?: DrawingDependencies;
+  private readonly _theme: CanvasTheme;
+  private readonly _cellColors: readonly string[];
+  private readonly _previewCellColors: readonly string[];
   private _previousCellPos: { xPos: number; yPos: number } | null = null;
   private _isDown = false;
   private _drawingMode: DrawingMode = "pencil";
@@ -85,6 +93,9 @@ class Grid {
     this._ctx = options.ctx;
     this._simulation = new Simulation(GRID_ROWS, GRID_COLS);
     this._onStateChange = options.onStateChange;
+    this._theme = getCanvasTheme();
+    this._cellColors = getCanvasCellColors(this._theme);
+    this._previewCellColors = getCanvasPreviewCellColors(this._theme);
 
     switch (options.mode) {
       case "random":
@@ -203,6 +214,7 @@ class Grid {
       void data.load(species, [0, 0], "custom").then(() => {
         this._simulation.seedFromGrid(data.grid);
         this._render();
+        this._drawGrid();
         this._emitStateChange();
         onLoad?.(data.comments);
       });
@@ -369,8 +381,7 @@ class Grid {
     }
 
     const { xPos, yPos } = coords;
-    const newState =
-      this._drawingMode === "pencil" ? CELL_STATE.ALIVE : CELL_STATE.DEAD;
+    const newState = this._drawingMode === "pencil" ? CELL_STATE.ALIVE : CELL_STATE.DEAD;
     this._simulation.setCell(yPos, xPos, newState);
     this._renderCell(yPos, xPos);
     this._emitStateChange();
@@ -382,31 +393,40 @@ class Grid {
       return;
     }
 
-    this._drawing.drawingContext.fillStyle = CELL_COLORS[state];
+    const x = col * CELL_SIZE + 1;
+    const y = row * CELL_SIZE + 1;
+    const size = CELL_SIZE - 1;
+    this._drawing.drawingContext.clearRect(x, y, size, size);
+    this._drawing.drawingContext.fillStyle = this._previewCellColors[state];
     this._drawing.drawingContext.fillRect(
-      col * CELL_SIZE + 1,
-      row * CELL_SIZE + 1,
-      CELL_SIZE - 1,
-      CELL_SIZE - 1,
+      x,
+      y,
+      size,
+      size,
     );
   }
 
   /** Draw a single cell on the main canvas from current simulation state. */
   private _renderCell(row: number, col: number): void {
-    this._ctx.fillStyle = CELL_COLORS[this._simulation.getCell(row, col)];
+    const x = col * CELL_SIZE + 1;
+    const y = row * CELL_SIZE + 1;
+    const size = CELL_SIZE - 1;
+    this._ctx.clearRect(x, y, size, size);
+    this._ctx.fillStyle = this._cellColors[this._simulation.getCell(row, col)];
     this._ctx.fillRect(
-      col * CELL_SIZE + 1,
-      row * CELL_SIZE + 1,
-      CELL_SIZE - 1,
-      CELL_SIZE - 1,
+      x,
+      y,
+      size,
+      size,
     );
   }
 
   /** Repaint every cell on the canvas from current simulation state. */
   private _render(): void {
+    this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
     for (let row = 0; row < GRID_ROWS; row++) {
       for (let col = 0; col < GRID_COLS; col++) {
-        this._ctx.fillStyle = CELL_COLORS[this._simulation.getCell(row, col)];
+        this._ctx.fillStyle = this._cellColors[this._simulation.getCell(row, col)];
         this._ctx.fillRect(
           col * CELL_SIZE + 1,
           row * CELL_SIZE + 1,
@@ -418,7 +438,7 @@ class Grid {
   }
 
   private _drawGrid(): void {
-    drawGrid(this._ctx, this._canvas);
+    drawGrid(this._ctx, this._canvas, 1, this._theme.gridColor);
   }
 
   private _emitStateChange(): void {

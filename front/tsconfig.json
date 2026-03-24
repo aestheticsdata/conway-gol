@@ -11,13 +11,16 @@
     "noEmit": true,
     "baseUrl": ".",
     "paths": {
+      "@app/*": ["src/app/*"],
+      "@assets/*": ["src/assets/*"],
       "@cell/*": ["src/Cell/*"],
       "@controls/*": ["src/controls/*"],
       "@data/*": ["src/data/*"],
       "@grid/*": ["src/Grid/*"],
       "@helpers/*": ["src/helpers/*"],
-      "@services/*": ["src/services/*"]
+      "@services/*": ["src/services/*"],
+      "@texts": ["src/texts.ts"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"]
 }

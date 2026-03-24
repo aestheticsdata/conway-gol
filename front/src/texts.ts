@@ -3,6 +3,7 @@ export const APP_TEXTS = {
     title: "Conway's game of life",
   },
   modes: {
+    label: "Mode",
     random: "random",
     zoo: "zoo",
     drawing: "drawing",
@@ -21,7 +22,7 @@ export const APP_TEXTS = {
     unsupported: "canvas not available in this browser",
   },
   random: {
-    preset: "Random:",
+    preset: "Random shape type:",
     density: "Density:",
     noiseType: "Noise type:",
     noiseTypes: {
