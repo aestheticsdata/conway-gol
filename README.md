@@ -70,8 +70,8 @@ conway-gol/
 │   │   ├── app/
 │   │   │   ├── navigation/
 │   │   │   ├── router/
-│   │   │   ├── screens/
 │   │   │   ├── simulation/
+│   │   │   ├── views/
 │   │   │   └── routes.ts
 │   │   ├── assets/
 │   │   │   ├── icons/
@@ -99,7 +99,12 @@ conway-gol/
 │   │   │   ├── api.ts
 │   │   │   ├── constants.ts
 │   │   │   └── dom.ts
+│   │   ├── infra/
+│   │   │   └── http/
+│   │   │       └── HttpClient.ts
 │   │   ├── services/
+│   │   │   ├── CritterService.ts
+│   │   │   ├── PatternService.ts
 │   │   │   └── UserCustomService.ts
 │   │   ├── styles/
 │   │   │   ├── main.css
@@ -394,7 +399,30 @@ The telemetry charts share reusable renderers under `front/src/ui/controls/telem
 
 `ZoomBox` in `front/src/Grid/zoom/ZoomBox.ts` renders the magnified 7x7 area around the cursor in drawing mode.
 
-`UserCustomService` in `front/src/services/UserCustomService.ts` handles HTTP calls for listing and saving custom patterns.
+#### HTTP facade and frontend services
+
+The frontend now keeps Axios behind a small shared HTTP facade instead of calling it directly from domain-oriented classes.
+
+`HttpClient` in `front/src/infra/http/HttpClient.ts` is the transport layer. It:
+
+- wraps the shared Axios instance
+- applies the shared API base URL via `getRequestURL()`
+- exposes typed `get()` and `post()` helpers
+- returns response payloads directly instead of leaking `AxiosResponse`
+
+Business-facing services compose `HttpClient` and expose domain data:
+
+- `CritterService` lists catalog or custom critter names
+- `PatternService` loads and normalizes remote patterns
+- `UserCustomService` lists and saves user-created patterns
+
+This keeps the dependency direction explicit:
+
+- UI and workspace classes depend on services
+- services depend on `HttpClient`
+- only `HttpClient` depends on Axios
+
+As a result, frontend code outside `front/src/infra/http/` should not import Axios directly.
 
 `front/src/helpers/dom.ts` centralizes strict DOM lookup helpers such as `queryRequired()` and `getRequiredContext2D()`. This removes scattered nullable DOM assumptions from the rest of the frontend code.
 
@@ -504,14 +532,15 @@ index.ts
   │           ├── Grid
   │           │   ├── Simulation
   │           │   │   └── IRandomPresetSeeder -> RandomPresetSeeder
-  │           │   ├── Data
+  │           │   ├── Data -> PatternService -> HttpClient
   │           │   └── ZoomBox (drawing mode only)
   │           ├── ModeSelector
+  │           ├── CritterService -> HttpClient
   │           ├── AliveVariationChart -> SignedSeriesChart -> telemetryTheme
   │           ├── AliveCountChart -> PositiveSeriesChart -> telemetryTheme
   │           ├── DrawingToolBox
   │           ├── ZooSelector
-  │           └── UserCustomSelector -> UserCustomService
+  │           └── UserCustomSelector -> UserCustomService -> HttpClient
 ```
 
 Design rules used by the current frontend:
@@ -522,7 +551,7 @@ Design rules used by the current frontend:
 - `AppRouter` owns screen lifecycle and browser path changes, not screen business logic.
 - Required DOM access should go through `front/src/helpers/dom.ts`.
 - Data loading (`Data`) does not touch the DOM. Pattern comments are returned to the caller via `Data.comments` and rendered by `SimulationWorkspace._renderComments()`.
-- Cross-module imports use path aliases (`@app`, `@cell`, `@data`, `@grid`, `@helpers`, `@navigation`, `@router`, `@services`, `@simulation`, `@views`). Intra-module imports (same folder or immediate subfolder) use relative `./` paths.
+- Cross-module imports use path aliases (`@app`, `@cell`, `@data`, `@grid`, `@helpers`, `@infra`, `@navigation`, `@router`, `@services`, `@simulation`, `@views`). Intra-module imports (same folder or immediate subfolder) use relative `./` paths.
 
 ## Running Locally
 
@@ -667,6 +696,18 @@ Catalog patterns are stored as JSON with the `.hxf` extension:
 Custom patterns are submitted in the same JSON shape through `POST /usercustom/:filename`, but are persisted in the database rather than the filesystem.
 
 ## Refactoring History
+
+### Phase 8 - Shared HTTP facade and service composition (2026-03)
+
+HTTP access in the frontend was moved behind a shared transport layer so domain code no longer calls Axios directly:
+
+- `HttpClient` was introduced under `front/src/infra/http/` as the single Axios-backed transport entry point
+- services now compose `HttpClient` instead of importing Axios
+- `CritterService` and `PatternService` were added alongside `UserCustomService` so list loading and pattern loading follow the same service pattern
+- service methods now return domain payloads directly instead of `AxiosResponse`
+- `Data` and `SimulationWorkspace` were updated to use services rather than performing direct HTTP requests
+
+This clarified the dependency chain between transport, service layer, and UI/workspace orchestration while keeping Axios isolated in one place.
 
 ### Phase 7 - Frontend tooling and import cleanup (2026-03)
 
