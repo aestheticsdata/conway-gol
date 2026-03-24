@@ -1,8 +1,8 @@
-import { FRACTAL_RANDOM_PRESET_SEEDERS } from "./randomPresetFractalSeeders";
-import { applySpatialNoiseMask, seedNoisePreset } from "./randomPresetNoise";
-import { SHAPE_RANDOM_PRESET_SEEDERS } from "./randomPresetShapeSeeders";
-import { DEFAULT_RANDOM_PARAMS } from "./randomPresetTypes";
-import { createPresetRng } from "./randomPresetUtils";
+import { FRACTAL_RANDOM_PRESET_SEEDERS } from "@grid/seeding/randomPresetFractalSeeders";
+import { applySpatialNoiseMask, seedNoisePreset } from "@grid/seeding/randomPresetNoise";
+import { SHAPE_RANDOM_PRESET_SEEDERS } from "@grid/seeding/randomPresetShapeSeeders";
+import { DEFAULT_RANDOM_PARAMS } from "@grid/seeding/randomPresetTypes";
+import { createPresetRng } from "@grid/seeding/randomPresetUtils";
 
 import type { RandomPresetId } from "@grid/randomPresets";
 import type {
@@ -10,7 +10,7 @@ import type {
   RandomPresetSeedContext,
   RandomPresetSeedFn,
   RandomSeedParams,
-} from "./randomPresetTypes";
+} from "@grid/seeding/randomPresetTypes";
 
 export { DEFAULT_RANDOM_PARAMS };
 

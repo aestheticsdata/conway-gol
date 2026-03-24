@@ -156,6 +156,14 @@ class Grid {
     this._emitStateChange();
   }
 
+  /** Load a pre-built 156×156 grid (e.g. from an imported image) and repaint. */
+  public seedFromGrid(grid: number[][]): void {
+    this._simulation.seedFromGrid(grid);
+    this._render();
+    this._drawGrid();
+    this._emitStateChange();
+  }
+
   /**
    * Re-seed random mode from a preset and repaint (iteration counter reset by caller).
    * @param randomVariation — same as Simulation.seedByPreset (false = default, true = Generate).

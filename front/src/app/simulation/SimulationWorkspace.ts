@@ -7,6 +7,7 @@ import { getRequiredContext2D, queryAll, queryRequired } from "@helpers/dom";
 import CritterService from "@services/CritterService";
 import { APP_TEXTS } from "@texts";
 import DrawingToolBox from "@ui/controls/drawing/DrawingToolBox";
+import ImageImporter from "@ui/controls/drawing/ImageImporter";
 import { CONTROL_TEXTS } from "@ui/controls/drawing/texts";
 import UserCustomSelector from "@ui/controls/drawing/UserCustomSelector";
 import ModeSelector, { type Mode } from "@ui/controls/simulation/ModeSelector";
@@ -66,6 +67,7 @@ export class SimulationWorkspace {
   private _drawingToolBox?: DrawingToolBox;
   private _zoomBox?: ZoomBox;
   private _userCustomSelector?: UserCustomSelector;
+  private _imageImporter?: ImageImporter;
 
   constructor(options: SimulationWorkspaceOptions) {
     this._root = options.root;
@@ -135,6 +137,7 @@ export class SimulationWorkspace {
     this._isPlaying = false;
     this._grid?.destroyListener();
     this._randomControls.destroy();
+    this._imageImporter?.destroy();
     document.removeEventListener("pointerdown", this._handleDocumentPointerDown);
     document.removeEventListener("keydown", this._handleDocumentKeyDown);
   }
@@ -372,6 +375,7 @@ export class SimulationWorkspace {
         this._setDisplay(this._drawingCanvas, false);
         this._zoomBox?.hide();
         this._userCustomSelector?.hide();
+        this._imageImporter?.hide();
         this._randomPresetVariation = false;
         this._refreshAutoSeed();
         this._grid = new Grid({
@@ -399,6 +403,7 @@ export class SimulationWorkspace {
         this._setDisplay(this._drawingCanvas, false);
         this._zoomBox?.hide();
         this._userCustomSelector?.hide();
+        this._imageImporter?.hide();
         this._grid = new Grid({
           canvas: this._canvas,
           ctx: this._stage,
@@ -423,6 +428,10 @@ export class SimulationWorkspace {
         this._drawingToolBox.show();
         this._zoomBox.show();
         this._userCustomSelector.show();
+        this._imageImporter ??= new ImageImporter((grid) => {
+          this._grid?.seedFromGrid(grid);
+        });
+        this._imageImporter.show();
         this._grid = new Grid({
           canvas: this._canvas,
           ctx: this._stage,

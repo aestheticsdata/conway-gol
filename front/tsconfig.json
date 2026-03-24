@@ -23,6 +23,7 @@
       "@services/*": ["src/services/*"],
       "@simulation/*": ["src/app/simulation/*"],
       "@texts": ["src/texts.ts"],
+      "@lib/*": ["src/lib/*"],
       "@ui/*": ["src/ui/*"],
       "@views/*": ["src/app/views/*"]
     }

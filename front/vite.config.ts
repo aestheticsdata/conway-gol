@@ -36,6 +36,7 @@ export default defineConfig(({ mode }) => {
         "@services": resolve(__dirname, "src/services"),
         "@simulation": resolve(__dirname, "src/app/simulation"),
         "@texts": resolve(__dirname, "src/texts.ts"),
+        "@lib": resolve(__dirname, "src/lib"),
         "@ui": resolve(__dirname, "src/ui"),
         "@views": resolve(__dirname, "src/app/views"),
       },

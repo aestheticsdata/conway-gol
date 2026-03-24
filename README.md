@@ -26,6 +26,7 @@ A full-stack implementation of [Conway's Game of Life](https://en.wikipedia.org/
 - Random mode with 13 named presets (geometric, fractal, and noise families), three generation controls (density, noise type, seed), and a `Generate` action for a new variation
 - Zoo mode with 1,400+ catalog patterns
 - Drawing mode with save/load for custom patterns
+- Image import in drawing mode: upload any common image format, automatically converted to a cell pattern via grayscale + Floyd-Steinberg dithering, with a live threshold slider for post-import tuning
 - Zoom view around the cursor
 - Left-side playback telemetry with iteration count, live/dead cell counts, a real-time alive-cell variation graph, and a real-time absolute alive-cell graph
 - Tokens-based visual system for colors, radius, spacing, form fields, telemetry, and canvas rendering
@@ -95,6 +96,9 @@ conway-gol/
 │   │   │   │   └── randomPresetUtils.ts
 │   │   │   └── zoom/
 │   │   │       └── ZoomBox.ts
+│   │   ├── lib/
+│   │   │   └── image/
+│   │   │       └── ImageSeeder.ts
 │   │   ├── data/
 │   │   │   ├── Data.ts
 │   │   │   └── species/
@@ -122,24 +126,27 @@ conway-gol/
 │   │   │       ├── layout.css
 │   │   │       └── radius.css
 │   │   ├── ui/
-│   │   │   └── controls/
-│   │   │       ├── drawing/
-│   │   │       │   ├── DrawingToolBox.ts
-│   │   │       │   ├── UserCustomSelector.ts
-│   │   │       │   └── texts.ts
-│   │   │       ├── shared/
-│   │   │       │   └── TileButtonGroup.ts
-│   │   │       ├── simulation/
-│   │   │       │   ├── ModeSelector.ts
-│   │   │       │   ├── NoiseTypeSelector.ts
-│   │   │       │   ├── RandomControlsPanel.ts
-│   │   │       │   └── ZooSelector.ts
-│   │   │       └── telemetry/
-│   │   │           ├── AliveCountChart.ts
-│   │   │           ├── AliveVariationChart.ts
-│   │   │           ├── PositiveSeriesChart.ts
-│   │   │           ├── SignedSeriesChart.ts
-│   │   │           └── telemetryTheme.ts
+│   │   │   ├── controls/
+│   │   │   │   ├── drawing/
+│   │   │   │   │   ├── DrawingToolBox.ts
+│   │   │   │   │   ├── ImageImporter.ts
+│   │   │   │   │   ├── UserCustomSelector.ts
+│   │   │   │   │   └── texts.ts
+│   │   │   │   ├── shared/
+│   │   │   │   │   └── TileButtonGroup.ts
+│   │   │   │   ├── simulation/
+│   │   │   │   │   ├── ModeSelector.ts
+│   │   │   │   │   ├── NoiseTypeSelector.ts
+│   │   │   │   │   ├── RandomControlsPanel.ts
+│   │   │   │   │   └── ZooSelector.ts
+│   │   │   │   └── telemetry/
+│   │   │   │       ├── AliveCountChart.ts
+│   │   │   │       ├── AliveVariationChart.ts
+│   │   │   │       ├── PositiveSeriesChart.ts
+│   │   │   │       ├── SignedSeriesChart.ts
+│   │   │   │       └── telemetryTheme.ts
+│   │   │   └── lib/
+│   │   │       └── Tooltip.ts
 │   │   └── texts.ts
 │   ├── tsconfig.json
 │   ├── vite.config.ts
@@ -397,8 +404,11 @@ This keeps Conway logic out of the renderer and keeps DOM event handling out of 
 - `simulation/RandomControlsPanel.ts`: random preset dropdown plus density/noise/seed controls
 - `simulation/ZooSelector.ts`: pattern selection in zoo mode
 - `drawing/DrawingToolBox.ts`: pencil/eraser selection
+- `drawing/ImageImporter.ts`: image-to-grid import control (file picker, threshold slider, tooltip)
 - `drawing/UserCustomSelector.ts`: save/load of custom drawings
 - `telemetry/telemetryTheme.ts`: reads CSS design tokens and provides the shared telemetry chart drawing theme
+
+`front/src/lib/image/ImageSeeder.ts` is the image processing library. It is deliberately kept outside the Grid and UI layers because it has no dependency on Conway rules, canvas state, or DOM access. It is imported only by `ImageImporter`. See [Image import pipeline](#image-import-pipeline) below.
 
 The telemetry charts share reusable renderers under `front/src/ui/controls/telemetry/`:
 
@@ -552,7 +562,8 @@ index.ts
   │           ├── AliveCountChart -> PositiveSeriesChart -> telemetryTheme
   │           ├── DrawingToolBox
   │           ├── ZooSelector
-  │           └── UserCustomSelector -> UserCustomService -> HttpClient
+  │           ├── UserCustomSelector -> UserCustomService -> HttpClient
+  │           └── ImageImporter -> ImageSeeder (lib/image)
 ```
 
 Design rules used by the current frontend:
@@ -563,7 +574,84 @@ Design rules used by the current frontend:
 - `AppRouter` owns screen lifecycle and browser path changes, not screen business logic.
 - Required DOM access should go through `front/src/helpers/dom.ts`.
 - Data loading (`Data`) does not touch the DOM. Pattern comments are returned to the caller via `Data.comments` and rendered by `SimulationWorkspace._renderComments()`.
-- Cross-module imports use path aliases (`@app`, `@cell`, `@data`, `@grid`, `@helpers`, `@infra`, `@navigation`, `@router`, `@services`, `@simulation`, `@views`). Intra-module imports (same folder or immediate subfolder) use relative `./` paths.
+- Cross-module imports use path aliases (`@app`, `@cell`, `@data`, `@grid`, `@helpers`, `@infra`, `@lib`, `@navigation`, `@router`, `@services`, `@simulation`, `@views`). Intra-module imports (same folder or immediate subfolder) use relative `./` paths.
+- `front/src/lib/` is the home for domain-agnostic utilities that are not UI components, not Grid logic, and not infrastructure. Currently it contains `lib/image/` for image processing.
+
+## Image import pipeline
+
+The image import feature converts an arbitrary image file into a Conway grid entirely client-side. No server is involved.
+
+### Flow
+
+```text
+File (user picks)
+  │
+  ├─ magic-byte validation      detectImageMime() — 16 bytes read from the file header
+  │
+  ├─ size check                 file.size > 10 MB → rejected
+  │
+  ├─ createImageBitmap()        browser decodes the image natively
+  │
+  ├─ OffscreenCanvas            image scaled to grid dimensions (contain/letterbox, aspect-ratio preserved)
+  │                             white fill behind image → transparent areas become DEAD
+  │
+  ├─ getImageData()             raw RGBA pixel array (cols × rows × 4 bytes)
+  │
+  ├─ pixelsToNormalisedGrayscale()
+  │     1. luminance per pixel: 0.299 × R + 0.587 × G + 0.114 × B  (ITU-R BT.601)
+  │     2. histogram stretching: [min, max] → [0, 255]
+  │        so any image, bright or dark, always uses the full contrast range
+  │
+  ├─ floydSteinberg()           binary dithering with adjustable threshold
+  │     for each pixel:
+  │       quantised = old < threshold ? 0 : 255    (dark → ALIVE, bright → DEAD)
+  │       err = old - quantised
+  │       diffuse err to 4 neighbours:
+  │         right:        7/16
+  │         bottom-left:  3/16
+  │         bottom:       5/16
+  │         bottom-right: 1/16
+  │     error diffusion preserves perceived brightness and keeps shapes recognisable
+  │
+  └─ number[][]                 156 × 156 grid passed to Grid.seedFromGrid()
+```
+
+The grayscale buffer is kept in memory by `ImageImporter` after the first import. Moving the threshold slider re-runs `floydSteinberg()` on the stored buffer without reloading or rescaling the image.
+
+### Format validation (magic bytes)
+
+`file.type` in the browser is derived from the file extension and is trivially spoofable (renaming `document.pdf` to `image.png` fools it). `ImageSeeder` instead reads the first 16 bytes of the file and checks the actual binary signature:
+
+| Format | Signature (hex) | Offset |
+|--------|----------------|--------|
+| JPEG   | `FF D8 FF` | 0 |
+| PNG    | `89 50 4E 47 0D 0A 1A 0A` | 0 |
+| GIF87a / GIF89a | `47 49 46 38 (37\|39) 61` | 0 |
+| WebP   | `52 49 46 46 ?? ?? ?? ?? 57 45 42 50` | 0 (RIFF) + 8 (WEBP) |
+| BMP    | `42 4D` | 0 |
+| AVIF   | `66 74 79 70` at offset 4 (ftyp box), then `61 76 69 (66\|73)` at offset 8 (avif/avis brand) | 4 |
+
+A file with an unrecognised signature is rejected with a SweetAlert2 error listing the accepted formats before `createImageBitmap` is ever called.
+
+### Threshold slider
+
+The slider (0–255) controls the `threshold` argument to `floydSteinberg`:
+
+- **low values** (close to 0): only the very darkest pixels become ALIVE → sparse grid
+- **128** (default): roughly half the pixels become ALIVE based on luminance
+- **high values** (close to 255): most pixels become ALIVE → dense grid
+
+The slider is disabled until the first image is loaded. Hovering over a disabled slider shows a tooltip via the shared `Tooltip` component.
+
+### Relevant files
+
+| File | Role |
+|------|------|
+| `front/src/lib/image/ImageSeeder.ts` | Image processing: magic-byte detection, grayscale conversion, histogram normalisation, Floyd-Steinberg dithering |
+| `front/src/ui/controls/drawing/ImageImporter.ts` | UI component: file input, threshold slider, tooltip, SweetAlert2 error handling |
+| `front/src/Grid/Grid.ts` | Exposes `seedFromGrid(grid)` used by `ImageImporter` callback |
+| `front/src/styles/main/side-panels.css` | `.image-import` card, `.image-threshold-slider` overlay, `#image-threshold-value` accent style |
+| `front/src/styles/main/buttons.css` | `.image-import-btn` included in the shared button hover/active transition group |
 
 ## Running Locally
 
@@ -708,6 +796,31 @@ Catalog patterns are stored as JSON with the `.hxf` extension:
 Custom patterns are submitted in the same JSON shape through `POST /usercustom/:filename`, but are persisted in the database rather than the filesystem.
 
 ## Refactoring History
+
+### Phase 10 - Client-side image import (2026-03)
+
+A fully offline image-to-grid import feature was added to drawing mode. No server round-trip is involved; the entire pipeline runs in the browser.
+
+**Processing pipeline:**
+
+1. Magic-byte validation — the first 16 bytes of the uploaded file are read and matched against known signatures (JPEG, PNG, GIF, WebP, BMP, AVIF). Files with a spoofed extension are rejected before any decoding is attempted.
+2. `createImageBitmap` decodes the file into a hardware-accelerated bitmap.
+3. An `OffscreenCanvas` (grid-sized) is filled white and the bitmap is drawn into it with contain/letterbox scaling (`scale = Math.min(cols/w, rows/h)`), centred with pixel-accurate offsets.
+4. `getImageData` extracts the RGBA pixel buffer.
+5. ITU-R BT.601 luminance converts each pixel to a float grayscale value; fully-transparent pixels are forced to white (DEAD).
+6. Histogram stretching maps the actual `[min, max]` luminance range to `[0, 255]`, ensuring full contrast regardless of the original image exposure.
+7. Floyd-Steinberg dithering converts the grayscale buffer to a binary 0/1 grid. Quantisation error is diffused to four neighbours so the perceived brightness distribution is preserved and shapes remain recognisable at 5 px/cell resolution.
+
+**New code:**
+
+| File | Role |
+|---|---|
+| `front/src/lib/image/ImageSeeder.ts` | Pure processing library — format detection, grayscale, dithering |
+| `front/src/ui/controls/drawing/ImageImporter.ts` | UI component — file picker, formats label, threshold slider |
+
+**Threshold slider:** always visible but disabled until an image is imported. Re-running only `floydSteinberg()` on slider input (the grayscale buffer is kept in component state) avoids reloading the image. A tooltip appears on pointer-hover over the disabled slider.
+
+**`@lib` alias** was added to both `vite.config.ts` and `tsconfig.json` so `ImageSeeder` can be imported outside the Grid layer without a relative path.
 
 ### Phase 9 - Fractal presets, new noise types, and seeder module split (2026-03)
 

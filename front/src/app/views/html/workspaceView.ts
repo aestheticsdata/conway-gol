@@ -322,6 +322,26 @@ function createZooSelector(): string {
   `;
 }
 
+function createImageImport(): string {
+  return `
+    <div class="image-import" style="display: none">
+      <input type="file" id="image-import-input" accept="image/jpeg,image/png,image/webp,image/gif,image/bmp,image/avif" style="display: none">
+      <button type="button" class="image-import-btn"></button>
+      <span class="image-import-formats"></span>
+      <div class="random-param random-param--separated image-import-threshold">
+        <label for="image-threshold-slider">
+          <span id="image-threshold-label"></span>
+          <span id="image-threshold-value">128</span>
+        </label>
+        <div class="image-threshold-slider">
+          <input type="range" id="image-threshold-slider" min="0" max="255" value="128" step="1">
+          <span class="image-threshold-slider__tooltip-target" aria-hidden="true"></span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function createWorkspaceInspector(): string {
   return `
     <aside class="right-pane">
@@ -331,6 +351,7 @@ function createWorkspaceInspector(): string {
       ${createDrawingToolbox()}
       ${createCustomCursor()}
       ${createZooSelector()}
+      ${createImageImport()}
     </aside>
   `;
 }
