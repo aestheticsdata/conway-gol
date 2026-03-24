@@ -14,6 +14,15 @@ type RandomControlsPanelOptions = {
   onParamsChange: () => void;
 };
 
+const NOISE_TYPE_TILE_LABELS: readonly { value: NoiseType; label: string }[] = [
+  { value: "uniform", label: APP_TEXTS.random.noiseTypeTiles.uniform },
+  { value: "perlin-like", label: APP_TEXTS.random.noiseTypeTiles.perlinLike },
+  { value: "clusters", label: APP_TEXTS.random.noiseTypeTiles.clusters },
+  { value: "gradient", label: APP_TEXTS.random.noiseTypeTiles.gradient },
+  { value: "edge-bias", label: APP_TEXTS.random.noiseTypeTiles.edgeBias },
+  { value: "center-burst", label: APP_TEXTS.random.noiseTypeTiles.centerBurst },
+] as const;
+
 class RandomControlsPanel {
   public readonly element: HTMLElement;
   private readonly _onPresetChange: () => void;
@@ -160,12 +169,9 @@ class RandomControlsPanel {
       APP_TEXTS.random.preset;
     queryRequired<HTMLElement>("#random-density-label", this.element).textContent = `${APP_TEXTS.random.density} `;
     queryRequired<HTMLElement>("#random-noise-type-label", this.element).textContent = APP_TEXTS.random.noiseType;
-    queryRequired<HTMLElement>('[data-noise-type="uniform"]', this.element).textContent =
-      APP_TEXTS.random.noiseTypeTiles.uniform;
-    queryRequired<HTMLElement>('[data-noise-type="perlin-like"]', this.element).textContent =
-      APP_TEXTS.random.noiseTypeTiles.perlinLike;
-    queryRequired<HTMLElement>('[data-noise-type="clusters"]', this.element).textContent =
-      APP_TEXTS.random.noiseTypeTiles.clusters;
+    for (const { value, label } of NOISE_TYPE_TILE_LABELS) {
+      queryRequired<HTMLElement>(`[data-noise-type="${value}"]`, this.element).textContent = label;
+    }
     queryRequired<HTMLElement>("#random-seed-label", this.element).textContent = `${APP_TEXTS.random.seed} `;
     queryRequired<HTMLElement>("#random-seed-auto-label", this.element).textContent = APP_TEXTS.random.autoSeed;
     this._randomGenerateBtn.textContent = APP_TEXTS.random.generate;

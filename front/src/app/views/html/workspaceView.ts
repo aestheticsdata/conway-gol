@@ -1,17 +1,30 @@
 import { DRAWING_ROUTE, SIMULATION_ROUTE, ZOO_ROUTE } from "@app/routes";
+import { NOISE_CENTER_BURST_ICON } from "@assets/icons/noiseCenterBurstIcon";
 import { NOISE_CLUSTERS_ICON } from "@assets/icons/noiseClustersIcon";
+import { NOISE_EDGE_BIAS_ICON } from "@assets/icons/noiseEdgeBiasIcon";
+import { NOISE_GRADIENT_ICON } from "@assets/icons/noiseGradientIcon";
 import { NOISE_PERLIN_ICON } from "@assets/icons/noisePerlinIcon";
 import { NOISE_UNIFORM_ICON } from "@assets/icons/noiseUniformIcon";
 import { PAW_ICON } from "@assets/icons/pawIcon";
 import { PENCIL_ICON } from "@assets/icons/pencilIcon";
 import { SHUFFLE_ICON } from "@assets/icons/shuffleIcon";
+import { APP_TEXTS } from "@texts";
 import { createTileSelectorButton } from "@views/html/tileSelector";
 
 import type { WorkspaceRoute } from "@app/routes";
+import type { NoiseType } from "@grid/seeding/RandomPresetSeeder";
 import type { TileSelectorButtonOptions } from "@views/html/tileSelector";
 
 type ModeSelectorOption = Omit<TileSelectorButtonOptions, "dataAttributeName" | "selected"> & {
   route: WorkspaceRoute;
+};
+
+type RandomNoiseOption = {
+  value: NoiseType;
+  icon: string;
+  selected?: boolean;
+  title: string;
+  ariaLabel: string;
 };
 
 type DrawingTool = "pencil" | "eraser";
@@ -40,34 +53,43 @@ const MODE_SELECTOR_OPTIONS: ModeSelectorOption[] = [
   },
 ];
 
-const RANDOM_NOISE_OPTIONS: TileSelectorButtonOptions[] = [
+const RANDOM_NOISE_OPTIONS: readonly RandomNoiseOption[] = [
   {
     value: "uniform",
+    title: APP_TEXTS.random.noiseTypes.uniform,
+    ariaLabel: APP_TEXTS.random.noiseTypes.uniform,
     selected: true,
-    size: "md",
     icon: NOISE_UNIFORM_ICON,
-    dataAttributeName: "noise-type",
-    dataAttributeValue: "uniform",
-    title: "Uniform",
-    ariaLabel: "Uniform",
   },
   {
     value: "perlin-like",
-    size: "md",
+    title: APP_TEXTS.random.noiseTypes.perlinLike,
+    ariaLabel: APP_TEXTS.random.noiseTypes.perlinLike,
     icon: NOISE_PERLIN_ICON,
-    dataAttributeName: "noise-type",
-    dataAttributeValue: "perlin-like",
-    title: "Perlin-like",
-    ariaLabel: "Perlin-like",
   },
   {
     value: "clusters",
-    size: "md",
+    title: APP_TEXTS.random.noiseTypes.clusters,
+    ariaLabel: APP_TEXTS.random.noiseTypes.clusters,
     icon: NOISE_CLUSTERS_ICON,
-    dataAttributeName: "noise-type",
-    dataAttributeValue: "clusters",
-    title: "Clusters",
-    ariaLabel: "Clusters",
+  },
+  {
+    value: "gradient",
+    title: APP_TEXTS.random.noiseTypes.gradient,
+    ariaLabel: APP_TEXTS.random.noiseTypes.gradient,
+    icon: NOISE_GRADIENT_ICON,
+  },
+  {
+    value: "edge-bias",
+    title: APP_TEXTS.random.noiseTypes.edgeBias,
+    ariaLabel: APP_TEXTS.random.noiseTypes.edgeBias,
+    icon: NOISE_EDGE_BIAS_ICON,
+  },
+  {
+    value: "center-burst",
+    title: APP_TEXTS.random.noiseTypes.centerBurst,
+    ariaLabel: APP_TEXTS.random.noiseTypes.centerBurst,
+    icon: NOISE_CENTER_BURST_ICON,
   },
 ];
 
@@ -175,7 +197,14 @@ function createCanvasArea(): string {
 }
 
 function createRandomNoiseSelector(): string {
-  return RANDOM_NOISE_OPTIONS.map((option) => createTileSelectorButton(option)).join("");
+  return RANDOM_NOISE_OPTIONS.map((option) =>
+    createTileSelectorButton({
+      ...option,
+      size: "md",
+      dataAttributeName: "noise-type",
+      dataAttributeValue: option.value,
+    }),
+  ).join("");
 }
 
 function createRandomControls(): string {
