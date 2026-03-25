@@ -426,6 +426,11 @@ This keeps Conway logic out of the renderer, DOM event handling out of `Simulati
 - `drawing/UserCustomSelector.ts`: save/load of custom drawings
 - `telemetry/telemetryTheme.ts`: reads CSS design tokens and provides the shared telemetry chart drawing theme
 
+`front/src/ui/components/` contains small shared markup primitives used by the workspace shell:
+
+- `button/createButton.ts`: shared button template helper
+- `slider/createSlider.ts`: shared labeled range-slider template helper plus `syncSliderFill()` for active-track fill
+
 `front/src/lib/image/ImageSeeder.ts` is the image processing library. It is deliberately kept outside the Grid and UI layers because it has no dependency on Conway rules, canvas state, or DOM access. It is imported only by `ImageImporter`. See [Image import pipeline](#image-import-pipeline) below.
 
 The telemetry charts share reusable renderers under `front/src/ui/controls/telemetry/`:
@@ -459,6 +464,29 @@ Current consumers:
 - `ZooSelector` uses it for the species selector
 
 Because both controls now share the same controller and stylesheet, visual updates to the custom dropdown should be made in the shared component instead of per-screen CSS.
+
+#### Shared slider primitive
+
+The workspace sliders now share one markup helper and one visual skin instead of each pane styling native range inputs independently.
+
+`createSliderField()` in `front/src/ui/components/slider/createSlider.ts` renders:
+
+- a legend row above the control
+- the slider label left-aligned
+- the live value right-aligned
+- the range input and any optional overlay/extra content (for example the disabled-seed tooltip target or the random-seed checkbox block)
+
+`syncSliderFill(input)` updates the CSS custom property `--ui-slider-percent`, which drives the cyan filled portion of the track from the start of the slider up to the current value.
+
+The visual skin for every shared slider lives in `front/src/styles/main/slider.css`.
+
+Current consumers:
+
+- `SimulationWorkspace` uses it for the FPS slider
+- `RandomControlsPanel` uses it for density, rotation, zoom, noise level, and seed
+- `ImageImporter` uses it for the threshold slider
+
+Visual or interaction changes to workspace sliders should now be made in the shared slider primitive instead of per-screen CSS.
 
 #### HTTP facade and frontend services
 
@@ -568,6 +596,7 @@ The current visual system includes a few custom controls that are intentionally 
 - reusable tile-style buttons with inline SVG icons
 - telemetry charts drawn directly on canvas with a shared theme
 - shared flat custom dropdown used by the random preset and zoo species selectors
+- shared labeled slider primitive with cyan active fill and right-aligned numeric readout
 - custom random noise type selector using the same tile-button primitive as the route mode selector
 - gradient CTA buttons with alternate hover/active states
 
@@ -690,8 +719,10 @@ The slider is disabled until the first image is loaded. Hovering over a disabled
 |------|------|
 | `front/src/lib/image/ImageSeeder.ts` | Image processing: magic-byte detection, grayscale conversion, histogram normalisation, Floyd-Steinberg dithering |
 | `front/src/ui/controls/drawing/ImageImporter.ts` | UI component: file input, threshold slider, tooltip, SweetAlert2 error handling |
+| `front/src/ui/components/slider/createSlider.ts` | Shared labeled slider markup helper plus active-fill sync utility |
 | `front/src/Grid/Grid.ts` | Exposes `seedFromGrid(grid)` used by `ImageImporter` callback |
-| `front/src/styles/main/side-panels.css` | `.image-import` card, `.image-threshold-slider` overlay, `#image-threshold-value` accent style |
+| `front/src/styles/main/slider.css` | Shared slider skin used by playback, random controls, and image threshold |
+| `front/src/styles/main/side-panels.css` | Drawing-pane layout and threshold tooltip overlay positioning |
 | `front/src/styles/main/buttons.css` | `.image-import-btn` included in the shared button hover/active transition group |
 
 ## Running Locally

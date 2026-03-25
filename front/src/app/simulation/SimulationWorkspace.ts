@@ -7,6 +7,7 @@ import { getRequiredContext2D, queryAll, queryRequired } from "@helpers/dom";
 import CritterService from "@services/CritterService";
 import UserCustomService from "@services/UserCustomService";
 import { APP_TEXTS } from "@texts";
+import { syncSliderFill } from "@ui/components/slider/createSlider";
 import DrawingToolBox from "@ui/controls/drawing/DrawingToolBox";
 import ImageImporter from "@ui/controls/drawing/ImageImporter";
 import { CONTROL_TEXTS } from "@ui/controls/drawing/texts";
@@ -51,6 +52,7 @@ export class SimulationWorkspace {
   private readonly _speedValue: HTMLElement;
   private readonly _commentsDOMSelector: HTMLElement;
   private readonly _zooPrimitivesDOMSelector: HTMLElement;
+  private readonly _drawingInspectorDOMSelector: HTMLElement;
   private readonly _randomControls: RandomControlsPanel;
   private readonly _customCursor: HTMLElement;
   private readonly _changeZoo: (species: string) => void;
@@ -106,6 +108,7 @@ export class SimulationWorkspace {
     this._speedValue = queryRequired<HTMLElement>(".speed-value", this._root);
     this._commentsDOMSelector = queryRequired<HTMLElement>(".critter-comments", this._root);
     this._zooPrimitivesDOMSelector = queryRequired<HTMLElement>(".zoo-selector", this._root);
+    this._drawingInspectorDOMSelector = queryRequired<HTMLElement>(".drawing-pane", this._root);
     this._randomControls = new RandomControlsPanel({
       root: this._root,
       onPresetChange: this._onRandomPresetChange,
@@ -148,6 +151,7 @@ export class SimulationWorkspace {
     this._grid?.destroyListener();
     this._randomControls.destroy();
     this._zooSelector?.destroy();
+    this._userCustomSelector?.destroy();
     this._savePresetModal.destroy();
     this._imageImporter?.destroy();
     document.removeEventListener("pointerdown", this._handleDocumentPointerDown);
@@ -168,12 +172,12 @@ export class SimulationWorkspace {
     queryRequired<HTMLElement>(".iteration-label", this._root).textContent = `${APP_TEXTS.playback.iteration} `;
     queryRequired<HTMLElement>(".alive-cells-label", this._root).textContent = `${APP_TEXTS.playback.aliveCells} `;
     queryRequired<HTMLElement>(".dead-cells-label", this._root).textContent = `${APP_TEXTS.playback.deadCells} `;
-    queryRequired<HTMLLabelElement>('label[for="speed-slider"]', this._root).textContent = `${APP_TEXTS.playback.fps} `;
+    queryRequired<HTMLElement>("#speed-label", this._root).textContent = APP_TEXTS.playback.fps;
     queryRequired<HTMLElement>(".alive-variation-legend", this._root).textContent = APP_TEXTS.playback.aliveVariation;
     queryRequired<HTMLElement>(".alive-count-legend", this._root).textContent = APP_TEXTS.playback.aliveCount;
-    queryRequired<HTMLButtonElement>(".custom-drawing-files .save", this._root).textContent =
+    queryRequired<HTMLButtonElement>(".drawing-save-action .save", this._root).textContent =
       CONTROL_TEXTS.drawing.saveButton;
-    queryRequired<HTMLLabelElement>('label[for="custom-file"]', this._root).textContent =
+    queryRequired<HTMLLabelElement>('label[for="custom-file-trigger"]', this._root).textContent =
       CONTROL_TEXTS.drawing.customDrawingLabel;
     queryRequired<HTMLLabelElement>('label[for="zoo-species-trigger"]', this._root).textContent = APP_TEXTS.zoo.species;
 
@@ -193,11 +197,13 @@ export class SimulationWorkspace {
   private _handleDocumentPointerDown = (event: PointerEvent): void => {
     this._randomControls.handleDocumentPointerDown(event);
     this._zooSelector?.handleDocumentPointerDown(event);
+    this._userCustomSelector?.handleDocumentPointerDown(event);
   };
 
   private _handleDocumentKeyDown = (event: KeyboardEvent): void => {
     this._randomControls.handleDocumentKeyDown(event);
     this._zooSelector?.handleDocumentKeyDown(event);
+    this._userCustomSelector?.handleDocumentKeyDown(event);
   };
 
   private _currentRandomParams(): RandomSeedParams {
@@ -344,11 +350,13 @@ export class SimulationWorkspace {
   private _setFPS(): void {
     this._speedSlider.value = String(this._fps);
     this._speedValue.textContent = String(this._fps);
+    syncSliderFill(this._speedSlider);
     this._speedSlider.addEventListener("input", (e: Event) => {
       const nextValue = Number((e.currentTarget as HTMLInputElement).value);
       if (!Number.isNaN(nextValue)) {
         this._fps = Math.max(0, Math.min(60, nextValue));
         this._speedValue.textContent = String(this._fps);
+        syncSliderFill(this._speedSlider);
       }
     });
   }
@@ -432,6 +440,7 @@ export class SimulationWorkspace {
       case "random":
         this._drawingToolBox?.hide();
         this._setDisplay(this._zooPrimitivesDOMSelector, false);
+        this._drawingInspectorDOMSelector.style.display = "none";
         this._randomControls.show();
         this._commentsDOMSelector.replaceChildren();
         this._setDisplay(this._drawingCanvas, false);
@@ -455,6 +464,7 @@ export class SimulationWorkspace {
         this._drawingToolBox?.hide();
         this._randomControls.hide();
         this._zooSelector ??= new ZooSelector();
+        this._drawingInspectorDOMSelector.style.display = "none";
         this._zooSelector.createSelectButton(
           this._zooPrimitivesDOMSelector,
           this._changeZoo,
@@ -483,6 +493,7 @@ export class SimulationWorkspace {
         const userCustomSelectorExisted = Boolean(this._userCustomSelector);
         this._randomControls.hide();
         this._setDisplay(this._zooPrimitivesDOMSelector, false);
+        this._drawingInspectorDOMSelector.style.display = "flex";
         this._commentsDOMSelector.replaceChildren();
         this._setDisplay(this._drawingCanvas, true);
         this._drawingToolBox ??= new DrawingToolBox();

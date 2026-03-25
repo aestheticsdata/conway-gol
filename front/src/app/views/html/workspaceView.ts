@@ -12,6 +12,7 @@ import { PENCIL_ICON } from "@assets/icons/pencilIcon";
 import { SHUFFLE_ICON } from "@assets/icons/shuffleIcon";
 import { APP_TEXTS } from "@texts";
 import { createButton } from "@ui/components/button/createButton";
+import { createSliderField } from "@ui/components/slider/createSlider";
 import { createTileSelectorButton } from "@views/html/tileSelector";
 
 import type { WorkspaceRoute } from "@app/routes";
@@ -179,11 +180,16 @@ function createSpeedSection(): string {
   return `
     <div class="pane-section pane-section--separated">
       <div class="speed-selector">
-        <div class="speed-header">
-          <label for="speed-slider" class="speed-label"></label>
-          <span class="speed-value"></span>
-        </div>
-        <input type="range" id="speed-slider" min="0" max="60" value="12" step="1">
+        ${createSliderField({
+          className: "speed-slider-field",
+          id: "speed-slider",
+          labelClassName: "speed-label",
+          labelId: "speed-label",
+          max: 60,
+          min: 0,
+          value: 12,
+          valueClassName: "speed-value",
+        })}
       </div>
     </div>
   `;
@@ -260,54 +266,65 @@ function createRandomControls(): string {
         <select id="random-preset" name="random-preset" class="custom-select__native" tabindex="-1" aria-hidden="true"></select>
       </div>
       <div class="random-params">
-        <div class="random-param random-param--separated">
-          <label for="random-density">
-            <span id="random-density-label"></span>
-            <span id="random-density-value"></span>
-          </label>
-          <input type="range" id="random-density" min="0" max="100" value="30" step="1">
-        </div>
-        <div class="random-param random-param--separated">
-          <label for="random-rotation">
-            <span id="random-rotation-label"></span>
-            <span id="random-rotation-value"></span>
-          </label>
-          <input type="range" id="random-rotation" min="-180" max="180" value="0" step="1">
-        </div>
-        <div class="random-param random-param--separated">
-          <label for="random-zoom">
-            <span id="random-zoom-label"></span>
-            <span id="random-zoom-value"></span>
-          </label>
-          <input type="range" id="random-zoom" min="-100" max="100" value="0" step="1">
-        </div>
+        ${createSliderField({
+          className: "random-param random-param--separated",
+          id: "random-density",
+          labelId: "random-density-label",
+          max: 100,
+          min: 0,
+          value: 30,
+          valueId: "random-density-value",
+        })}
+        ${createSliderField({
+          className: "random-param random-param--separated",
+          id: "random-rotation",
+          labelId: "random-rotation-label",
+          max: 180,
+          min: -180,
+          value: 0,
+          valueId: "random-rotation-value",
+        })}
+        ${createSliderField({
+          className: "random-param random-param--separated",
+          id: "random-zoom",
+          labelId: "random-zoom-label",
+          max: 100,
+          min: -100,
+          value: 0,
+          valueId: "random-zoom-value",
+        })}
         <div class="random-param random-param--separated">
           <label id="random-noise-type-label"></label>
           <div class="random-noise-type-group tile-selector">
             ${createRandomNoiseSelector()}
           </div>
         </div>
-        <div class="random-param">
-          <label for="random-noise-level">
-            <span id="random-noise-level-label"></span>
-            <span id="random-noise-level-value"></span>
-          </label>
-          <input type="range" id="random-noise-level" min="0" max="100" value="50" step="1">
-        </div>
-        <div class="random-param random-param--seed">
-          <label for="random-seed">
-            <span id="random-seed-label"></span>
-            <span id="random-seed-value"></span>
-          </label>
-          <div class="random-seed-slider">
-            <input type="range" id="random-seed" min="0" max="9999999" value="0" step="1">
-            <span class="random-seed-slider__tooltip-target" aria-hidden="true" hidden></span>
-          </div>
-          <label class="random-seed-random">
-            <input type="checkbox" id="random-seed-auto" checked>
-            <span id="random-seed-auto-label"></span>
-          </label>
-        </div>
+        ${createSliderField({
+          className: "random-param",
+          id: "random-noise-level",
+          labelId: "random-noise-level-label",
+          max: 100,
+          min: 0,
+          value: 50,
+          valueId: "random-noise-level-value",
+        })}
+        ${createSliderField({
+          afterControlHtml: `
+            <label class="random-seed-random">
+              <input type="checkbox" id="random-seed-auto" checked>
+              <span id="random-seed-auto-label"></span>
+            </label>
+          `,
+          className: "random-param random-param--seed",
+          controlClassName: "random-seed-slider",
+          id: "random-seed",
+          labelId: "random-seed-label",
+          max: 9999999,
+          min: 0,
+          overlayHtml: '<span class="random-seed-slider__tooltip-target" aria-hidden="true" hidden></span>',
+          value: 0,
+          valueId: "random-seed-value",
+        })}
       </div>
       <div class="random-generate-wrapper">
         ${createButton({ className: "random-generate", width: "block" })}
@@ -321,13 +338,38 @@ function createRandomControls(): string {
 function createDrawingFiles(): string {
   return `
     <div class="custom-drawing-files" style="display: none">
-      ${createButton({ className: "save", width: "block" })}
       <div class="user-select-container">
-        <div class="selectButton">
-          <label for="custom-file"></label>
-          <select name="custom-file" id="custom-file"></select>
+        <label for="custom-file-trigger"></label>
+        <div class="custom-select custom-drawing-custom-select">
+          <button
+            type="button"
+            id="custom-file-trigger"
+            class="custom-select__trigger"
+            aria-haspopup="listbox"
+            aria-expanded="false"
+            aria-controls="custom-file-options"
+          >
+            <span class="custom-select__value"></span>
+          </button>
+          <div class="custom-select__menu" hidden>
+            <div
+              id="custom-file-options"
+              class="custom-select__options"
+              role="listbox"
+              aria-labelledby="custom-file-trigger"
+            ></div>
+          </div>
+          <select id="custom-file" name="custom-file" class="custom-select__native" tabindex="-1" aria-hidden="true"></select>
         </div>
       </div>
+    </div>
+  `;
+}
+
+function createDrawingSaveAction(): string {
+  return `
+    <div class="drawing-save-action">
+      ${createButton({ className: "save" })}
     </div>
   `;
 }
@@ -336,7 +378,7 @@ function createDrawingTool(tool: DrawingTool): string {
   const iconPath = DRAWING_TOOL_ICON_PATHS[tool];
 
   return `
-    <div class="item ${tool}">
+    <div class="item ${tool}" role="button" tabindex="0" aria-pressed="false">
       <img src="${iconPath}" alt="" data-tool="${tool}">
     </div>
   `;
@@ -345,8 +387,10 @@ function createDrawingTool(tool: DrawingTool): string {
 function createDrawingToolbox(): string {
   return `
     <div class="drawing-toolbox" style="display: none">
-      ${createDrawingTool("pencil")}
-      ${createDrawingTool("eraser")}
+      <div class="drawing-toolbox__rail" role="toolbar" aria-label="Drawing tools">
+        ${createDrawingTool("pencil")}
+        ${createDrawingTool("eraser")}
+      </div>
     </div>
   `;
 }
@@ -394,18 +438,19 @@ function createImageImport(): string {
   return `
     <div class="image-import" style="display: none">
       <input type="file" id="image-import-input" accept="image/jpeg,image/png,image/webp,image/gif,image/bmp,image/avif" style="display: none">
-      ${createButton({ className: "image-import-btn", width: "block" })}
+      ${createButton({ className: "image-import-btn", width: "auto" })}
       <span class="image-import-formats"></span>
-      <div class="random-param random-param--separated image-import-threshold">
-        <label for="image-threshold-slider">
-          <span id="image-threshold-label"></span>
-          <span id="image-threshold-value">128</span>
-        </label>
-        <div class="image-threshold-slider">
-          <input type="range" id="image-threshold-slider" min="0" max="255" value="128" step="1">
-          <span class="image-threshold-slider__tooltip-target" aria-hidden="true"></span>
-        </div>
-      </div>
+      ${createSliderField({
+        className: "random-param random-param--separated image-import-threshold",
+        controlClassName: "image-threshold-slider",
+        id: "image-threshold-slider",
+        labelId: "image-threshold-label",
+        max: 255,
+        min: 0,
+        overlayHtml: '<span class="image-threshold-slider__tooltip-target" aria-hidden="true"></span>',
+        value: 128,
+        valueId: "image-threshold-value",
+      })}
     </div>
   `;
 }
@@ -415,11 +460,14 @@ function createWorkspaceInspector(): string {
     <aside class="right-pane">
       ${createRandomControls()}
       ${createZooSelector()}
-      ${createDrawingFiles()}
-      <div class="zoombox-container"></div>
-      ${createDrawingToolbox()}
+      <div class="drawing-pane" style="display: none">
+        ${createDrawingFiles()}
+        <div class="zoombox-container"></div>
+        ${createDrawingToolbox()}
+        ${createDrawingSaveAction()}
+        ${createImageImport()}
+      </div>
       ${createCustomCursor()}
-      ${createImageImport()}
     </aside>
   `;
 }

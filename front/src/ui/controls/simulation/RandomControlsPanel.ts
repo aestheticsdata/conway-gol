@@ -2,6 +2,7 @@ import { DEFAULT_RANDOM_PRESET, isRandomPresetId, RANDOM_PRESETS } from "@grid/r
 import { DEFAULT_NOISE_LEVELS } from "@grid/seeding/RandomPresetSeeder";
 import { queryRequired } from "@helpers/dom";
 import { APP_TEXTS } from "@texts";
+import { syncSliderFill } from "@ui/components/slider/createSlider";
 import CustomSelect from "@ui/controls/shared/CustomSelect";
 import Tooltip from "@ui/lib/Tooltip";
 import NoiseTypeSelector from "./NoiseTypeSelector";
@@ -209,15 +210,15 @@ class RandomControlsPanel {
   private _applyStaticTexts(): void {
     queryRequired<HTMLLabelElement>('label[for="random-preset-trigger"]', this.element).textContent =
       APP_TEXTS.random.preset;
-    queryRequired<HTMLElement>("#random-density-label", this.element).textContent = `${APP_TEXTS.random.density} `;
-    queryRequired<HTMLElement>("#random-rotation-label", this.element).textContent = `${APP_TEXTS.random.rotation} `;
-    queryRequired<HTMLElement>("#random-zoom-label", this.element).textContent = `${APP_TEXTS.random.zoom} `;
+    queryRequired<HTMLElement>("#random-density-label", this.element).textContent = APP_TEXTS.random.density;
+    queryRequired<HTMLElement>("#random-rotation-label", this.element).textContent = APP_TEXTS.random.rotation;
+    queryRequired<HTMLElement>("#random-zoom-label", this.element).textContent = APP_TEXTS.random.zoom;
     queryRequired<HTMLElement>("#random-noise-type-label", this.element).textContent = APP_TEXTS.random.noiseType;
     for (const { value, label } of NOISE_TYPE_TILE_LABELS) {
       queryRequired<HTMLElement>(`[data-noise-type="${value}"]`, this.element).textContent = label;
     }
     this._syncNoiseLevelLabel();
-    queryRequired<HTMLElement>("#random-seed-label", this.element).textContent = `${APP_TEXTS.random.seed} `;
+    queryRequired<HTMLElement>("#random-seed-label", this.element).textContent = APP_TEXTS.random.seed;
     queryRequired<HTMLElement>("#random-seed-auto-label", this.element).textContent = APP_TEXTS.random.autoSeed;
     this._randomGenerateBtn.textContent = APP_TEXTS.random.generate;
     this._randomSaveBtn.textContent = APP_TEXTS.random.save;
@@ -241,13 +242,14 @@ class RandomControlsPanel {
     this._randomZoomValue.textContent = `×${scale.toFixed(2)}`;
     this._randomSeedValue.textContent = String(this._randomSeedSlider.value);
     this._randomNoiseLevelValue.textContent = `${this._randomNoiseLevelSlider.value}%`;
+    this._syncSliderFills();
   }
 
   private _syncNoiseLevelLabel(): void {
     const noiseType = this.currentNoiseType();
     const noiseTypeLabel = NOISE_TYPE_TILE_LABELS.find((tile) => tile.value === noiseType)?.label ?? noiseType;
     queryRequired<HTMLElement>("#random-noise-level-label", this.element).textContent =
-      `${APP_TEXTS.random.noiseLevel} (${noiseTypeLabel}) `;
+      `${APP_TEXTS.random.noiseLevel} (${noiseTypeLabel})`;
   }
 
   private _syncSeedState(): void {
@@ -346,6 +348,14 @@ class RandomControlsPanel {
       clientX: event.clientX,
       clientY: event.clientY,
     });
+  }
+
+  private _syncSliderFills(): void {
+    syncSliderFill(this._randomDensitySlider);
+    syncSliderFill(this._randomRotationSlider);
+    syncSliderFill(this._randomZoomSlider);
+    syncSliderFill(this._randomNoiseLevelSlider);
+    syncSliderFill(this._randomSeedSlider);
   }
 }
 

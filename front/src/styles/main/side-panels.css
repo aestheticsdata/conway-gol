@@ -1,34 +1,58 @@
-.image-import {
-  margin-top: 16px;
-  padding: 24px;
+.drawing-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: 26px 22px 24px;
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--bg-elevated);
+  border-radius: calc(var(--radius) + 14px);
+  background: linear-gradient(180deg, rgba(12, 24, 42, 0.9), rgba(8, 17, 31, 0.88)), var(--bg-elevated);
   box-shadow: var(--shadow);
   backdrop-filter: blur(20px);
 }
 
+.drawing-pane > * {
+  width: 100%;
+}
+
+.image-import {
+  margin-top: 0;
+  padding-top: 20px;
+  border-top: 1px solid rgba(117, 161, 205, 0.18);
+}
+
 .image-import-formats {
   display: block;
-  margin-top: 6px;
-  font-size: 10px;
+  margin-top: 10px;
+  font-size: 11px;
+  line-height: 1.45;
   color: var(--text-muted);
 }
 
-.image-threshold-slider {
-  position: relative;
+.image-import-threshold {
+  gap: 8px;
+  margin-top: 18px;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.image-import-threshold > label:first-child {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+  color: rgba(245, 251, 255, 0.92);
 }
 
 .image-threshold-slider__tooltip-target {
   position: absolute;
-  inset: 0;
+  inset: -6px 0;
   cursor: not-allowed;
 }
 
-#image-threshold-value {
-  font-weight: bold;
-  color: var(--accent);
-  font-family: "JetBrains Mono", monospace;
+#image-threshold-label {
+  color: rgba(196, 210, 228, 0.76);
+  font-weight: 600;
 }
 
 .zoo-selector {
@@ -119,43 +143,69 @@
 }
 
 .custom-drawing-files {
-  padding: 24px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--bg-elevated);
-  box-shadow: var(--shadow);
-  backdrop-filter: blur(20px);
-}
-
-.custom-drawing-files .ui-button {
-  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-top: 0;
 }
 
 .custom-drawing-files label {
   display: block;
-  font-size: 15px;
+  font-size: 13px;
   margin-right: 6px;
-  margin-bottom: 10px;
-  color: var(--text-muted);
+  margin-bottom: 8px;
+  color: rgba(143, 169, 194, 0.82);
   text-transform: uppercase;
   letter-spacing: 0.08em;
+  font-weight: 700;
 }
 
-.custom-drawing-files select {
-  width: 100%;
+.custom-drawing-files .user-select-container {
+  margin: 0;
+}
+
+.custom-drawing-files .custom-drawing-custom-select {
+  --custom-select-trigger-height: 42px;
+}
+
+.custom-drawing-files .custom-select__trigger {
+  border-radius: calc(var(--radius) + 6px);
+  background: rgba(27, 40, 61, 0.88);
+  box-shadow: inset 0 0 0 1px rgba(117, 161, 205, 0.12);
+  color: var(--accent);
+}
+
+.custom-drawing-files .custom-select__trigger:hover {
+  box-shadow: inset 0 0 0 1px rgba(117, 161, 205, 0.22);
+}
+
+.custom-drawing-files .custom-select__value {
+  color: var(--accent);
+}
+
+.custom-drawing-files .custom-select__menu {
+  top: calc(100% + 8px);
+}
+
+.drawing-save-action {
+  display: flex;
 }
 
 .drawing-toolbox {
-  width: 100%;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 14px;
-  margin-top: 16px;
-  display: grid;
-  grid-template-columns: repeat(2, 56px);
-  gap: 10px;
-  background: var(--bg-elevated);
-  box-shadow: var(--shadow);
+  display: flex;
+  align-items: flex-start;
+  min-height: 0;
+  padding-top: 0;
+}
+
+.drawing-toolbox__rail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid rgba(117, 161, 205, 0.18);
+  border-radius: calc(var(--radius) + 8px);
+  background: rgba(27, 40, 61, 0.82);
 }
 
 .drawing-toolbox .item {
@@ -163,25 +213,58 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border: 1px solid var(--border);
-  width: 56px;
-  height: 56px;
-  border-radius: var(--radius);
-  background: rgba(4, 9, 18, 0.6);
+  width: 42px;
+  height: 42px;
+  border: 1px solid transparent;
+  border-radius: calc(var(--radius) + 4px);
+  background: transparent;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    transform 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.drawing-toolbox .item:hover,
+.drawing-toolbox .item:focus-visible {
+  border-color: rgba(117, 161, 205, 0.24);
+  background: rgba(12, 24, 42, 0.38);
+  outline: none;
+}
+
+.drawing-toolbox .item.is-selected {
+  border-color: rgba(255, 204, 0, 0.26);
+  background: var(--canvas-zoom-highlight-stroke-color);
+  box-shadow: 0 8px 22px rgba(255, 204, 0, 0.18);
+}
+
+.drawing-toolbox .item img {
+  width: 18px;
+  height: 18px;
+  opacity: 0.92;
+  filter: brightness(0) saturate(100%) invert(84%) sepia(8%) saturate(472%) hue-rotate(174deg) brightness(93%)
+    contrast(94%);
+}
+
+.drawing-toolbox .item.is-selected img {
+  filter: brightness(0) saturate(100%) invert(8%) sepia(25%) saturate(1038%) hue-rotate(179deg) brightness(95%)
+    contrast(97%);
 }
 
 .zoombox-container {
   width: 100%;
   height: 142px;
-  margin-bottom: 20px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
 }
 
 .zoombox-container .zoombox {
   border: 1px solid var(--border);
-  background-color: rgba(4, 9, 18, 0.78);
+  background-color: rgba(18, 31, 54, 0.72);
   height: 142px;
   width: 142px;
-  border-radius: var(--radius);
+  border-radius: calc(var(--radius) + 3px);
   overflow: hidden;
 }
 

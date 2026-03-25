@@ -1,6 +1,7 @@
 import { GRID_COLS, GRID_ROWS } from "@grid/constants";
 import { queryRequired } from "@helpers/dom";
 import { ACCEPTED_EXTENSIONS, floydSteinberg, ImageSeedError, seedFromImage } from "@lib/image/ImageSeeder";
+import { syncSliderFill } from "@ui/components/slider/createSlider";
 import Tooltip from "@ui/lib/Tooltip";
 import Swal from "sweetalert2";
 
@@ -8,8 +9,8 @@ const DEFAULT_THRESHOLD = 128;
 const FORMATS_LABEL = `(${ACCEPTED_EXTENSIONS.join(", ")})`;
 
 const TEXTS = {
-  button: "import image",
-  thresholdLabel: "threshold",
+  button: "Import Image",
+  thresholdLabel: "Threshold:",
   thresholdDisabledHint: "This threshold applies to the imported image",
   errorTitle: "Import failed",
   unsupported: `Unsupported format. Accepted: ${ACCEPTED_EXTENSIONS.join(", ")}`,
@@ -43,8 +44,9 @@ class ImageImporter {
 
     this._btn.textContent = TEXTS.button;
     this._formatsLabel.textContent = FORMATS_LABEL;
-    queryRequired<HTMLElement>("#image-threshold-label", this._container).textContent = `${TEXTS.thresholdLabel} `;
+    queryRequired<HTMLElement>("#image-threshold-label", this._container).textContent = TEXTS.thresholdLabel;
     this._thresholdSlider.disabled = true;
+    syncSliderFill(this._thresholdSlider);
 
     this._btn.addEventListener("click", () => this._input.click());
     this._input.addEventListener("change", this._onFileChange);
@@ -67,6 +69,7 @@ class ImageImporter {
     this._thresholdTooltipTarget.style.display = "";
     this._thresholdSlider.value = String(DEFAULT_THRESHOLD);
     this._thresholdValue.textContent = String(DEFAULT_THRESHOLD);
+    syncSliderFill(this._thresholdSlider);
   }
 
   public destroy(): void {
@@ -103,6 +106,7 @@ class ImageImporter {
       this._thresholdTooltipTarget.style.display = "none";
       this._thresholdSlider.value = String(DEFAULT_THRESHOLD);
       this._thresholdValue.textContent = String(DEFAULT_THRESHOLD);
+      syncSliderFill(this._thresholdSlider);
       this._onImport(grid);
     } catch (err) {
       const text = err instanceof ImageSeedError ? err.message : TEXTS.unsupported;
@@ -114,6 +118,7 @@ class ImageImporter {
     if (!this._grayscale) return;
     const threshold = Number((e.currentTarget as HTMLInputElement).value);
     this._thresholdValue.textContent = String(threshold);
+    syncSliderFill(this._thresholdSlider);
     const grid = floydSteinberg(this._grayscale, GRID_COLS, GRID_ROWS, threshold);
     this._onImport(grid);
   };

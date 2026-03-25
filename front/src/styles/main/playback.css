@@ -83,11 +83,7 @@
   width: 100%;
 }
 
-.speed-header {
-  display: grid;
-  grid-template-columns: max-content minmax(4ch, 1fr);
-  column-gap: 6px;
-  align-items: baseline;
+.speed-slider-field .ui-slider-field__legend {
   font-size: 15px;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -95,23 +91,7 @@
 }
 
 .speed-value {
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-  font-family: "JetBrains Mono", monospace;
-  color: var(--accent);
-}
-
-#speed-slider {
-  width: 100%;
-  max-width: 100%;
-  margin-top: 10px;
-  accent-color: var(--accent);
-  cursor: pointer;
-  padding: 0;
-}
-
-#speed-slider:hover {
-  box-shadow: 0 0 18px rgba(37, 219, 255, 0.18);
+  letter-spacing: normal;
 }
 
 .playback-controls .ui-button {

@@ -1,7 +1,7 @@
 export const CONTROL_TEXTS = {
   drawing: {
-    saveButton: "save",
-    customDrawingLabel: "custom drawing",
+    saveButton: "Save Drawing",
+    customDrawingLabel: "Custom Drawing",
     tools: {
       pencilAlt: "pencil",
       eraserAlt: "eraser",

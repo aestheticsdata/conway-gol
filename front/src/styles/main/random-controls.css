@@ -8,7 +8,7 @@
   backdrop-filter: blur(20px);
 }
 
-.random-preset-selector label {
+.random-preset-selector > label:first-of-type {
   display: block;
   font-size: 15px;
   margin-right: 6px;
@@ -46,18 +46,6 @@
 .random-param > label:first-child {
   font-size: 14px;
   color: var(--text-muted);
-}
-
-.random-param input[type="range"] {
-  width: 100%;
-  accent-color: var(--accent);
-  cursor: pointer;
-  padding: 0;
-}
-
-.random-param input[type="range"]:disabled {
-  opacity: 0.35;
-  cursor: default;
 }
 
 .random-noise-type-group {
@@ -135,14 +123,4 @@
 .random-seed-random input[type="checkbox"] {
   cursor: pointer;
   accent-color: var(--accent);
-}
-
-#random-density-value,
-#random-seed-value,
-#random-rotation-value,
-#random-zoom-value,
-#random-noise-level-value {
-  font-weight: bold;
-  color: var(--accent);
-  font-family: "JetBrains Mono", monospace;
 }
