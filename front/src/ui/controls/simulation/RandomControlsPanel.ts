@@ -277,7 +277,11 @@ class RandomControlsPanel {
   private _updateValueLabels(): void {
     this._randomDensityValue.textContent = `${this._randomDensitySlider.value}%`;
     this._randomRotationValue.textContent = `${this._randomRotationSlider.value}°`;
-    this._randomZoomValue.textContent = `×${(2 ** (Number(this._randomZoomSlider.value) / 50)).toFixed(2)}`;
+    const level = Number(this._randomZoomSlider.value);
+    const minZoom = 0.05;
+    const maxZoom = 16;
+    const scale = level >= 0 ? maxZoom ** (level / 100) : minZoom ** (-level / 100);
+    this._randomZoomValue.textContent = `×${scale.toFixed(2)}`;
     this._randomSeedValue.textContent = String(this._randomSeedSlider.value);
   }
 

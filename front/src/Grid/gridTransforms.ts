@@ -17,7 +17,12 @@ export function transformGrid(baseGrid: number[][], angleDeg: number, zoomLevel:
 
   const rows = GRID_ROWS;
   const cols = GRID_COLS;
-  const scale = 2 ** (zoomLevel / 50);
+  // Map slider [-100..100] to an exponential zoom range [×0.05..×16]
+  // with the neutral center at 0 → ×1.00.
+  const minZoom = 0.05;
+  const maxZoom = 16;
+  const scale =
+    zoomLevel >= 0 ? maxZoom ** (zoomLevel / 100) : minZoom ** (-zoomLevel / 100);
   const angleRad = (angleDeg * Math.PI) / 180;
   const cosA = Math.cos(angleRad);
   const sinA = Math.sin(angleRad);

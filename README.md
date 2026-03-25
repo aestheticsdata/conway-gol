@@ -387,7 +387,7 @@ Mode-specific initialization is split into private methods:
 
 `GridDrawingHandler` in `front/src/Grid/GridDrawingHandler.ts` owns all drawing-mode state and mouse handling (cursor visibility, zoom area, pencil/eraser paint, hover overlay). It communicates with `Grid` exclusively through callbacks (`getCell`, `setCell`, `renderCell`, `emitStateChange`, `getPreviewCellColor`) — no direct reference to `Grid` or `Simulation`.
 
-`gridTransforms.ts` in `front/src/Grid/gridTransforms.ts` exposes `transformGrid(baseGrid, angleDeg, zoomLevel)`, a pure function that applies rotation and zoom to a cell grid in a single inverse-mapping pass. Positive `angleDeg` rotates clockwise; `zoomLevel` maps linearly to a scale factor via `scale = 2^(zoomLevel / 50)`. The original grid is never mutated.
+`gridTransforms.ts` in `front/src/Grid/gridTransforms.ts` exposes `transformGrid(baseGrid, angleDeg, zoomLevel)`, a pure function that applies rotation and zoom to a cell grid in a single inverse-mapping pass. Positive `angleDeg` rotates clockwise; `zoomLevel` maps to an exponential scale factor with a neutral centre at 0 → ×1.00, ranging from −100 → ×0.05 to +100 → ×16. The original grid is never mutated.
 
 `Grid` stores a `_baseGrid` snapshot each time a preset is seeded. Rotation and zoom sliders call `setRotation()` / `setZoom()`, which re-apply `transformGrid` against the stored snapshot and re-seed the simulation — no new random generation is triggered.
 
@@ -820,7 +820,7 @@ Two new sliders were added to the random mode right pane below the density slide
 
 **Zoom** (−100 → +100, centred at 0):
 
-- Maps to a scale factor via `scale = 2^(level / 50)`: 0 → ×1.00, 50 → ×2.00, −50 → ×0.50, ±100 → ×4.00 / ×0.25.
+- Maps to an exponential scale factor with a neutral centre: 0 → ×1.00, −100 → ×0.05, +100 → ×16.
 - Values greater than 0 zoom in (pattern fills more of the grid); values less than 0 zoom out.
 - The displayed label shows the computed factor in real time (e.g. "×2.00").
 
