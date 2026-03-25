@@ -512,7 +512,6 @@ export class SimulationWorkspace {
       }
 
       case "drawing": {
-        const userCustomSelectorExisted = Boolean(this._userCustomSelector);
         this._randomControls.hide();
         this._setDisplay(this._zooPrimitivesDOMSelector, false);
         this._drawingInspectorDOMSelector.style.display = "flex";
@@ -524,9 +523,8 @@ export class SimulationWorkspace {
         this._drawingToolBox.show();
         this._zoomBox.show();
         this._userCustomSelector.show();
-        if (userCustomSelectorExisted) {
-          void this._userCustomSelector.getCustomList();
-        }
+        await this._userCustomSelector.getCustomList();
+        this._selectedSpecies = this._userCustomSelector.currentValue() || null;
         this._imageImporter ??= new ImageImporter((grid) => {
           this._grid?.seedFromGrid(grid);
         });

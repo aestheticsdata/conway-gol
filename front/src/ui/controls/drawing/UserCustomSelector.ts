@@ -33,7 +33,6 @@ class UserCustomSelector {
       visibleOptionCount: 8,
     });
     this.saveBtn.addEventListener("click", this._save);
-    void this.getCustomList();
   }
 
   public show(): void {
@@ -63,6 +62,10 @@ class UserCustomSelector {
   public destroy(): void {
     this.saveBtn.removeEventListener("click", this._save);
     this._customSelect.destroy();
+  }
+
+  public currentValue(): string {
+    return this._selectedValue;
   }
 
   private _save = async () => {
