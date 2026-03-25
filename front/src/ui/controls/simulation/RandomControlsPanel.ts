@@ -11,6 +11,7 @@ type RandomControlsPanelOptions = {
   root: HTMLElement;
   onPresetChange: () => void;
   onGenerate: () => void;
+  onSave: () => void;
   onParamsChange: () => void;
   onRotationChange: (deg: number) => void;
   onZoomChange: (level: number) => void;
@@ -30,6 +31,7 @@ class RandomControlsPanel {
   public readonly element: HTMLElement;
   private readonly _onPresetChange: () => void;
   private readonly _onGenerate: () => void;
+  private readonly _onSave: () => void;
   private readonly _onParamsChange: () => void;
   private readonly _onRotationChange: (deg: number) => void;
   private readonly _onZoomChange: (level: number) => void;
@@ -40,6 +42,7 @@ class RandomControlsPanel {
   private readonly _randomPresetMenu: HTMLElement;
   private readonly _randomPresetOptions: HTMLElement;
   private readonly _randomGenerateBtn: HTMLButtonElement;
+  private readonly _randomSaveBtn: HTMLButtonElement;
   private readonly _randomResetBtn: HTMLButtonElement;
   private readonly _randomDensitySlider: HTMLInputElement;
   private readonly _randomDensityValue: HTMLSpanElement;
@@ -58,6 +61,7 @@ class RandomControlsPanel {
     this.element = queryRequired<HTMLElement>(".random-preset-selector", options.root);
     this._onPresetChange = options.onPresetChange;
     this._onGenerate = options.onGenerate;
+    this._onSave = options.onSave;
     this._onParamsChange = options.onParamsChange;
     this._onRotationChange = options.onRotationChange;
     this._onZoomChange = options.onZoomChange;
@@ -68,6 +72,7 @@ class RandomControlsPanel {
     this._randomPresetMenu = queryRequired<HTMLElement>(".custom-select__menu", this.element);
     this._randomPresetOptions = queryRequired<HTMLElement>(".custom-select__options", this.element);
     this._randomGenerateBtn = queryRequired<HTMLButtonElement>(".random-generate", this.element);
+    this._randomSaveBtn = queryRequired<HTMLButtonElement>(".random-save", this.element);
     this._randomResetBtn = queryRequired<HTMLButtonElement>(".random-reset", this.element);
     this._randomDensitySlider = queryRequired<HTMLInputElement>("#random-density", this.element);
     this._randomDensityValue = queryRequired<HTMLSpanElement>("#random-density-value", this.element);
@@ -95,6 +100,7 @@ class RandomControlsPanel {
     this._randomPresetTrigger.addEventListener("click", this._togglePresetMenu);
     this._randomPresetSelect.addEventListener("change", this._handlePresetChange);
     this._randomGenerateBtn.addEventListener("click", this._onGenerate);
+    this._randomSaveBtn.addEventListener("click", this._onSave);
     this._randomResetBtn.addEventListener("click", this._handleReset);
     this._randomDensitySlider.addEventListener("input", this._handleDensityInput);
     this._randomRotationSlider.addEventListener("input", this._handleRotationInput);
@@ -120,6 +126,7 @@ class RandomControlsPanel {
     this._randomPresetTrigger.removeEventListener("click", this._togglePresetMenu);
     this._randomPresetSelect.removeEventListener("change", this._handlePresetChange);
     this._randomGenerateBtn.removeEventListener("click", this._onGenerate);
+    this._randomSaveBtn.removeEventListener("click", this._onSave);
     this._randomResetBtn.removeEventListener("click", this._handleReset);
     this._randomDensitySlider.removeEventListener("input", this._handleDensityInput);
     this._randomRotationSlider.removeEventListener("input", this._handleRotationInput);
@@ -210,6 +217,7 @@ class RandomControlsPanel {
     queryRequired<HTMLElement>("#random-seed-label", this.element).textContent = `${APP_TEXTS.random.seed} `;
     queryRequired<HTMLElement>("#random-seed-auto-label", this.element).textContent = APP_TEXTS.random.autoSeed;
     this._randomGenerateBtn.textContent = APP_TEXTS.random.generate;
+    this._randomSaveBtn.textContent = APP_TEXTS.random.save;
     this._randomResetBtn.textContent = APP_TEXTS.random.reset;
   }
 

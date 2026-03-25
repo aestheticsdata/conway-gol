@@ -31,6 +31,7 @@
 .workspace-login-link,
 .playback-controls button,
 .random-preset-selector .random-generate,
+.random-preset-selector .random-save,
 .random-preset-selector .random-reset,
 .image-import .image-import-btn {
   position: relative;
@@ -53,6 +54,7 @@
 .workspace-login-link::before,
 .playback-controls button::before,
 .random-preset-selector .random-generate::before,
+.random-preset-selector .random-save::before,
 .random-preset-selector .random-reset::before,
 .image-import .image-import-btn::before {
   content: "";
@@ -79,6 +81,8 @@
 .playback-controls button:focus-visible,
 .random-preset-selector .random-generate:hover,
 .random-preset-selector .random-generate:focus-visible,
+.random-preset-selector .random-save:hover,
+.random-preset-selector .random-save:focus-visible,
 .random-preset-selector .random-reset:hover,
 .random-preset-selector .random-reset:focus-visible,
 .image-import .image-import-btn:hover,
@@ -102,6 +106,8 @@
 .playback-controls button:focus-visible::before,
 .random-preset-selector .random-generate:hover::before,
 .random-preset-selector .random-generate:focus-visible::before,
+.random-preset-selector .random-save:hover::before,
+.random-preset-selector .random-save:focus-visible::before,
 .random-preset-selector .random-reset:hover::before,
 .random-preset-selector .random-reset:focus-visible::before,
 .image-import .image-import-btn:hover::before,
@@ -113,6 +119,7 @@
 .workspace-login-link:active,
 .playback-controls button:active,
 .random-preset-selector .random-generate:active,
+.random-preset-selector .random-save:active,
 .random-preset-selector .random-reset:active,
 .image-import .image-import-btn:active {
   border-color: rgba(67, 243, 255, 0.65);
@@ -130,6 +137,7 @@
 .workspace-login-link:active::before,
 .playback-controls button:active::before,
 .random-preset-selector .random-generate:active::before,
+.random-preset-selector .random-save:active::before,
 .random-preset-selector .random-reset:active::before,
 .image-import .image-import-btn:active::before {
   opacity: 0;

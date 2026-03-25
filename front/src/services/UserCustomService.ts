@@ -23,7 +23,10 @@ class UserCustomService {
   }
 
   /**
-   * Save a custom drawing to the server.
+   * Persist a full-grid custom pattern via Nest `POST usercustom/:filename`.
+   * Same payload is used for drawing saves and for random-mode snapshots: the API stores
+   * one `automata` matrix per name; the drawing screen lists all public custom patterns.
+   *
    * @param data  Full grid state as number[][] (0=DEAD, 1=ALIVE) from Simulation.toGrid().
    */
   public async postCustomDrawing(data: number[][], filename: string): Promise<void> {
@@ -32,7 +35,8 @@ class UserCustomService {
       automata: data,
     };
 
-    await this._http.post<void, CustomDrawingPayload>(`${URLS.usercustom}${filename}`, payload);
+    const safeName = encodeURIComponent(filename.trim());
+    await this._http.post<void, CustomDrawingPayload>(`${URLS.usercustom}${safeName}`, payload);
   }
 }
 

@@ -171,6 +171,11 @@ class Grid {
     this._emitStateChange();
   }
 
+  /** Snapshot current simulation state as a full grid. */
+  public toGrid(): number[][] {
+    return this._simulation.toGrid();
+  }
+
   /**
    * Re-seed random mode from a preset and repaint (iteration counter reset by caller).
    * @param randomVariation — same as Simulation.seedByPreset (false = default, true = Generate).

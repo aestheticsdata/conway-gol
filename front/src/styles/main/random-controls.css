@@ -172,6 +172,7 @@ select.custom-select__native#zoo-species-native {
 }
 
 .random-preset-selector .random-generate,
+.random-preset-selector .random-save,
 .random-preset-selector .random-reset {
   display: inline-flex;
   margin-top: 10px;

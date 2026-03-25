@@ -1,12 +1,13 @@
 import { queryRequired } from "@helpers/dom";
 import UserCustomService from "@services/UserCustomService";
-import Swal from "sweetalert2";
+import SavePresetModal from "@ui/lib/SavePresetModal";
 import { CONTROL_TEXTS } from "./texts";
 
 class UserCustomSelector {
   private readonly _customDrawingDOMSelector: HTMLElement;
   private readonly _userListSelect: HTMLSelectElement;
   private readonly _userCustomService: UserCustomService;
+  private readonly _savePresetModal: SavePresetModal;
   private _userCustomList: string[] = [];
   public readonly saveBtn: HTMLButtonElement;
   private readonly _cb: (speciesName: string) => void;
@@ -18,13 +19,14 @@ class UserCustomSelector {
    */
   public getGridData: () => number[][] = () => [];
 
-  constructor(cb: (speciesName: string) => void) {
+  constructor(cb: (speciesName: string) => void, savePresetModal?: SavePresetModal) {
     this._customDrawingDOMSelector = queryRequired<HTMLElement>(".custom-drawing-files");
     this._userListSelect = queryRequired<HTMLSelectElement>("#custom-file");
     this.saveBtn = queryRequired<HTMLButtonElement>(".custom-drawing-files .save");
     this._cb = cb;
     this.saveBtn.style.display = "block";
     this._userCustomService = new UserCustomService();
+    this._savePresetModal = savePresetModal ?? new SavePresetModal();
     this.saveBtn.addEventListener("click", this._save);
     this._userListSelect.addEventListener("change", this._onSelectChange);
     void this.getCustomList();
@@ -47,28 +49,18 @@ class UserCustomSelector {
   }
 
   private _save = async () => {
-    const { value: filename } = await Swal.fire({
+    const filename = await this._savePresetModal.open({
       title: CONTROL_TEXTS.userCustomSelector.prompt.title,
-      input: "text",
-      showCancelButton: true,
-      confirmButtonText: CONTROL_TEXTS.userCustomSelector.prompt.confirmButtonText,
-      inputValidator: (value) => {
-        if (!value) {
-          return CONTROL_TEXTS.userCustomSelector.prompt.filenameRequired;
-        }
-      },
+      inputPlaceholder: CONTROL_TEXTS.userCustomSelector.prompt.inputPlaceholder,
+      saveLabel: CONTROL_TEXTS.userCustomSelector.prompt.confirmButtonText,
+      cancelLabel: CONTROL_TEXTS.userCustomSelector.prompt.cancelButtonText,
+      nameRequired: CONTROL_TEXTS.userCustomSelector.prompt.filenameRequired,
+      closeLabel: CONTROL_TEXTS.userCustomSelector.prompt.closeButtonLabel,
     });
+
     if (filename) {
       await this._userCustomService.postCustomDrawing(this.getGridData(), filename);
       await this.getCustomList();
-      await Swal.fire({
-        toast: true,
-        icon: "success",
-        title: CONTROL_TEXTS.userCustomSelector.toast.savedSuccessfully(filename),
-        position: "top-end",
-        showConfirmButton: false,
-        timer: 3000,
-      });
     }
   };
 

@@ -1,0 +1,172 @@
+.ui-save-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.ui-save-modal[hidden] {
+  display: none;
+}
+
+.ui-save-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(4, 10, 18, 0.72);
+  backdrop-filter: blur(6px);
+}
+
+.ui-save-modal__dialog {
+  position: relative;
+  z-index: 1;
+  width: min(420px, calc(100vw - 32px));
+  padding: 22px;
+  border: 1px solid var(--field-border-strong);
+  border-radius: calc(var(--radius) + 4px);
+  background:
+    radial-gradient(circle at top left, rgba(37, 219, 255, 0.2), transparent 54%),
+    linear-gradient(180deg, rgba(19, 32, 51, 0.98), rgba(7, 15, 26, 0.98));
+  box-shadow:
+    0 0 0 1px rgba(37, 219, 255, 0.08),
+    0 24px 60px rgba(0, 0, 0, 0.5),
+    0 0 36px rgba(37, 219, 255, 0.14);
+  opacity: 0;
+  transform: translateY(-34px);
+  will-change: transform, opacity;
+}
+
+.ui-save-modal__title {
+  margin: 0;
+  color: var(--text-main);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.ui-save-modal__input {
+  width: 100%;
+  margin-top: 14px;
+  border: 1px solid var(--field-border);
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, var(--field-highlight), rgba(255, 255, 255, 0)), var(--field-bg);
+  color: var(--text-main);
+  min-height: 44px;
+  padding: 0 12px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 15px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    var(--field-shadow);
+}
+
+.ui-save-modal__input:focus-visible {
+  outline: 2px solid rgba(37, 219, 255, 0.3);
+  outline-offset: 1px;
+}
+
+.ui-save-modal__error {
+  min-height: 18px;
+  margin: 8px 0 0;
+  color: #ff7e96;
+  font-size: 13px;
+}
+
+.ui-save-modal__error[hidden] {
+  display: block;
+  visibility: hidden;
+}
+
+.ui-save-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.ui-save-modal__actions button {
+  width: fit-content;
+  min-width: 96px;
+  margin-top: 0;
+  padding-inline: 14px;
+}
+
+.ui-save-modal__close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  min-width: 0;
+  margin-top: 0;
+  padding: 0;
+  border-radius: 999px;
+}
+
+.ui-save-modal__close span {
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+}
+
+.ui-save-modal__close svg {
+  width: 100%;
+  height: 100%;
+}
+
+.ui-save-modal.is-open {
+  animation: ui-save-modal-fade-in 260ms ease-out forwards;
+}
+
+.ui-save-modal.is-open .ui-save-modal__dialog {
+  animation: ui-save-modal-dialog-in 320ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.ui-save-modal.is-closing {
+  animation: ui-save-modal-fade-out 240ms ease-in forwards;
+}
+
+.ui-save-modal.is-closing .ui-save-modal__dialog {
+  animation: ui-save-modal-dialog-out 260ms ease-in forwards;
+}
+
+@keyframes ui-save-modal-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ui-save-modal-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes ui-save-modal-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(-34px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ui-save-modal-dialog-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-28px);
+  }
+}

@@ -47,6 +47,7 @@ export const APP_TEXTS = {
     autoSeed: "Random seed",
     seedSliderDisabledHint: "Uncheck Random seed to enable slider",
     generate: "Generate",
+    save: "Save",
     reset: "Reset",
   },
   zoo: {

@@ -9,12 +9,12 @@ export const CONTROL_TEXTS = {
   },
   userCustomSelector: {
     prompt: {
-      title: "enter a filename",
+      title: "save custom preset",
+      inputPlaceholder: "preset name",
       confirmButtonText: "save",
+      cancelButtonText: "cancel",
+      closeButtonLabel: "close modal",
       filenameRequired: "filename required",
-    },
-    toast: {
-      savedSuccessfully: (filename: string) => `${filename} saved successfully`,
     },
   },
 } as const;

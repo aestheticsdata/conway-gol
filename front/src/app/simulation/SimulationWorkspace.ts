@@ -5,11 +5,13 @@ import { DEFAULT_RANDOM_PRESET, isRandomPresetId } from "@grid/randomPresets";
 import ZoomBox from "@grid/zoom/ZoomBox";
 import { getRequiredContext2D, queryAll, queryRequired } from "@helpers/dom";
 import CritterService from "@services/CritterService";
+import UserCustomService from "@services/UserCustomService";
 import { APP_TEXTS } from "@texts";
 import DrawingToolBox from "@ui/controls/drawing/DrawingToolBox";
 import ImageImporter from "@ui/controls/drawing/ImageImporter";
 import { CONTROL_TEXTS } from "@ui/controls/drawing/texts";
 import UserCustomSelector from "@ui/controls/drawing/UserCustomSelector";
+import SavePresetModal from "@ui/lib/SavePresetModal";
 import ModeSelector, { type Mode } from "@ui/controls/simulation/ModeSelector";
 import RandomControlsPanel from "@ui/controls/simulation/RandomControlsPanel";
 import ZooSelector from "@ui/controls/simulation/ZooSelector";
@@ -41,6 +43,8 @@ export class SimulationWorkspace {
   private readonly _aliveVariationChart: AliveVariationChart;
   private readonly _aliveCountChart: AliveCountChart;
   private readonly _critterService = new CritterService();
+  private readonly _userCustomService = new UserCustomService();
+  private readonly _savePresetModal = new SavePresetModal();
   private readonly _pauseBtn: HTMLButtonElement;
   private readonly _speedSlider: HTMLInputElement;
   private readonly _speedValue: HTMLElement;
@@ -104,6 +108,7 @@ export class SimulationWorkspace {
       root: this._root,
       onPresetChange: this._onRandomPresetChange,
       onGenerate: this._onRandomPresetGenerate,
+      onSave: this._onRandomPresetSave,
       onParamsChange: this._onRandomParamChange,
       onRotationChange: this._onRotationChange,
       onZoomChange: this._onZoomChange,
@@ -140,6 +145,7 @@ export class SimulationWorkspace {
     this._isPlaying = false;
     this._grid?.destroyListener();
     this._randomControls.destroy();
+    this._savePresetModal.destroy();
     this._imageImporter?.destroy();
     document.removeEventListener("pointerdown", this._handleDocumentPointerDown);
     document.removeEventListener("keydown", this._handleDocumentKeyDown);
@@ -310,6 +316,28 @@ export class SimulationWorkspace {
     this._grid.reseedRandomPreset(this._currentRandomPreset(), true, this._currentRandomParams());
   };
 
+  private _onRandomPresetSave = async (): Promise<void> => {
+    if (this._selectedMode !== "random" || !this._grid) {
+      return;
+    }
+
+    const filename = await this._savePresetModal.open({
+      title: CONTROL_TEXTS.userCustomSelector.prompt.title,
+      inputPlaceholder: CONTROL_TEXTS.userCustomSelector.prompt.inputPlaceholder,
+      saveLabel: CONTROL_TEXTS.userCustomSelector.prompt.confirmButtonText,
+      cancelLabel: CONTROL_TEXTS.userCustomSelector.prompt.cancelButtonText,
+      nameRequired: CONTROL_TEXTS.userCustomSelector.prompt.filenameRequired,
+      closeLabel: CONTROL_TEXTS.userCustomSelector.prompt.closeButtonLabel,
+    });
+
+    if (!filename) {
+      return;
+    }
+
+    await this._userCustomService.postCustomDrawing(this._grid.toGrid(), filename);
+    await this._userCustomSelector?.getCustomList();
+  };
+
   private _setFPS(): void {
     this._speedSlider.value = String(this._fps);
     this._speedValue.textContent = String(this._fps);
@@ -443,17 +471,21 @@ export class SimulationWorkspace {
         break;
       }
 
-      case "drawing":
+      case "drawing": {
+        const userCustomSelectorExisted = Boolean(this._userCustomSelector);
         this._randomControls.hide();
         this._setDisplay(this._zooPrimitivesDOMSelector, false);
         this._commentsDOMSelector.replaceChildren();
         this._setDisplay(this._drawingCanvas, true);
         this._drawingToolBox ??= new DrawingToolBox();
         this._zoomBox ??= new ZoomBox();
-        this._userCustomSelector ??= new UserCustomSelector(this._changeZoo);
+        this._userCustomSelector ??= new UserCustomSelector(this._changeZoo, this._savePresetModal);
         this._drawingToolBox.show();
         this._zoomBox.show();
         this._userCustomSelector.show();
+        if (userCustomSelectorExisted) {
+          void this._userCustomSelector.getCustomList();
+        }
         this._imageImporter ??= new ImageImporter((grid) => {
           this._grid?.seedFromGrid(grid);
         });
@@ -476,6 +508,7 @@ export class SimulationWorkspace {
         });
         this._grid.initListener();
         break;
+      }
     }
 
     this._resetPlaybackControls();

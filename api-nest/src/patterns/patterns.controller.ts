@@ -25,6 +25,7 @@ export class PatternsController {
     return this.patternsService.listCustomPatterns();
   }
 
+  /** Persists any full-grid custom pattern (drawn or random snapshot); listed by GET list?subdir=user-custom or GET usercustom. */
   @Post("usercustom/:filename")
   saveUserCustomPattern(@Param("filename") filename: string, @Body() body: unknown) {
     return this.patternsService.saveCustomPattern(filename, body);

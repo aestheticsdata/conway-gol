@@ -277,6 +277,7 @@ function createRandomControls(): string {
       </div>
       <div class="random-generate-wrapper">
         <button type="button" class="random-generate"></button>
+        <button type="button" class="random-save"></button>
         <button type="button" class="random-reset"></button>
       </div>
     </div>
