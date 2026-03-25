@@ -3,6 +3,8 @@ import { NOISE_CENTER_BURST_ICON } from "@assets/icons/noiseCenterBurstIcon";
 import { NOISE_CLUSTERS_ICON } from "@assets/icons/noiseClustersIcon";
 import { NOISE_EDGE_BIAS_ICON } from "@assets/icons/noiseEdgeBiasIcon";
 import { NOISE_GRADIENT_ICON } from "@assets/icons/noiseGradientIcon";
+import { NOISE_INTERFERENCE_ICON } from "@assets/icons/noiseInterferenceIcon";
+import { NOISE_MARBLING_ICON } from "@assets/icons/noiseMarblingIcon";
 import { NOISE_PERLIN_ICON } from "@assets/icons/noisePerlinIcon";
 import { NOISE_UNIFORM_ICON } from "@assets/icons/noiseUniformIcon";
 import { PAW_ICON } from "@assets/icons/pawIcon";
@@ -90,6 +92,18 @@ const RANDOM_NOISE_OPTIONS: readonly RandomNoiseOption[] = [
     title: APP_TEXTS.random.noiseTypes.centerBurst,
     ariaLabel: APP_TEXTS.random.noiseTypes.centerBurst,
     icon: NOISE_CENTER_BURST_ICON,
+  },
+  {
+    value: "interference",
+    title: APP_TEXTS.random.noiseTypes.interference,
+    ariaLabel: APP_TEXTS.random.noiseTypes.interference,
+    icon: NOISE_INTERFERENCE_ICON,
+  },
+  {
+    value: "marbling",
+    title: APP_TEXTS.random.noiseTypes.marbling,
+    ariaLabel: APP_TEXTS.random.noiseTypes.marbling,
+    icon: NOISE_MARBLING_ICON,
   },
 ];
 

@@ -32,6 +32,8 @@ export const APP_TEXTS = {
       gradient: "Gradient",
       edgeBias: "Edge bias",
       centerBurst: "Center burst",
+      interference: "Interference",
+      marbling: "Marbling",
     },
     noiseTypeTiles: {
       uniform: "Uniform",
@@ -40,6 +42,8 @@ export const APP_TEXTS = {
       gradient: "Gradient",
       edgeBias: "Edge bias",
       centerBurst: "Center burst",
+      interference: "Interference",
+      marbling: "Marbling",
     },
     rotation: "Rotation:",
     zoom: "Zoom:",

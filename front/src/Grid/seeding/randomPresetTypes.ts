@@ -1,6 +1,14 @@
 import type { RandomPresetId } from "@grid/randomPresets";
 
-export type NoiseType = "uniform" | "perlin-like" | "clusters" | "gradient" | "edge-bias" | "center-burst";
+export type NoiseType =
+  | "uniform"
+  | "perlin-like"
+  | "clusters"
+  | "gradient"
+  | "edge-bias"
+  | "center-burst"
+  | "interference"
+  | "marbling";
 
 export interface RandomSeedParams {
   density: number; // 0–1: shape count / frequency for patterns; alive probability for "noise"

@@ -127,6 +127,56 @@ function fillEdgeBiasNoise(mask: Float32Array, rows: number, cols: number, rng: 
   }
 }
 
+/** Moiré-style beats from two slightly mis-tuned oriented wave grids (strong patterns at high density). */
+function fillInterferenceNoise(mask: Float32Array, rows: number, cols: number, rng: () => number): void {
+  const cycles1 = 5 + rng() * 18;
+  const cycles2 = cycles1 * (0.92 + rng() * 0.16);
+  const theta1 = rng() * Math.PI * 2;
+  const theta2 = theta1 + (rng() * 0.38 - 0.19) * Math.PI;
+  const ph1 = rng() * Math.PI * 2;
+  const ph2 = rng() * Math.PI * 2;
+  let idx = 0;
+
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      const nx = cols <= 1 ? 0 : col / (cols - 1);
+      const ny = rows <= 1 ? 0 : row / (rows - 1);
+      const u1 = nx * Math.cos(theta1) + ny * Math.sin(theta1);
+      const u2 = nx * Math.cos(theta2) + ny * Math.sin(theta2);
+      const w1 = Math.sin(2 * Math.PI * cycles1 * u1 + ph1);
+      const w2 = Math.sin(2 * Math.PI * cycles2 * u2 + ph2);
+      const moire = 0.5 + 0.48 * w1 * w2;
+      mask[idx++] = clamp01(moire * 0.88 + rng() * 0.12);
+    }
+  }
+}
+
+/** Domain-warped product of sines — marble / wood-grain veins when many cells are on. */
+function fillMarblingNoise(mask: Float32Array, rows: number, cols: number, rng: () => number): void {
+  const warp = 0.08 + rng() * 0.14;
+  const wf = 1.2 + rng() * 2.5;
+  const bf = 3 + rng() * 5;
+  const p = [0, 1, 2, 3, 4, 5].map(() => rng() * Math.PI * 2);
+  let idx = 0;
+
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      const nx = cols <= 1 ? 0.5 : col / (cols - 1);
+      const ny = rows <= 1 ? 0.5 : row / (rows - 1);
+      const u =
+        nx +
+        warp * Math.sin(2 * Math.PI * wf * ny + p[0]) +
+        warp * 0.55 * Math.sin(2 * Math.PI * wf * 0.5 * (nx + ny) + p[1]);
+      const v =
+        ny +
+        warp * Math.cos(2 * Math.PI * wf * nx + p[2]) +
+        warp * 0.55 * Math.cos(2 * Math.PI * wf * 0.5 * (nx - ny) + p[3]);
+      const s = Math.sin(2 * Math.PI * bf * u + p[4]) * Math.sin(2 * Math.PI * bf * v + p[5]);
+      mask[idx++] = clamp01(0.5 + 0.48 * s * 0.92 + rng() * 0.08);
+    }
+  }
+}
+
 function fillNoiseMask(mask: Float32Array, rows: number, cols: number, rng: () => number, noiseType: NoiseType): void {
   switch (noiseType) {
     case "uniform":
@@ -148,6 +198,12 @@ function fillNoiseMask(mask: Float32Array, rows: number, cols: number, rng: () =
       return;
     case "center-burst":
       fillCenterBurstNoise(mask, rows, cols, rng);
+      return;
+    case "interference":
+      fillInterferenceNoise(mask, rows, cols, rng);
+      return;
+    case "marbling":
+      fillMarblingNoise(mask, rows, cols, rng);
       return;
   }
 }
@@ -223,6 +279,14 @@ export function applySpatialNoiseMask(
       return;
     case "center-burst":
       fillCenterBurstNoise(mask, rows, cols, context.rng);
+      applyLowMaskPreference(buffer, mask, 0.5);
+      return;
+    case "interference":
+      fillInterferenceNoise(mask, rows, cols, context.rng);
+      applyLowMaskPreference(buffer, mask, 0.5);
+      return;
+    case "marbling":
+      fillMarblingNoise(mask, rows, cols, context.rng);
       applyLowMaskPreference(buffer, mask, 0.5);
       return;
   }

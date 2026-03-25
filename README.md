@@ -32,7 +32,7 @@ A full-stack implementation of [Conway's Game of Life](https://en.wikipedia.org/
 - Tokens-based visual system for colors, radius, spacing, form fields, telemetry, and canvas rendering
 - Custom-styled random-preset dropdown consistent with the app visual language
 - Reusable tile-style buttons used for workspace mode selection and random noise type selection
-- Six noise types for the `noise` preset and as spatial masks for pattern presets: `uniform`, `perlin-like`, `clusters`, `gradient`, `edge-bias`, `center-burst`
+- Eight noise types for the `noise` preset and as spatial masks for pattern presets: `uniform`, `perlin-like`, `clusters`, `gradient`, `edge-bias`, `center-burst`, `interference`, `marbling`
 - Inline SVG icons stored in shared assets for mode buttons and random-noise selectors
 - Adjustable FPS from 0 to 60 via slider
 - Toroidal grid with wraparound edges
@@ -373,7 +373,7 @@ Generation is controlled by a `RandomSeedParams` object:
 | Field | Type | Description |
 |---|---|---|
 | `density` | `number` 0–1 | Fill fraction applied with a quadratic curve (`t²`), so the slider feels sparse at the low end and full at 100 % |
-| `noiseType` | `"uniform" \| "perlin-like" \| "clusters" \| "gradient" \| "edge-bias" \| "center-burst"` | Spatial distribution; for non-noise presets a smooth mask is applied post-generation |
+| `noiseType` | `"uniform" \| "perlin-like" \| "clusters" \| "gradient" \| "edge-bias" \| "center-burst" \| "interference" \| "marbling"` | Spatial distribution; for non-noise presets a smooth mask is applied post-generation |
 | `seed` | `number \| null` | Non-null seeds the Mulberry32 PRNG for deterministic replay; `null` uses the preset's FNV-1a hash (stable default) or `Math.random()` (Generate) |
 
 All presets are calibrated so that `density = 1` nearly fills the 156 × 156 grid.
@@ -471,7 +471,7 @@ As a result, frontend code outside `front/src/infra/http/` should not import Axi
 `front/src/assets/icons/` contains the shared inline SVG icons used by the workspace shell, including:
 
 - route mode icons (`random`, `zoo`, `drawing`)
-- random noise type icons (`uniform`, `perlin-like`, `clusters`, `gradient`, `edge-bias`, `center-burst`)
+- random noise type icons (`uniform`, `perlin-like`, `clusters`, `gradient`, `edge-bias`, `center-burst`, `interference`, `marbling`)
 
 ### API
 
@@ -814,6 +814,17 @@ Catalog patterns are stored as JSON with the `.hxf` extension:
 Custom patterns are submitted in the same JSON shape through `POST /usercustom/:filename`, but are persisted in the database rather than the filesystem.
 
 ## Refactoring History
+
+### Phase 14 - Interference and marbling noise types (2026-03)
+
+Two additional `NoiseType` values extend random seeding and spatial post-masks:
+
+| Type | Behaviour |
+|---|---|
+| `interference` | Two slightly mis-tuned sine waves along different axes; their product yields moiré-style beats and fringes that read clearly when the grid is dense. |
+| `marbling` | Coordinates are domain-warped with low-frequency sinusoids, then a product of sines is evaluated — vein-like, marble or wood-grain structure at high density. |
+
+**Implementation:** `fillInterferenceNoise` and `fillMarblingNoise` in `front/src/Grid/seeding/randomPresetNoise.ts`; `applySpatialNoiseMask` uses the same low-mask preference as `center-burst` (threshold `0.5`). **UI:** `noiseInterferenceIcon.ts` and `noiseMarblingIcon.ts` (inline SVG, same tile-selector stroke styling as existing noise icons), labels in `front/src/texts.ts`, options in `workspaceView.ts` and `RandomControlsPanel.ts`.
 
 ### Phase 11 - Random mode transforms, Grid split, and Reset (2026-03)
 

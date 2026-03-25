@@ -25,6 +25,8 @@ const NOISE_TYPE_TILE_LABELS: readonly { value: NoiseType; label: string }[] = [
   { value: "gradient", label: APP_TEXTS.random.noiseTypeTiles.gradient },
   { value: "edge-bias", label: APP_TEXTS.random.noiseTypeTiles.edgeBias },
   { value: "center-burst", label: APP_TEXTS.random.noiseTypeTiles.centerBurst },
+  { value: "interference", label: APP_TEXTS.random.noiseTypeTiles.interference },
+  { value: "marbling", label: APP_TEXTS.random.noiseTypeTiles.marbling },
 ] as const;
 
 class RandomControlsPanel {
