@@ -11,12 +11,12 @@ import DrawingToolBox from "@ui/controls/drawing/DrawingToolBox";
 import ImageImporter from "@ui/controls/drawing/ImageImporter";
 import { CONTROL_TEXTS } from "@ui/controls/drawing/texts";
 import UserCustomSelector from "@ui/controls/drawing/UserCustomSelector";
-import SavePresetModal from "@ui/lib/SavePresetModal";
 import ModeSelector, { type Mode } from "@ui/controls/simulation/ModeSelector";
 import RandomControlsPanel from "@ui/controls/simulation/RandomControlsPanel";
 import ZooSelector from "@ui/controls/simulation/ZooSelector";
 import AliveCountChart from "@ui/controls/telemetry/AliveCountChart";
 import AliveVariationChart from "@ui/controls/telemetry/AliveVariationChart";
+import SavePresetModal from "@ui/lib/SavePresetModal";
 
 import type { WorkspaceRoute } from "@app/routes";
 import type { RandomPresetId } from "@grid/randomPresets";
@@ -204,7 +204,8 @@ export class SimulationWorkspace {
     const seed = this._randomControls.isAutoSeedEnabled()
       ? this._ensureAutoSeed()
       : this._randomControls.currentSeedValue();
-    return { density, noiseType, seed };
+    const noiseLevels = this._randomControls.currentNoiseLevels();
+    return { density, noiseType, seed, noiseLevels };
   }
 
   private _ensureAutoSeed(): number {

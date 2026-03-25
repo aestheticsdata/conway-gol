@@ -1,4 +1,5 @@
 import { DEFAULT_RANDOM_PRESET, isRandomPresetId, RANDOM_PRESETS } from "@grid/randomPresets";
+import { DEFAULT_NOISE_LEVELS } from "@grid/seeding/RandomPresetSeeder";
 import { queryRequired } from "@helpers/dom";
 import { APP_TEXTS } from "@texts";
 import Tooltip from "@ui/lib/Tooltip";
@@ -58,6 +59,9 @@ class RandomControlsPanel {
   private readonly _randomSeedAuto: HTMLInputElement;
   private readonly _seedDisabledTooltip: Tooltip;
   private readonly _noiseTypeSelector: NoiseTypeSelector;
+  private readonly _randomNoiseLevelSlider: HTMLInputElement;
+  private readonly _randomNoiseLevelValue: HTMLSpanElement;
+  private _noiseLevels: Record<NoiseType, number> = { ...DEFAULT_NOISE_LEVELS };
 
   constructor(options: RandomControlsPanelOptions) {
     this.element = queryRequired<HTMLElement>(".random-preset-selector", options.root);
@@ -90,7 +94,12 @@ class RandomControlsPanel {
     this._randomSeedValue = queryRequired<HTMLSpanElement>("#random-seed-value", this.element);
     this._randomSeedAuto = queryRequired<HTMLInputElement>("#random-seed-auto", this.element);
     this._seedDisabledTooltip = new Tooltip();
-    this._noiseTypeSelector = new NoiseTypeSelector(() => {
+    this._randomNoiseLevelSlider = queryRequired<HTMLInputElement>("#random-noise-level", this.element);
+    this._randomNoiseLevelValue = queryRequired<HTMLSpanElement>("#random-noise-level-value", this.element);
+    this._noiseTypeSelector = new NoiseTypeSelector((noiseType, previous) => {
+      this._noiseLevels[previous] = this._noiseLevel01FromSlider();
+      this._setNoiseLevelSliderFromStored(noiseType);
+      this._updateValueLabels();
       this._onParamsChange();
     }, this.element);
 
@@ -113,6 +122,7 @@ class RandomControlsPanel {
     this._randomSeedSliderTooltipTarget.addEventListener("pointermove", this._handleSeedTooltipPointerMove);
     this._randomSeedSliderTooltipTarget.addEventListener("pointerleave", this._hideSeedTooltip);
     this._randomSeedSliderTooltipTarget.addEventListener("pointercancel", this._hideSeedTooltip);
+    this._randomNoiseLevelSlider.addEventListener("input", this._handleNoiseLevelInput);
   }
 
   public show(): void {
@@ -139,6 +149,7 @@ class RandomControlsPanel {
     this._randomSeedSliderTooltipTarget.removeEventListener("pointermove", this._handleSeedTooltipPointerMove);
     this._randomSeedSliderTooltipTarget.removeEventListener("pointerleave", this._hideSeedTooltip);
     this._randomSeedSliderTooltipTarget.removeEventListener("pointercancel", this._hideSeedTooltip);
+    this._randomNoiseLevelSlider.removeEventListener("input", this._handleNoiseLevelInput);
     this._seedDisabledTooltip.destroy();
   }
 
@@ -162,6 +173,11 @@ class RandomControlsPanel {
 
   public currentNoiseType(): NoiseType {
     return this._noiseTypeSelector.value("uniform") ?? "uniform";
+  }
+
+  public currentNoiseLevels(): Record<NoiseType, number> {
+    const t = this.currentNoiseType();
+    return { ...this._noiseLevels, [t]: this._noiseLevel01FromSlider() };
   }
 
   public currentSeedValue(): number {
@@ -216,6 +232,7 @@ class RandomControlsPanel {
     for (const { value, label } of NOISE_TYPE_TILE_LABELS) {
       queryRequired<HTMLElement>(`[data-noise-type="${value}"]`, this.element).textContent = label;
     }
+    this._syncNoiseLevelLabel();
     queryRequired<HTMLElement>("#random-seed-label", this.element).textContent = `${APP_TEXTS.random.seed} `;
     queryRequired<HTMLElement>("#random-seed-auto-label", this.element).textContent = APP_TEXTS.random.autoSeed;
     this._randomGenerateBtn.textContent = APP_TEXTS.random.generate;
@@ -293,6 +310,14 @@ class RandomControlsPanel {
     const scale = level >= 0 ? maxZoom ** (level / 100) : minZoom ** (-level / 100);
     this._randomZoomValue.textContent = `×${scale.toFixed(2)}`;
     this._randomSeedValue.textContent = String(this._randomSeedSlider.value);
+    this._randomNoiseLevelValue.textContent = `${this._randomNoiseLevelSlider.value}%`;
+  }
+
+  private _syncNoiseLevelLabel(): void {
+    const noiseType = this.currentNoiseType();
+    const noiseTypeLabel = NOISE_TYPE_TILE_LABELS.find((tile) => tile.value === noiseType)?.label ?? noiseType;
+    queryRequired<HTMLElement>("#random-noise-level-label", this.element).textContent =
+      `${APP_TEXTS.random.noiseLevel} (${noiseTypeLabel}) `;
   }
 
   private _syncSeedState(): void {
@@ -331,6 +356,8 @@ class RandomControlsPanel {
     this._randomRotationSlider.value = "0";
     this._randomZoomSlider.value = "0";
     this._noiseTypeSelector.select("uniform");
+    this._noiseLevels = { ...DEFAULT_NOISE_LEVELS };
+    this._setNoiseLevelSliderFromStored("uniform");
     this._randomSeedSlider.value = "0";
     this._randomSeedAuto.checked = true;
     this._syncSeedState();
@@ -348,6 +375,23 @@ class RandomControlsPanel {
 
   private _handleAutoSeedChange = (): void => {
     this._syncSeedState();
+    this._onParamsChange();
+  };
+
+  private _noiseLevel01FromSlider(): number {
+    return Math.max(0, Math.min(1, Number(this._randomNoiseLevelSlider.value) / 100));
+  }
+
+  private _setNoiseLevelSliderFromStored(noiseType: NoiseType): void {
+    const t = this._noiseLevels[noiseType];
+    const pct = Math.round(100 * Math.max(0, Math.min(1, Number.isFinite(t) ? t : 0.5)));
+    this._randomNoiseLevelSlider.value = String(pct);
+    this._syncNoiseLevelLabel();
+  }
+
+  private _handleNoiseLevelInput = (): void => {
+    this._noiseLevels[this.currentNoiseType()] = this._noiseLevel01FromSlider();
+    this._updateValueLabels();
     this._onParamsChange();
   };
 

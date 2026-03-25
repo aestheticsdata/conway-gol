@@ -25,6 +25,7 @@ export const APP_TEXTS = {
     preset: "Random shape type:",
     density: "Density:",
     noiseType: "Noise type:",
+    noiseLevel: "Noise level:",
     noiseTypes: {
       uniform: "Uniform",
       perlinLike: "Perlin-like",

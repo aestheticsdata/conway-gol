@@ -12,7 +12,7 @@ import type {
   RandomSeedParams,
 } from "@grid/seeding/randomPresetTypes";
 
-export { DEFAULT_RANDOM_PARAMS };
+export { DEFAULT_NOISE_LEVELS, DEFAULT_RANDOM_PARAMS } from "@grid/seeding/randomPresetTypes";
 
 export type { IRandomPresetSeeder, NoiseType, RandomSeedParams } from "./randomPresetTypes";
 
@@ -47,6 +47,8 @@ export class RandomPresetSeeder implements IRandomPresetSeeder {
   ): void {
     const rng = createPresetRng(preset, randomVariation, params.seed);
     const randomizedLayout = randomVariation || params.seed !== null;
+    const rawLevel = params.noiseLevels[params.noiseType];
+    const noiseLevel = Number.isFinite(rawLevel) ? Math.max(0, Math.min(1, rawLevel)) : 0.5;
     const context: RandomPresetSeedContext = {
       rng,
       density: params.density,
@@ -54,6 +56,7 @@ export class RandomPresetSeeder implements IRandomPresetSeeder {
       cx: (cols - 1) / 2,
       cy: (rows - 1) / 2,
       noiseType: params.noiseType,
+      noiseLevel,
     };
 
     RANDOM_PRESET_SEEDERS[preset](buffer, rows, cols, context);

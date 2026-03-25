@@ -274,6 +274,13 @@ function createRandomControls(): string {
             ${createRandomNoiseSelector()}
           </div>
         </div>
+        <div class="random-param">
+          <label for="random-noise-level">
+            <span id="random-noise-level-label"></span>
+            <span id="random-noise-level-value"></span>
+          </label>
+          <input type="range" id="random-noise-level" min="0" max="100" value="50" step="1">
+        </div>
         <div class="random-param random-param--seed">
           <label for="random-seed">
             <span id="random-seed-label"></span>

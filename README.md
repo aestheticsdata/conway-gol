@@ -375,6 +375,7 @@ Generation is controlled by a `RandomSeedParams` object:
 | `density` | `number` 0–1 | Fill fraction applied with a quadratic curve (`t²`), so the slider feels sparse at the low end and full at 100 % |
 | `noiseType` | `"uniform" \| "perlin-like" \| "clusters" \| "gradient" \| "edge-bias" \| "center-burst" \| "interference" \| "marbling"` | Spatial distribution; for non-noise presets a smooth mask is applied post-generation |
 | `seed` | `number \| null` | Non-null seeds the Mulberry32 PRNG for deterministic replay; `null` uses the preset's FNV-1a hash (stable default) or `Math.random()` (Generate) |
+| `noiseLevels` | `Record<NoiseType, number>` (0–1) | Per-noise-type intensity values. The UI stores one slider value per noise type and reuses it when switching tiles. |
 
 All presets are calibrated so that `density = 1` nearly fills the 156 × 156 grid.
 
@@ -950,7 +951,7 @@ Two generation modes are chosen randomly on each `Generate`:
 
 **Symmetry.** ~50% chance of none; otherwise h-mirror or v-mirror (never forced 4-fold). About 12% of motif placements break the mirror for an organic feel.
 
-**Noise type.** The spatial noise mask applies normally (skipping `uniform`, which is a no-op for all presets). Because each motif is a tight cluster of 3–9 pixels, the mask acts as a zone filter: a motif either survives as a unit or is killed entirely, rather than losing individual cells.
+**Noise type + level.** The spatial noise mask applies normally for every noise type, including `uniform`. The per-type **Noise level** slider controls mask strength (threshold/mix) and acts as a zone filter for tight motifs: a motif often survives or disappears as a unit rather than being eroded pixel-by-pixel.
 
 #### shapes/ subfolder
 
@@ -1050,13 +1051,14 @@ This made the random mode easier to extend without pushing more UI concerns into
 
 ### Phase 5 - Random mode generation controls (2026-03)
 
-Three interactive controls were added to random mode, separated by visual dividers:
+Random mode now exposes four interactive generation controls:
 
 - **Density slider** (0–100 %) — controls how much of the canvas is filled. A quadratic curve (`t²`) is applied so that small values stay sparse and 100 % gives a nearly full grid.
-- **Noise type buttons** (`Uniform` / `Perlin-like` / `Clusters` / `Gradient` / `Edge bias` / `Center burst`) — for the `noise` preset these drive the generation algorithm directly; for all other presets a smooth large-scale spatial mask is applied after generation to concentrate the pattern in coherent regions. Three new types were added: `gradient` (linear directional sweep), `edge-bias` (density concentrated toward edges), and `center-burst` (density radiating outward from the centre).
+- **Noise type buttons** (`Uniform` / `Perlin-like` / `Clusters` / `Gradient` / `Edge bias` / `Center burst` / `Interference` / `Marbling`) — for the `noise` preset these drive the generation algorithm directly; for all other presets a smooth large-scale spatial mask is applied after generation to concentrate the pattern in coherent regions.
+- **Noise level slider** (0–100 %) — intensity control applied to the currently selected noise type. The value is stored per noise type, and the label updates to include the active type.
 - **Seed slider + "Random seed" checkbox** — a fixed seed feeds the Mulberry32 PRNG for exact replay. When the checkbox is checked, `seed = null` and either the preset's deterministic FNV-1a hash or `Math.random()` is used instead. The slider is always enabled; the checkbox governs whether its value matters.
 
-`RandomSeedParams` (`density`, `noiseType`, `seed`) threads through the full call chain: `Main` → `Grid.reseedRandomPreset` → `Simulation.seedByPreset` → `RandomPresetSeeder.seedInto`.
+`RandomSeedParams` (`density`, `noiseType`, `seed`, `noiseLevels`) threads through the full call chain: `Main` → `Grid.reseedRandomPreset` → `Simulation.seedByPreset` → `RandomPresetSeeder.seedInto`.
 
 All ten preset algorithms were reworked so that `density = 1` nearly fills the canvas:
 

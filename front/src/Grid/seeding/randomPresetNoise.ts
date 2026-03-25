@@ -6,6 +6,19 @@ function clamp01(value: number): number {
   return Math.max(0, Math.min(1, value));
 }
 
+function mix(a: number, b: number, t: number): number {
+  return a + (b - a) * clamp01(t);
+}
+
+/** Blends mask samples toward 0.5 — lower `noiseLevel` = flatter / less spatial contrast. */
+function applyNoiseLevelMix(mask: Float32Array, noiseLevel: number): void {
+  const t = clamp01(noiseLevel);
+  const mid = 0.5;
+  for (let i = 0; i < mask.length; i++) {
+    mask[i] = mix(mid, mask[i], t);
+  }
+}
+
 function smoothstep01(value: number): number {
   const t = clamp01(value);
   return t * t * (3 - 2 * t);
@@ -177,35 +190,43 @@ function fillMarblingNoise(mask: Float32Array, rows: number, cols: number, rng: 
   }
 }
 
-function fillNoiseMask(mask: Float32Array, rows: number, cols: number, rng: () => number, noiseType: NoiseType): void {
+function fillNoiseMask(
+  mask: Float32Array,
+  rows: number,
+  cols: number,
+  rng: () => number,
+  noiseType: NoiseType,
+  noiseLevel: number,
+): void {
   switch (noiseType) {
     case "uniform":
       for (let i = 0; i < mask.length; i++) {
         mask[i] = rng();
       }
-      return;
+      break;
     case "perlin-like":
       fillValueNoise(mask, rows, cols, rng);
-      return;
+      break;
     case "clusters":
       fillClusterNoise(mask, rows, cols, rng);
-      return;
+      break;
     case "gradient":
       fillGradientNoise(mask, rows, cols, rng);
-      return;
+      break;
     case "edge-bias":
       fillEdgeBiasNoise(mask, rows, cols, rng);
-      return;
+      break;
     case "center-burst":
       fillCenterBurstNoise(mask, rows, cols, rng);
-      return;
+      break;
     case "interference":
       fillInterferenceNoise(mask, rows, cols, rng);
-      return;
+      break;
     case "marbling":
       fillMarblingNoise(mask, rows, cols, rng);
-      return;
+      break;
   }
+  applyNoiseLevelMix(mask, noiseLevel);
 }
 
 function applyLowMaskPreference(buffer: Uint8Array, mask: Float32Array, threshold: number): void {
@@ -222,7 +243,7 @@ export function seedNoisePreset(
   cols: number,
   context: RandomPresetSeedContext,
 ): void {
-  const { density, rng, noiseType } = context;
+  const { density, rng, noiseType, noiseLevel } = context;
 
   if (density <= 0) {
     buffer.fill(CELL_STATE.DEAD);
@@ -235,7 +256,7 @@ export function seedNoisePreset(
   }
 
   const mask = new Float32Array(buffer.length);
-  fillNoiseMask(mask, rows, cols, rng, noiseType);
+  fillNoiseMask(mask, rows, cols, rng, noiseType, noiseLevel);
 
   for (let i = 0; i < buffer.length; i++) {
     buffer[i] = mask[i] < density ? CELL_STATE.ALIVE : CELL_STATE.DEAD;
@@ -248,16 +269,24 @@ export function applySpatialNoiseMask(
   cols: number,
   context: RandomPresetSeedContext,
 ): void {
+  const mask = new Float32Array(rows * cols);
+  const threshold = 1 - 0.5 * clamp01(context.noiseLevel);
+
   if (context.noiseType === "uniform") {
+    for (let i = 0; i < mask.length; i++) {
+      mask[i] = context.rng();
+    }
+    applyNoiseLevelMix(mask, context.noiseLevel);
+    applyLowMaskPreference(buffer, mask, threshold);
     return;
   }
 
-  const mask = new Float32Array(rows * cols);
-
   if (context.noiseType === "perlin-like") {
     fillValueNoise(mask, rows, cols, context.rng, 30);
+    applyNoiseLevelMix(mask, context.noiseLevel);
+    const cut = 0.5 * clamp01(context.noiseLevel);
     for (let i = 0; i < buffer.length; i++) {
-      if (buffer[i] === CELL_STATE.ALIVE && mask[i] < 0.5) {
+      if (buffer[i] === CELL_STATE.ALIVE && mask[i] < cut) {
         buffer[i] = CELL_STATE.DEAD;
       }
     }
@@ -267,27 +296,33 @@ export function applySpatialNoiseMask(
   switch (context.noiseType) {
     case "clusters":
       fillClusterNoise(mask, rows, cols, context.rng);
-      applyLowMaskPreference(buffer, mask, 0.5);
+      applyNoiseLevelMix(mask, context.noiseLevel);
+      applyLowMaskPreference(buffer, mask, threshold);
       return;
     case "gradient":
       fillGradientNoise(mask, rows, cols, context.rng);
-      applyLowMaskPreference(buffer, mask, 0.48);
+      applyNoiseLevelMix(mask, context.noiseLevel);
+      applyLowMaskPreference(buffer, mask, Math.max(0, threshold - 0.02));
       return;
     case "edge-bias":
       fillEdgeBiasNoise(mask, rows, cols, context.rng);
-      applyLowMaskPreference(buffer, mask, 0.5);
+      applyNoiseLevelMix(mask, context.noiseLevel);
+      applyLowMaskPreference(buffer, mask, threshold);
       return;
     case "center-burst":
       fillCenterBurstNoise(mask, rows, cols, context.rng);
-      applyLowMaskPreference(buffer, mask, 0.5);
+      applyNoiseLevelMix(mask, context.noiseLevel);
+      applyLowMaskPreference(buffer, mask, threshold);
       return;
     case "interference":
       fillInterferenceNoise(mask, rows, cols, context.rng);
-      applyLowMaskPreference(buffer, mask, 0.5);
+      applyNoiseLevelMix(mask, context.noiseLevel);
+      applyLowMaskPreference(buffer, mask, threshold);
       return;
     case "marbling":
       fillMarblingNoise(mask, rows, cols, context.rng);
-      applyLowMaskPreference(buffer, mask, 0.5);
+      applyNoiseLevelMix(mask, context.noiseLevel);
+      applyLowMaskPreference(buffer, mask, threshold);
       return;
   }
 }

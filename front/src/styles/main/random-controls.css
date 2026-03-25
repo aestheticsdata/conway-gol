@@ -300,7 +300,8 @@ select.custom-select__native#zoo-species-native {
 #random-density-value,
 #random-seed-value,
 #random-rotation-value,
-#random-zoom-value {
+#random-zoom-value,
+#random-noise-level-value {
   font-weight: bold;
   color: var(--accent);
   font-family: "JetBrains Mono", monospace;

@@ -3,12 +3,12 @@ import { queryAll } from "@helpers/dom";
 type TileButtonGroupOptions<T extends string> = {
   selector: string;
   root?: ParentNode;
-  onChange?: (value: T) => void;
+  onChange?: (value: T, previous: T) => void;
 };
 
 class TileButtonGroup<T extends string> {
   private readonly _buttons: HTMLButtonElement[];
-  private readonly _onChange?: (value: T) => void;
+  private readonly _onChange?: (value: T, previous: T) => void;
 
   constructor(options: TileButtonGroupOptions<T>) {
     this._buttons = queryAll<HTMLButtonElement>(options.selector, options.root);
@@ -47,8 +47,11 @@ class TileButtonGroup<T extends string> {
       return;
     }
 
+    const fallbackFirst = this._buttons[0]?.dataset.value as T | undefined;
+    const previous = (this.value(fallbackFirst) ?? fallbackFirst) as T;
+
     this.select(value);
-    this._onChange?.(value);
+    this._onChange?.(value, previous);
   };
 }
 
