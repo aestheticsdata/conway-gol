@@ -18,6 +18,19 @@
     gap: 24px;
   }
 
+  /* Keep inspector (random / zoo / drawing) directly under the left pane instead of below the canvas */
+  .left-pane {
+    order: 1;
+  }
+
+  .right-pane {
+    order: 2;
+  }
+
+  .canvas-wrapper {
+    order: 3;
+  }
+
   .left-pane,
   .right-pane {
     width: min(100%, 1080px);

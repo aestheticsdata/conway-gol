@@ -86,7 +86,3 @@ select option {
   color: var(--text-main);
 }
 
-#primitives,
-#random-preset {
-  width: 100%;
-}

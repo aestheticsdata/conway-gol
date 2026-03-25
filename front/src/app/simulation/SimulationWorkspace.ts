@@ -167,7 +167,7 @@ export class SimulationWorkspace {
       CONTROL_TEXTS.drawing.saveButton;
     queryRequired<HTMLLabelElement>('label[for="custom-file"]', this._root).textContent =
       CONTROL_TEXTS.drawing.customDrawingLabel;
-    queryRequired<HTMLLabelElement>('label[for="primitives"]', this._root).textContent = `${APP_TEXTS.zoo.species} `;
+    queryRequired<HTMLLabelElement>('label[for="zoo-species-trigger"]', this._root).textContent = APP_TEXTS.zoo.species;
 
     queryAll<HTMLImageElement>('img[data-tool="pencil"]', this._root).forEach((img) => {
       img.alt = CONTROL_TEXTS.drawing.tools.pencilAlt;
@@ -184,10 +184,12 @@ export class SimulationWorkspace {
 
   private _handleDocumentPointerDown = (event: PointerEvent): void => {
     this._randomControls.handleDocumentPointerDown(event);
+    this._zooSelector?.handleDocumentPointerDown(event);
   };
 
   private _handleDocumentKeyDown = (event: KeyboardEvent): void => {
     this._randomControls.handleDocumentKeyDown(event);
+    this._zooSelector?.handleDocumentKeyDown(event);
   };
 
   private _currentRandomParams(): RandomSeedParams {

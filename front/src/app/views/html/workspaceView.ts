@@ -327,10 +327,28 @@ function createCustomCursor(): string {
 
 function createZooSelector(): string {
   return `
-    <div class="zoo-selector">
-      <div id="selectButton">
-        <label for="primitives"></label>
-        <select id="primitives"></select>
+    <div class="zoo-selector" style="display: none">
+      <label for="zoo-species-trigger"></label>
+      <div class="custom-select zoo-species-custom-select">
+        <button
+          type="button"
+          id="zoo-species-trigger"
+          class="custom-select__trigger"
+          aria-haspopup="listbox"
+          aria-expanded="false"
+          aria-controls="zoo-species-options"
+        >
+          <span class="custom-select__value"></span>
+        </button>
+        <div class="custom-select__menu" hidden>
+          <div
+            id="zoo-species-options"
+            class="custom-select__options"
+            role="listbox"
+            aria-labelledby="zoo-species-trigger"
+          ></div>
+        </div>
+        <select id="zoo-species-native" name="zoo-species" class="custom-select__native" tabindex="-1" aria-hidden="true"></select>
       </div>
       <div class="critter-comments"></div>
     </div>
@@ -361,11 +379,11 @@ function createWorkspaceInspector(): string {
   return `
     <aside class="right-pane">
       ${createRandomControls()}
+      ${createZooSelector()}
       ${createDrawingFiles()}
       <div class="zoombox-container"></div>
       ${createDrawingToolbox()}
       ${createCustomCursor()}
-      ${createZooSelector()}
       ${createImageImport()}
     </aside>
   `;
