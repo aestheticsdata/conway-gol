@@ -100,6 +100,7 @@ class Grid {
           drawingContext: options.drawingContext,
           zoombox: options.zoombox,
           initialDrawingMode: options.drawingToolbox.selectedMode,
+          initialBrushSize: options.drawingToolbox.selectedBrushSize,
           getCell: (row, col) => this._simulation.getCell(row, col),
           setCell: (row, col, state) => this._simulation.setCell(row, col, state),
           renderCell: (row, col) => this._renderCell(row, col),
@@ -108,6 +109,7 @@ class Grid {
         });
         this._drawingHandler = handler;
         options.drawingToolbox.register((mode) => handler.setDrawingMode(mode));
+        options.drawingToolbox.registerBrushSize((size) => handler.setBrushSize(size));
         this._initializeDrawing(options.species, options.onLoad, options.userCustomSelector);
         break;
       }

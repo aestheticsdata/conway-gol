@@ -1,13 +1,22 @@
 import { queryRequired } from "@helpers/dom";
+import { syncSliderFill } from "@ui/components/slider/createSlider";
+import { DEFAULT_BRUSH_SIZE, MAX_BRUSH_SIZE, MIN_BRUSH_SIZE } from "./constants";
+import { CONTROL_TEXTS } from "./texts";
 
 export type DrawingMode = "pencil" | "eraser";
 type Observer = (drawingMode: DrawingMode) => void;
+type BrushSizeObserver = (brushSize: number) => void;
 
 class DrawingToolBox {
   public readonly toolboxDOM: HTMLElement;
   private _selectedMode: DrawingMode = "pencil";
+  private _selectedBrushSize = DEFAULT_BRUSH_SIZE;
   private readonly _tools: Record<DrawingMode, HTMLElement>;
+  private readonly _brushSizeLabel: HTMLElement;
+  private readonly _brushSizeSlider: HTMLInputElement;
+  private readonly _brushSizeValue: HTMLElement;
   private _observer?: Observer;
+  private _brushSizeObserver?: BrushSizeObserver;
 
   constructor() {
     this.toolboxDOM = queryRequired<HTMLElement>(".drawing-toolbox");
@@ -15,10 +24,19 @@ class DrawingToolBox {
       pencil: queryRequired<HTMLElement>(".item.pencil", this.toolboxDOM),
       eraser: queryRequired<HTMLElement>(".item.eraser", this.toolboxDOM),
     };
+    this._brushSizeLabel = queryRequired<HTMLElement>("#drawing-brush-size-label", this.toolboxDOM);
+    this._brushSizeSlider = queryRequired<HTMLInputElement>("#drawing-brush-size-slider", this.toolboxDOM);
+    this._brushSizeValue = queryRequired<HTMLElement>("#drawing-brush-size-value", this.toolboxDOM);
     (Object.values(this._tools) as HTMLElement[]).forEach((tool) => {
       tool.addEventListener("click", this._onToolClick);
       tool.addEventListener("keydown", this._onToolKeyDown);
     });
+    this._brushSizeLabel.textContent = CONTROL_TEXTS.drawing.brushSizeLabel;
+    this._brushSizeSlider.min = String(MIN_BRUSH_SIZE);
+    this._brushSizeSlider.max = String(MAX_BRUSH_SIZE);
+    this._brushSizeSlider.step = "1";
+    this._brushSizeSlider.addEventListener("input", this._onBrushSizeInput);
+    this._setBrushSize(DEFAULT_BRUSH_SIZE, false);
     this._selectMode("pencil");
   }
 
@@ -26,8 +44,16 @@ class DrawingToolBox {
     return this._selectedMode;
   }
 
+  get selectedBrushSize(): number {
+    return this._selectedBrushSize;
+  }
+
   public register(cb: Observer): void {
     this._observer = cb;
+  }
+
+  public registerBrushSize(cb: BrushSizeObserver): void {
+    this._brushSizeObserver = cb;
   }
 
   public show(): void {
@@ -48,6 +74,18 @@ class DrawingToolBox {
       }
     });
     this._observer?.(this.selectedMode);
+  }
+
+  private _setBrushSize(nextSize: number, notify = true): void {
+    const brushSize = Math.max(MIN_BRUSH_SIZE, Math.min(MAX_BRUSH_SIZE, Math.round(nextSize)));
+    this._selectedBrushSize = brushSize;
+    this._brushSizeSlider.value = String(brushSize);
+    this._brushSizeValue.textContent = String(brushSize);
+    syncSliderFill(this._brushSizeSlider);
+
+    if (notify) {
+      this._brushSizeObserver?.(brushSize);
+    }
   }
 
   private _onToolClick = (e: Event): void => {
@@ -78,6 +116,11 @@ class DrawingToolBox {
 
     e.preventDefault();
     this._selectMode(mode);
+  };
+
+  private _onBrushSizeInput = (e: Event): void => {
+    const size = Number((e.currentTarget as HTMLInputElement).value);
+    this._setBrushSize(size);
   };
 
   private _modeFromElement(el: HTMLElement): DrawingMode | null {

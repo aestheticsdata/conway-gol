@@ -3,7 +3,7 @@ import { CANVAS_PX_HEIGHT, CANVAS_PX_WIDTH, GRID_COLS, GRID_ROWS } from "@grid/c
 import Grid from "@grid/Grid";
 import { DEFAULT_RANDOM_PRESET, isRandomPresetId } from "@grid/randomPresets";
 import ZoomBox from "@grid/zoom/ZoomBox";
-import { getRequiredContext2D, queryAll, queryRequired } from "@helpers/dom";
+import { getRequiredContext2D, queryRequired } from "@helpers/dom";
 import CritterService from "@services/CritterService";
 import UserCustomService from "@services/UserCustomService";
 import { APP_TEXTS } from "@texts";

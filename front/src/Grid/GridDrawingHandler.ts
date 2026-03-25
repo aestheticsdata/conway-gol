@@ -1,8 +1,14 @@
 import { CELL_STATE } from "@cell/constants";
+import { MAX_BRUSH_SIZE, MIN_BRUSH_SIZE } from "@ui/controls/drawing/constants";
 import { CELL_SIZE, GRID_COLS, GRID_ROWS, ZOOM_RADIUS, ZOOM_SIZE } from "./constants";
 
 import type { DrawingMode } from "@ui/controls/drawing/DrawingToolBox";
 import type ZoomBox from "./zoom/ZoomBox";
+
+type GridPointerPosition = {
+  xPos: number;
+  yPos: number;
+};
 
 export type GridDrawingHandlerDeps = {
   cursor: HTMLElement;
@@ -10,6 +16,7 @@ export type GridDrawingHandlerDeps = {
   drawingContext: CanvasRenderingContext2D;
   zoombox: ZoomBox;
   initialDrawingMode: DrawingMode;
+  initialBrushSize: number;
   getCell: (row: number, col: number) => number;
   setCell: (row: number, col: number, state: number) => void;
   renderCell: (row: number, col: number) => void;
@@ -33,9 +40,12 @@ class GridDrawingHandler {
   private readonly _renderCell: (row: number, col: number) => void;
   private readonly _emitStateChange: () => void;
   private readonly _getPreviewCellColor: (state: number) => string;
+  private readonly _pencilCursor: HTMLElement | null;
+  private readonly _eraserCursor: HTMLElement | null;
 
   private _drawingMode: DrawingMode;
-  private _previousCellPos: { xPos: number; yPos: number } | null = null;
+  private _brushSize: number;
+  private _hoverPointer: GridPointerPosition | null = null;
   private _isDown = false;
 
   constructor(deps: GridDrawingHandlerDeps) {
@@ -44,15 +54,25 @@ class GridDrawingHandler {
     this._drawingContext = deps.drawingContext;
     this._zoombox = deps.zoombox;
     this._drawingMode = deps.initialDrawingMode;
+    this._brushSize = this._clampBrushSize(deps.initialBrushSize);
     this._getCell = deps.getCell;
     this._setCell = deps.setCell;
     this._renderCell = deps.renderCell;
     this._emitStateChange = deps.emitStateChange;
     this._getPreviewCellColor = deps.getPreviewCellColor;
+    this._pencilCursor = this._cursor.querySelector<HTMLElement>(".cursor.pencil");
+    this._eraserCursor = this._cursor.querySelector<HTMLElement>(".cursor.eraser");
   }
 
   public setDrawingMode(mode: DrawingMode): void {
     this._drawingMode = mode;
+    this._syncCursorMode();
+    this._renderHoverPreview();
+  }
+
+  public setBrushSize(size: number): void {
+    this._brushSize = this._clampBrushSize(size);
+    this._renderHoverPreview();
   }
 
   public initListeners(): void {
@@ -60,7 +80,7 @@ class GridDrawingHandler {
     this._drawingCanvas.addEventListener("mouseenter", this._onMouseEnter);
     this._drawingCanvas.addEventListener("mouseleave", this._onMouseLeave);
     this._drawingCanvas.addEventListener("mousedown", this._onMouseDown);
-    this._drawingCanvas.addEventListener("mouseup", this._onMouseUp);
+    window.addEventListener("mouseup", this._onMouseUp);
   }
 
   public destroyListeners(): void {
@@ -68,72 +88,65 @@ class GridDrawingHandler {
     this._drawingCanvas.removeEventListener("mouseenter", this._onMouseEnter);
     this._drawingCanvas.removeEventListener("mouseleave", this._onMouseLeave);
     this._drawingCanvas.removeEventListener("mousedown", this._onMouseDown);
-    this._drawingCanvas.removeEventListener("mouseup", this._onMouseUp);
+    window.removeEventListener("mouseup", this._onMouseUp);
+    this._hoverPointer = null;
+    this._clearOverlay();
   }
 
   // ── Mouse handlers ─────────────────────────────────────────────────────────
 
   private _onMouseEnter = (_e: MouseEvent): void => {
     this._cursor.style.display = "block";
-
-    const pencilCursor = this._cursor.querySelector<HTMLElement>(".cursor.pencil");
-    const eraserCursor = this._cursor.querySelector<HTMLElement>(".cursor.eraser");
-    if (!pencilCursor || !eraserCursor) {
-      return;
-    }
-
-    if (this._drawingMode === "pencil") {
-      pencilCursor.style.display = "block";
-      eraserCursor.style.display = "none";
-    } else {
-      pencilCursor.style.display = "none";
-      eraserCursor.style.display = "block";
-    }
+    this._syncCursorMode();
+    this._renderHoverPreview();
   };
 
   private _onMouseLeave = (_e: MouseEvent): void => {
     this._cursor.style.display = "none";
+    this._hoverPointer = null;
+    this._clearOverlay();
   };
 
   private _onMouseMove = (e: MouseEvent): void => {
     this._cursor.style.left = `${e.clientX}px`;
     this._cursor.style.top = `${e.clientY - 27}px`;
 
-    const res = this._getCellCoords(e.offsetX, e.offsetY);
-    const hoverState = this._drawingMode === "pencil" ? CELL_STATE.ALIVE : CELL_STATE.DEAD;
-
-    if (!res) {
+    const pointer = this._getPointerPosition(e.offsetX, e.offsetY);
+    if (!pointer) {
+      this._hoverPointer = null;
+      this._clearOverlay();
       return;
     }
 
-    this._zoombox.displayArea(this._getZoomArea(res.xPos, res.yPos), this._drawingMode, res.xPos, res.yPos);
-
-    if (!this._previousCellPos) {
-      this._renderCellOnOverlay(hoverState, res.yPos, res.xPos);
-      this._previousCellPos = { xPos: res.xPos, yPos: res.yPos };
-      return;
+    this._hoverPointer = pointer;
+    this._zoombox.displayArea(
+      this._getZoomArea(pointer.xPos, pointer.yPos),
+      this._drawingMode,
+      pointer.xPos,
+      pointer.yPos,
+    );
+    if (this._isDown) {
+      this._paintAtPointer(pointer);
     }
-
-    this._renderCellOnOverlay(hoverState, res.yPos, res.xPos);
-
-    if (this._previousCellPos.xPos !== res.xPos || this._previousCellPos.yPos !== res.yPos) {
-      if (this._isDown) {
-        this._paintCell(e);
-      } else {
-        this._drawingContext.clearRect(0, 0, this._drawingCanvas.width, this._drawingCanvas.height);
-      }
-      this._previousCellPos = { xPos: res.xPos, yPos: res.yPos };
-    }
+    this._renderHoverPreview();
   };
 
   private _onMouseDown = (e: MouseEvent): void => {
     this._isDown = true;
-    this._paintCell(e);
-
-    const res = this._getCellCoords(e.offsetX, e.offsetY);
-    if (res) {
-      this._zoombox.displayArea(this._getZoomArea(res.xPos, res.yPos), this._drawingMode);
+    const pointer = this._getPointerPosition(e.offsetX, e.offsetY);
+    if (!pointer) {
+      return;
     }
+
+    this._hoverPointer = pointer;
+    this._paintAtPointer(pointer);
+    this._zoombox.displayArea(
+      this._getZoomArea(pointer.xPos, pointer.yPos),
+      this._drawingMode,
+      pointer.xPos,
+      pointer.yPos,
+    );
+    this._renderHoverPreview();
   };
 
   private _onMouseUp = (): void => {
@@ -154,6 +167,18 @@ class GridDrawingHandler {
       };
     }
     return null;
+  }
+
+  private _getPointerPosition(offsetX: number, offsetY: number): GridPointerPosition | null {
+    const coords = this._getCellCoords(offsetX, offsetY);
+    if (!coords) {
+      return null;
+    }
+
+    return {
+      xPos: coords.xPos,
+      yPos: coords.yPos,
+    };
   }
 
   /**
@@ -181,17 +206,67 @@ class GridDrawingHandler {
     return [[CELL_STATE.OUTSIDE]];
   }
 
-  private _paintCell(e: MouseEvent): void {
-    const coords = this._getCellCoords(e.offsetX, e.offsetY);
-    if (!coords) {
+  private _paintAtPointer(pointer: GridPointerPosition): void {
+    const newState = this._drawingMode === "pencil" ? CELL_STATE.ALIVE : CELL_STATE.DEAD;
+    let hasChanged = false;
+
+    this._forEachBrushCell(pointer.yPos, pointer.xPos, (row, col) => {
+      if (this._getCell(row, col) === newState) {
+        return;
+      }
+
+      this._setCell(row, col, newState);
+      this._renderCell(row, col);
+      hasChanged = true;
+    });
+
+    if (hasChanged) {
+      this._emitStateChange();
+    }
+  }
+
+  private _forEachBrushCell(anchorRow: number, anchorCol: number, cb: (row: number, col: number) => void): void {
+    const startRow = Math.max(0, anchorRow - Math.floor((this._brushSize - 1) / 2));
+    const startCol = Math.max(0, anchorCol - Math.floor((this._brushSize - 1) / 2));
+    const endRow = Math.min(GRID_ROWS - 1, startRow + this._brushSize - 1);
+    const endCol = Math.min(GRID_COLS - 1, startCol + this._brushSize - 1);
+
+    for (let row = startRow; row <= endRow; row++) {
+      for (let col = startCol; col <= endCol; col++) {
+        cb(row, col);
+      }
+    }
+  }
+
+  private _renderHoverPreview(): void {
+    this._clearOverlay();
+
+    if (!this._hoverPointer || this._cursor.style.display === "none") {
       return;
     }
 
-    const { xPos, yPos } = coords;
-    const newState = this._drawingMode === "pencil" ? CELL_STATE.ALIVE : CELL_STATE.DEAD;
-    this._setCell(yPos, xPos, newState);
-    this._renderCell(yPos, xPos);
-    this._emitStateChange();
+    const hoverState = this._drawingMode === "pencil" ? CELL_STATE.ALIVE : CELL_STATE.DEAD;
+    this._forEachBrushCell(this._hoverPointer.yPos, this._hoverPointer.xPos, (row, col) => {
+      this._renderCellOnOverlay(hoverState, row, col);
+    });
+  }
+
+  private _clearOverlay(): void {
+    this._drawingContext.clearRect(0, 0, this._drawingCanvas.width, this._drawingCanvas.height);
+  }
+
+  private _syncCursorMode(): void {
+    if (!this._pencilCursor || !this._eraserCursor) {
+      return;
+    }
+
+    const showPencil = this._drawingMode === "pencil";
+    this._pencilCursor.style.display = showPencil ? "block" : "none";
+    this._eraserCursor.style.display = showPencil ? "none" : "block";
+  }
+
+  private _clampBrushSize(size: number): number {
+    return Math.max(MIN_BRUSH_SIZE, Math.min(MAX_BRUSH_SIZE, Math.round(size)));
   }
 
   private _renderCellOnOverlay(state: number, row: number, col: number): void {

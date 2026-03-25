@@ -1,8 +1,8 @@
 import { DRAWING_ROUTE, SIMULATION_ROUTE, ZOO_ROUTE } from "@app/routes";
+import { ERASER_ICON } from "@assets/icons/eraserIcon";
 import { NOISE_CENTER_BURST_ICON } from "@assets/icons/noiseCenterBurstIcon";
 import { NOISE_CLUSTERS_ICON } from "@assets/icons/noiseClustersIcon";
 import { NOISE_EDGE_BIAS_ICON } from "@assets/icons/noiseEdgeBiasIcon";
-import { ERASER_ICON } from "@assets/icons/eraserIcon";
 import { NOISE_GRADIENT_ICON } from "@assets/icons/noiseGradientIcon";
 import { NOISE_INTERFERENCE_ICON } from "@assets/icons/noiseInterferenceIcon";
 import { NOISE_MARBLING_ICON } from "@assets/icons/noiseMarblingIcon";
@@ -14,6 +14,8 @@ import { SHUFFLE_ICON } from "@assets/icons/shuffleIcon";
 import { APP_TEXTS } from "@texts";
 import { createButton } from "@ui/components/button/createButton";
 import { createSliderField } from "@ui/components/slider/createSlider";
+import { DEFAULT_BRUSH_SIZE, MAX_BRUSH_SIZE, MIN_BRUSH_SIZE } from "@ui/controls/drawing/constants";
+import { CONTROL_TEXTS } from "@ui/controls/drawing/texts";
 import { createTileSelectorButton } from "@views/html/tileSelector";
 
 import type { WorkspaceRoute } from "@app/routes";
@@ -395,6 +397,19 @@ function createDrawingToolbox(): string {
         ${createDrawingTool("pencil")}
         ${createDrawingTool("eraser")}
       </div>
+      ${createSliderField({
+        className: "drawing-toolbox__size",
+        controlClassName: "drawing-toolbox__size-control",
+        displayValue: String(DEFAULT_BRUSH_SIZE),
+        id: "drawing-brush-size-slider",
+        label: CONTROL_TEXTS.drawing.brushSizeLabel,
+        labelId: "drawing-brush-size-label",
+        max: MAX_BRUSH_SIZE,
+        min: MIN_BRUSH_SIZE,
+        step: 1,
+        value: DEFAULT_BRUSH_SIZE,
+        valueId: "drawing-brush-size-value",
+      })}
     </div>
   `;
 }

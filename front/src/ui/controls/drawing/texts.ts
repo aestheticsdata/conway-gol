@@ -2,6 +2,7 @@ export const CONTROL_TEXTS = {
   drawing: {
     saveButton: "Save Drawing",
     customDrawingLabel: "Custom Drawing",
+    brushSizeLabel: "Brush Size",
     tools: {
       pencilAlt: "pencil",
       eraserAlt: "eraser",
