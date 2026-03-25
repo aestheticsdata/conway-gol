@@ -8,10 +8,17 @@
   backdrop-filter: blur(20px);
 }
 
+.random-pane-randomizer {
+  display: flex;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
 .random-preset-selector > label:first-of-type {
   display: block;
   font-size: 15px;
   margin-right: 6px;
+  margin-top: 14px;
   margin-bottom: 10px;
   color: var(--text-muted);
 }

@@ -243,6 +243,9 @@ function createRandomNoiseSelector(): string {
 function createRandomControls(): string {
   return `
     <div class="random-preset-selector" style="display: none">
+      <div class="random-pane-randomizer">
+        ${createButton({ className: "random-pane-randomize", width: "block" })}
+      </div>
       <label for="random-preset-trigger"></label>
       <div class="custom-select random-preset-custom-select">
         <button

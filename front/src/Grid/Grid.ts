@@ -148,6 +148,15 @@ class Grid {
     }
   }
 
+  /**
+   * Update stored transform values without rendering immediately.
+   * Useful when multiple controls are changed before a full reseed.
+   */
+  public syncTransforms(rotationDeg: number, zoomLevel: number): void {
+    this._rotationDeg = rotationDeg;
+    this._zoomLevel = zoomLevel;
+  }
+
   public resetTransforms(): void {
     this._rotationDeg = 0;
     this._zoomLevel = 0;

@@ -13,6 +13,7 @@ import type { NoiseType } from "@grid/seeding/RandomPresetSeeder";
 type RandomControlsPanelOptions = {
   root: HTMLElement;
   onPresetChange: () => void;
+  onRandomizePane: () => void;
   onGenerate: () => void;
   onSave: () => void;
   onParamsChange: () => void;
@@ -35,6 +36,7 @@ const NOISE_TYPE_TILE_LABELS: readonly { value: NoiseType; label: string }[] = [
 class RandomControlsPanel {
   public readonly element: HTMLElement;
   private readonly _onPresetChange: () => void;
+  private readonly _onRandomizePane: () => void;
   private readonly _onGenerate: () => void;
   private readonly _onSave: () => void;
   private readonly _onParamsChange: () => void;
@@ -42,6 +44,7 @@ class RandomControlsPanel {
   private readonly _onZoomChange: (level: number) => void;
   private readonly _onReset: () => void;
   private readonly _randomPresetSelect: CustomSelect;
+  private readonly _randomizePaneBtn: HTMLButtonElement;
   private readonly _randomGenerateBtn: HTMLButtonElement;
   private readonly _randomSaveBtn: HTMLButtonElement;
   private readonly _randomResetBtn: HTMLButtonElement;
@@ -64,6 +67,7 @@ class RandomControlsPanel {
   constructor(options: RandomControlsPanelOptions) {
     this.element = queryRequired<HTMLElement>(".random-preset-selector", options.root);
     this._onPresetChange = options.onPresetChange;
+    this._onRandomizePane = options.onRandomizePane;
     this._onGenerate = options.onGenerate;
     this._onSave = options.onSave;
     this._onParamsChange = options.onParamsChange;
@@ -77,6 +81,7 @@ class RandomControlsPanel {
         visibleOptionCount: 8,
       },
     );
+    this._randomizePaneBtn = queryRequired<HTMLButtonElement>(".random-pane-randomize", this.element);
     this._randomGenerateBtn = queryRequired<HTMLButtonElement>(".random-generate", this.element);
     this._randomSaveBtn = queryRequired<HTMLButtonElement>(".random-save", this.element);
     this._randomResetBtn = queryRequired<HTMLButtonElement>(".random-reset", this.element);
@@ -108,6 +113,7 @@ class RandomControlsPanel {
     this._updateValueLabels();
     this._syncSeedState();
 
+    this._randomizePaneBtn.addEventListener("click", this._onRandomizePane);
     this._randomGenerateBtn.addEventListener("click", this._onGenerate);
     this._randomSaveBtn.addEventListener("click", this._onSave);
     this._randomResetBtn.addEventListener("click", this._handleReset);
@@ -134,6 +140,7 @@ class RandomControlsPanel {
 
   public destroy(): void {
     this._randomPresetSelect.destroy();
+    this._randomizePaneBtn.removeEventListener("click", this._onRandomizePane);
     this._randomGenerateBtn.removeEventListener("click", this._onGenerate);
     this._randomSaveBtn.removeEventListener("click", this._onSave);
     this._randomResetBtn.removeEventListener("click", this._handleReset);
@@ -199,6 +206,31 @@ class RandomControlsPanel {
     this._updateValueLabels();
   }
 
+  public randomizeControls(): void {
+    this._noiseLevels[this.currentNoiseType()] = this._noiseLevel01FromSlider();
+
+    this._randomPresetSelect.setValue(this._pickRandom(RANDOM_PRESETS).id);
+    this._randomDensitySlider.value = String(this._randomIntFromInput(this._randomDensitySlider));
+    this._randomRotationSlider.value = String(this._randomIntFromInput(this._randomRotationSlider));
+    this._randomZoomSlider.value = String(this._randomIntFromInput(this._randomZoomSlider));
+
+    const nextNoiseType = this._pickRandom(NOISE_TYPE_TILE_LABELS).value;
+    const nextNoiseLevel = this._randomIntFromInput(this._randomNoiseLevelSlider);
+    this._noiseTypeSelector.select(nextNoiseType);
+    this._noiseLevels[nextNoiseType] = nextNoiseLevel / 100;
+    this._randomNoiseLevelSlider.value = String(nextNoiseLevel);
+    this._syncNoiseLevelLabel();
+
+    const nextAutoSeedEnabled = Math.random() < 0.5;
+    this._randomSeedAuto.checked = nextAutoSeedEnabled;
+    if (!nextAutoSeedEnabled) {
+      this.setSeedValue(this._randomIntInRange(this.seedBounds().min, this.seedBounds().max));
+    }
+
+    this._syncSeedState();
+    this._updateValueLabels();
+  }
+
   public handleDocumentPointerDown(event: PointerEvent): void {
     this._randomPresetSelect.handleDocumentPointerDown(event);
   }
@@ -220,6 +252,7 @@ class RandomControlsPanel {
     this._syncNoiseLevelLabel();
     queryRequired<HTMLElement>("#random-seed-label", this.element).textContent = APP_TEXTS.random.seed;
     queryRequired<HTMLElement>("#random-seed-auto-label", this.element).textContent = APP_TEXTS.random.autoSeed;
+    this._randomizePaneBtn.textContent = APP_TEXTS.random.randomizePane;
     this._randomGenerateBtn.textContent = APP_TEXTS.random.generate;
     this._randomSaveBtn.textContent = APP_TEXTS.random.save;
     this._randomResetBtn.textContent = APP_TEXTS.random.reset;
@@ -356,6 +389,20 @@ class RandomControlsPanel {
     syncSliderFill(this._randomZoomSlider);
     syncSliderFill(this._randomNoiseLevelSlider);
     syncSliderFill(this._randomSeedSlider);
+  }
+
+  private _randomIntFromInput(input: HTMLInputElement): number {
+    return this._randomIntInRange(Number(input.min) || 0, Number(input.max) || 0);
+  }
+
+  private _randomIntInRange(min: number, max: number): number {
+    const boundedMin = Math.ceil(Math.min(min, max));
+    const boundedMax = Math.floor(Math.max(min, max));
+    return Math.floor(Math.random() * (boundedMax - boundedMin + 1)) + boundedMin;
+  }
+
+  private _pickRandom<T>(items: readonly T[]): T {
+    return items[Math.floor(Math.random() * items.length)] ?? items[0];
   }
 }
 

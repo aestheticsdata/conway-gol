@@ -112,6 +112,7 @@ export class SimulationWorkspace {
     this._randomControls = new RandomControlsPanel({
       root: this._root,
       onPresetChange: this._onRandomPresetChange,
+      onRandomizePane: this._onRandomPaneRandomize,
       onGenerate: this._onRandomPresetGenerate,
       onSave: this._onRandomPresetSave,
       onParamsChange: this._onRandomParamChange,
@@ -322,6 +323,27 @@ export class SimulationWorkspace {
     this._resetIterationCounter();
     this._aliveVariationChart.reset();
     this._aliveCountChart.reset();
+    this._grid.reseedRandomPreset(this._currentRandomPreset(), true, this._currentRandomParams());
+  };
+
+  private _onRandomPaneRandomize = (): void => {
+    if (this._selectedMode !== "random" || !this._grid) {
+      return;
+    }
+
+    this._randomControls.randomizeControls();
+    this._randomPresetVariation = true;
+
+    if (this._randomControls.isAutoSeedEnabled()) {
+      this._refreshAutoSeed();
+    } else {
+      this._randomAutoSeed = null;
+    }
+
+    this._resetIterationCounter();
+    this._aliveVariationChart.reset();
+    this._aliveCountChart.reset();
+    this._grid.syncTransforms(this._randomControls.currentRotation(), this._randomControls.currentZoom());
     this._grid.reseedRandomPreset(this._currentRandomPreset(), true, this._currentRandomParams());
   };
 

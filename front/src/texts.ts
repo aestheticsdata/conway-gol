@@ -55,6 +55,7 @@ export const APP_TEXTS = {
     seed: "Seed:",
     autoSeed: "Random seed",
     seedSliderDisabledHint: "Uncheck Random seed to enable slider",
+    randomizePane: "randomize parameters",
     generate: "Generate",
     save: "Save",
     reset: "Reset",
