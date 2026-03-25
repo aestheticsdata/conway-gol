@@ -145,6 +145,7 @@ export class SimulationWorkspace {
     this._isPlaying = false;
     this._grid?.destroyListener();
     this._randomControls.destroy();
+    this._zooSelector?.destroy();
     this._savePresetModal.destroy();
     this._imageImporter?.destroy();
     document.removeEventListener("pointerdown", this._handleDocumentPointerDown);
@@ -515,21 +516,84 @@ export class SimulationWorkspace {
   }
 
   private _renderComments(comments: string[]): void {
-    const nodes: Node[] = [];
-    comments.forEach((line, i) => {
-      if (i > 0) nodes.push(document.createElement("br"));
-      if (line.startsWith("http://") || line.startsWith("https://")) {
-        const a = document.createElement("a");
-        a.href = line;
-        a.target = "_blank";
-        a.rel = "noopener noreferrer";
-        a.title = line;
-        a.textContent = `${APP_TEXTS.comments.itemPrefix}${line}`;
-        nodes.push(a);
-      } else {
-        nodes.push(document.createTextNode(`${APP_TEXTS.comments.itemPrefix}${line}`));
-      }
-    });
+    const nodes = comments
+      .map((line) => this._createCommentNode(line.trim()))
+      .filter((node): node is HTMLElement => node !== null);
+
     this._commentsDOMSelector.replaceChildren(...nodes);
+  }
+
+  private _createCommentNode(line: string): HTMLElement | null {
+    if (!line) {
+      return null;
+    }
+
+    if (line.startsWith("http://") || line.startsWith("https://")) {
+      const { row, content } = this._createCommentRow("link");
+      const anchor = document.createElement("a");
+      anchor.href = line;
+      anchor.target = "_blank";
+      anchor.rel = "noopener noreferrer";
+      anchor.title = line;
+      anchor.textContent = line;
+      content.append(anchor);
+      return row;
+    }
+
+    const meta = this._parseCommentMeta(line);
+    if (meta) {
+      const { row, content } = this._createCommentRow("meta");
+      const label = document.createElement("span");
+      label.className = "critter-comment__label";
+      label.textContent = `${meta.label}:`;
+
+      const value = document.createElement("span");
+      value.className = "critter-comment__value";
+      value.textContent = meta.value;
+
+      content.append(label, value);
+      return row;
+    }
+
+    const { row, content } = this._createCommentRow("body");
+    const value = document.createElement("span");
+    value.className = "critter-comment__value";
+    value.textContent = line;
+    content.append(value);
+    return row;
+  }
+
+  private _createCommentRow(kind: "meta" | "body" | "link"): {
+    row: HTMLDivElement;
+    content: HTMLDivElement;
+  } {
+    const row = document.createElement("div");
+    row.className = `critter-comment critter-comment--${kind}`;
+
+    const bullet = document.createElement("span");
+    bullet.className = "critter-comment__bullet";
+    bullet.setAttribute("aria-hidden", "true");
+    bullet.textContent = APP_TEXTS.comments.itemPrefix.trim() || "-";
+
+    const content = document.createElement("div");
+    content.className = "critter-comment__content";
+
+    row.append(bullet, content);
+    return { row, content };
+  }
+
+  private _parseCommentMeta(line: string): { label: string; value: string } | null {
+    const match = line.match(/^([^:]+):\s*(.+)$/);
+    if (!match) {
+      return null;
+    }
+
+    const label = match[1]?.trim();
+    const value = match[2]?.trim();
+    if (!label || !value) {
+      return null;
+    }
+
+    return { label, value };
   }
 }

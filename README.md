@@ -415,6 +415,7 @@ This keeps Conway logic out of the renderer, DOM event handling out of `Simulati
 
 `front/src/ui/controls/` contains DOM-facing UI controls, split by domain:
 
+- `shared/CustomSelect.ts`: reusable custom dropdown controller backed by a hidden native `<select>`, with configurable visible-option count
 - `shared/TileButtonGroup.ts`: reusable tile-button primitive used by typed selectors
 - `simulation/ModeSelector.ts`: tile-button mode switching
 - `simulation/NoiseTypeSelector.ts`: tile-button random noise switching
@@ -437,6 +438,27 @@ The telemetry charts share reusable renderers under `front/src/ui/controls/telem
 `Data` in `front/src/data/Data.ts` fetches catalog or custom patterns, centers them on the 156x156 grid, and exposes a plain `number[][]` seed for the simulation. After `load()` resolves, `Data.comments` holds the pattern's metadata lines for the caller to display.
 
 `ZoomBox` in `front/src/Grid/zoom/ZoomBox.ts` renders the magnified 7x7 area around the cursor in drawing mode.
+
+#### Shared custom select
+
+The custom dropdown used in the workspace right pane is now a shared UI primitive instead of two separate implementations.
+
+`CustomSelect` in `front/src/ui/controls/shared/CustomSelect.ts` owns:
+
+- synchronization between the hidden native `<select>` and the custom trigger/menu UI
+- menu open/close behavior
+- outside-click and `Escape` dismissal hooks
+- selected-state rendering
+- a `visibleOptionCount` configuration that controls how many rows are visible before the menu scrolls
+
+The visual skin for this primitive lives in `front/src/styles/main/custom-select.css`.
+
+Current consumers:
+
+- `RandomControlsPanel` uses it for the random preset selector
+- `ZooSelector` uses it for the species selector
+
+Because both controls now share the same controller and stylesheet, visual updates to the custom dropdown should be made in the shared component instead of per-screen CSS.
 
 #### HTTP facade and frontend services
 
@@ -545,7 +567,7 @@ The current visual system includes a few custom controls that are intentionally 
 
 - reusable tile-style buttons with inline SVG icons
 - telemetry charts drawn directly on canvas with a shared theme
-- custom random preset dropdown in the right pane
+- shared flat custom dropdown used by the random preset and zoo species selectors
 - custom random noise type selector using the same tile-button primitive as the route mode selector
 - gradient CTA buttons with alternate hover/active states
 

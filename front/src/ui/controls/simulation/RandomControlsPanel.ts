@@ -2,6 +2,7 @@ import { DEFAULT_RANDOM_PRESET, isRandomPresetId, RANDOM_PRESETS } from "@grid/r
 import { DEFAULT_NOISE_LEVELS } from "@grid/seeding/RandomPresetSeeder";
 import { queryRequired } from "@helpers/dom";
 import { APP_TEXTS } from "@texts";
+import CustomSelect from "@ui/controls/shared/CustomSelect";
 import Tooltip from "@ui/lib/Tooltip";
 import NoiseTypeSelector from "./NoiseTypeSelector";
 
@@ -39,11 +40,7 @@ class RandomControlsPanel {
   private readonly _onRotationChange: (deg: number) => void;
   private readonly _onZoomChange: (level: number) => void;
   private readonly _onReset: () => void;
-  private readonly _randomPresetSelect: HTMLSelectElement;
-  private readonly _randomPresetTrigger: HTMLButtonElement;
-  private readonly _randomPresetValue: HTMLElement;
-  private readonly _randomPresetMenu: HTMLElement;
-  private readonly _randomPresetOptions: HTMLElement;
+  private readonly _randomPresetSelect: CustomSelect;
   private readonly _randomGenerateBtn: HTMLButtonElement;
   private readonly _randomSaveBtn: HTMLButtonElement;
   private readonly _randomResetBtn: HTMLButtonElement;
@@ -72,11 +69,13 @@ class RandomControlsPanel {
     this._onRotationChange = options.onRotationChange;
     this._onZoomChange = options.onZoomChange;
     this._onReset = options.onReset;
-    this._randomPresetSelect = queryRequired<HTMLSelectElement>("#random-preset", this.element);
-    this._randomPresetTrigger = queryRequired<HTMLButtonElement>("#random-preset-trigger", this.element);
-    this._randomPresetValue = queryRequired<HTMLElement>(".custom-select__value", this.element);
-    this._randomPresetMenu = queryRequired<HTMLElement>(".custom-select__menu", this.element);
-    this._randomPresetOptions = queryRequired<HTMLElement>(".custom-select__options", this.element);
+    this._randomPresetSelect = new CustomSelect(
+      queryRequired<HTMLElement>(".random-preset-custom-select", this.element),
+      {
+        onChange: this._handlePresetChange,
+        visibleOptionCount: 8,
+      },
+    );
     this._randomGenerateBtn = queryRequired<HTMLButtonElement>(".random-generate", this.element);
     this._randomSaveBtn = queryRequired<HTMLButtonElement>(".random-save", this.element);
     this._randomResetBtn = queryRequired<HTMLButtonElement>(".random-reset", this.element);
@@ -108,8 +107,6 @@ class RandomControlsPanel {
     this._updateValueLabels();
     this._syncSeedState();
 
-    this._randomPresetTrigger.addEventListener("click", this._togglePresetMenu);
-    this._randomPresetSelect.addEventListener("change", this._handlePresetChange);
     this._randomGenerateBtn.addEventListener("click", this._onGenerate);
     this._randomSaveBtn.addEventListener("click", this._onSave);
     this._randomResetBtn.addEventListener("click", this._handleReset);
@@ -135,8 +132,7 @@ class RandomControlsPanel {
   }
 
   public destroy(): void {
-    this._randomPresetTrigger.removeEventListener("click", this._togglePresetMenu);
-    this._randomPresetSelect.removeEventListener("change", this._handlePresetChange);
+    this._randomPresetSelect.destroy();
     this._randomGenerateBtn.removeEventListener("click", this._onGenerate);
     this._randomSaveBtn.removeEventListener("click", this._onSave);
     this._randomResetBtn.removeEventListener("click", this._handleReset);
@@ -154,7 +150,7 @@ class RandomControlsPanel {
   }
 
   public currentPreset(): RandomPresetId {
-    const value = this._randomPresetSelect.value;
+    const value = this._randomPresetSelect.value();
     return isRandomPresetId(value) ? value : DEFAULT_RANDOM_PRESET;
   }
 
@@ -203,23 +199,11 @@ class RandomControlsPanel {
   }
 
   public handleDocumentPointerDown(event: PointerEvent): void {
-    if (this._randomPresetMenu.hidden) {
-      return;
-    }
-    const target = event.target;
-    if (!(target instanceof Node)) {
-      return;
-    }
-    if (!this.element.contains(target)) {
-      this._setPresetMenuOpen(false);
-    }
+    this._randomPresetSelect.handleDocumentPointerDown(event);
   }
 
   public handleDocumentKeyDown(event: KeyboardEvent): void {
-    if (event.key === "Escape" && !this._randomPresetMenu.hidden) {
-      this._setPresetMenuOpen(false);
-      this._randomPresetTrigger.focus();
-    }
+    this._randomPresetSelect.handleDocumentKeyDown(event);
   }
 
   private _applyStaticTexts(): void {
@@ -241,64 +225,10 @@ class RandomControlsPanel {
   }
 
   private _renderPresetOptions(): void {
-    this._randomPresetSelect.replaceChildren(
-      ...RANDOM_PRESETS.map(({ id, label }) => {
-        const option = document.createElement("option");
-        option.value = id;
-        option.textContent = label;
-        option.selected = id === DEFAULT_RANDOM_PRESET;
-        return option;
-      }),
+    this._randomPresetSelect.setOptions(
+      RANDOM_PRESETS.map(({ id, label }) => ({ value: id, label })),
+      DEFAULT_RANDOM_PRESET,
     );
-    this._randomPresetOptions.replaceChildren(
-      ...RANDOM_PRESETS.map(({ id, label }) => {
-        const option = document.createElement("button");
-        option.type = "button";
-        option.className = "custom-select__option";
-        option.dataset.value = id;
-        option.setAttribute("role", "option");
-        option.textContent = label;
-        option.addEventListener("click", () => {
-          this._selectPreset(id);
-        });
-        return option;
-      }),
-    );
-    this._syncPresetUI();
-  }
-
-  private _togglePresetMenu = (): void => {
-    this._setPresetMenuOpen(this._randomPresetMenu.hidden);
-  };
-
-  private _setPresetMenuOpen(open: boolean): void {
-    this._randomPresetMenu.hidden = !open;
-    this._randomPresetTrigger.setAttribute("aria-expanded", open ? "true" : "false");
-    this.element.classList.toggle("custom-select--open", open);
-  }
-
-  private _selectPreset(value: string): void {
-    this._randomPresetSelect.value = value;
-    this._syncPresetUI();
-    this._setPresetMenuOpen(false);
-    this._randomPresetSelect.dispatchEvent(new Event("change", { bubbles: true }));
-  }
-
-  private _syncPresetUI(): void {
-    const currentValue = this._randomPresetSelect.value;
-    const currentOption =
-      RANDOM_PRESETS.find(({ id }) => id === currentValue) ??
-      RANDOM_PRESETS.find(({ id }) => id === DEFAULT_RANDOM_PRESET) ??
-      RANDOM_PRESETS[0];
-
-    this._randomPresetValue.textContent = currentOption?.label ?? "";
-
-    Array.from(this._randomPresetOptions.children).forEach((child) => {
-      const option = child as HTMLElement;
-      const selected = option.dataset.value === currentValue;
-      option.classList.toggle("is-selected", selected);
-      option.setAttribute("aria-selected", selected ? "true" : "false");
-    });
   }
 
   private _updateValueLabels(): void {
@@ -331,7 +261,6 @@ class RandomControlsPanel {
   }
 
   private _handlePresetChange = (): void => {
-    this._syncPresetUI();
     this._onPresetChange();
   };
 
@@ -351,7 +280,7 @@ class RandomControlsPanel {
   };
 
   private _handleReset = (): void => {
-    this._selectPreset(DEFAULT_RANDOM_PRESET);
+    this._randomPresetSelect.setValue(DEFAULT_RANDOM_PRESET);
     this._randomDensitySlider.value = "30";
     this._randomRotationSlider.value = "0";
     this._randomZoomSlider.value = "0";
