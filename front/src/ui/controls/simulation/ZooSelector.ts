@@ -19,7 +19,7 @@ class ZooSelector {
       onChange: (value) => {
         this._onSpeciesChange?.(value);
       },
-      visibleOptionCount: 12,
+      visibleOptionCount: 8,
     });
 
     const zoo = list ?? Object.keys(species);

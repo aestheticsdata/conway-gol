@@ -46,6 +46,7 @@ export class SimulationWorkspace {
   private readonly _userCustomService = new UserCustomService();
   private readonly _savePresetModal = new SavePresetModal();
   private readonly _pauseBtn: HTMLButtonElement;
+  private readonly _pauseBtnLabel: HTMLElement;
   private readonly _speedSlider: HTMLInputElement;
   private readonly _speedValue: HTMLElement;
   private readonly _commentsDOMSelector: HTMLElement;
@@ -100,6 +101,7 @@ export class SimulationWorkspace {
     );
     this._aliveCountChart = new AliveCountChart(queryRequired<HTMLCanvasElement>(".alive-count-chart", this._root));
     this._pauseBtn = queryRequired<HTMLButtonElement>("button.pause", this._root);
+    this._pauseBtnLabel = queryRequired<HTMLElement>(".ui-button__label", this._pauseBtn);
     this._speedSlider = queryRequired<HTMLInputElement>("#speed-slider", this._root);
     this._speedValue = queryRequired<HTMLElement>(".speed-value", this._root);
     this._commentsDOMSelector = queryRequired<HTMLElement>(".critter-comments", this._root);
@@ -124,7 +126,7 @@ export class SimulationWorkspace {
     this._applyStaticTexts();
     this._pauseBtn.addEventListener("click", this._togglePause);
     this._setFPS();
-    this._pauseBtn.textContent = APP_TEXTS.playback.start;
+    this._setPlaybackButtonState(false);
     this._resetIterationCounter();
 
     new ModeSelector(this._changeMode, this._root);
@@ -355,12 +357,17 @@ export class SimulationWorkspace {
     this._grid?.processNextGeneration();
   }
 
+  private _setPlaybackButtonState(isPlaying: boolean): void {
+    this._pauseBtn.dataset.icon = isPlaying ? "pause" : "play";
+    this._pauseBtnLabel.textContent = isPlaying ? APP_TEXTS.playback.pause : APP_TEXTS.playback.start;
+  }
+
   private _togglePause = (): void => {
     if (this._isPlaying) {
       this._stop();
-      this._pauseBtn.textContent = APP_TEXTS.playback.start;
+      this._setPlaybackButtonState(false);
     } else {
-      this._pauseBtn.textContent = APP_TEXTS.playback.pause;
+      this._setPlaybackButtonState(true);
       this._start();
     }
     this._isPlaying = !this._isPlaying;

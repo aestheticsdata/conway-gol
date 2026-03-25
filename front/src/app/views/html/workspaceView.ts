@@ -192,7 +192,7 @@ function createSpeedSection(): string {
 function createPlaybackControls(): string {
   return `
     <div class="pane-section pane-section--separated playback-controls">
-      ${createButton({ className: "pause" })}
+      ${createButton({ className: "pause", icon: "play", label: APP_TEXTS.playback.start })}
     </div>
   `;
 }

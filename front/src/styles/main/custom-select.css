@@ -132,6 +132,27 @@ select.custom-select__native {
   gap: var(--custom-select-option-gap);
   max-height: var(--custom-select-menu-max-height);
   overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(37, 219, 255, 0.72) rgba(8, 17, 31, 0.9);
+}
+
+.custom-select__options::-webkit-scrollbar {
+  width: 10px;
+}
+
+.custom-select__options::-webkit-scrollbar-track {
+  background: rgba(8, 17, 31, 0.9);
+  border-radius: 999px;
+}
+
+.custom-select__options::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(120, 239, 255, 0.9), rgba(37, 219, 255, 0.7));
+  border: 2px solid rgba(8, 17, 31, 0.9);
+  border-radius: 999px;
+}
+
+.custom-select__options::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(120, 239, 255, 1), rgba(37, 219, 255, 0.82));
 }
 
 .custom-select__option {

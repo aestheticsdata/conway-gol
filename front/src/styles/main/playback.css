@@ -117,3 +117,61 @@
 .playback-controls .ui-button {
   align-self: flex-start;
 }
+
+.playback-controls .ui-button--with-icon {
+  gap: 0.55em;
+}
+
+.playback-controls .ui-button__label {
+  display: inline-block;
+}
+
+.playback-controls .ui-button__icon {
+  position: relative;
+  display: inline-block;
+  flex: 0 0 auto;
+  color: inherit;
+  font-size: 1em;
+  line-height: 1;
+}
+
+.playback-controls .ui-button[data-icon="play"] .ui-button__icon {
+  width: 0;
+  height: 0;
+  border-top: 0.42em solid transparent;
+  border-bottom: 0.42em solid transparent;
+  border-left: 0.7em solid currentColor;
+}
+
+.playback-controls .ui-button[data-icon="pause"] .ui-button__icon {
+  width: 0.62em;
+  height: 0.78em;
+}
+
+.playback-controls .ui-button[data-icon="pause"] .ui-button__icon::before,
+.playback-controls .ui-button[data-icon="pause"] .ui-button__icon::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 0.18em;
+  height: 100%;
+  border-radius: 1px;
+  background: currentColor;
+}
+
+.playback-controls .ui-button[data-icon="pause"] .ui-button__icon::before {
+  left: 0;
+}
+
+.playback-controls .ui-button[data-icon="pause"] .ui-button__icon::after {
+  right: 0;
+}
+
+.playback-controls .ui-button:hover .ui-button__icon,
+.playback-controls .ui-button:focus-visible .ui-button__icon {
+  color: rgba(67, 243, 255, 0.95);
+}
+
+.playback-controls .ui-button:active .ui-button__icon {
+  color: #04111d;
+}
