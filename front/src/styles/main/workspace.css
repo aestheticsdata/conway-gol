@@ -78,24 +78,13 @@
 .workspace-header__nav {
   min-width: 0;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
+  margin-left: 6px;
 }
 
 .workspace-login-link {
   position: static;
   z-index: auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: fit-content;
-  min-width: 0;
-  height: 36px;
-  padding: 0 16px;
-  margin: 0;
-  line-height: 1;
-  text-align: center;
-  border-radius: var(--radius);
-  white-space: nowrap;
 }
 
 .container {

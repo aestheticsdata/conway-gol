@@ -8,10 +8,6 @@
   backdrop-filter: blur(20px);
 }
 
-.image-import .image-import-btn {
-  margin-top: 0;
-}
-
 .image-import-formats {
   display: block;
   margin-top: 6px;
@@ -73,10 +69,8 @@
   backdrop-filter: blur(20px);
 }
 
-.custom-drawing-files .save {
+.custom-drawing-files .ui-button {
   width: 100%;
-  min-height: 52px;
-  margin-top: 0;
 }
 
 .custom-drawing-files label {

@@ -11,6 +11,7 @@ import { PAW_ICON } from "@assets/icons/pawIcon";
 import { PENCIL_ICON } from "@assets/icons/pencilIcon";
 import { SHUFFLE_ICON } from "@assets/icons/shuffleIcon";
 import { APP_TEXTS } from "@texts";
+import { createButton } from "@ui/components/button/createButton";
 import { createTileSelectorButton } from "@views/html/tileSelector";
 
 import type { WorkspaceRoute } from "@app/routes";
@@ -134,7 +135,10 @@ function createWorkspaceHeader(route: WorkspaceRoute): string {
           ${createModeSelector(route)}
         </div>
       </div>
-      <button type="button" class="workspace-login-link">${APP_TEXTS.workspace.exitStudio}</button>
+      ${createButton({
+        className: "workspace-login-link",
+        label: APP_TEXTS.workspace.exitStudio,
+      })}
     </header>
   `;
 }
@@ -188,7 +192,7 @@ function createSpeedSection(): string {
 function createPlaybackControls(): string {
   return `
     <div class="pane-section pane-section--separated playback-controls">
-      <button type="button" class="pause"></button>
+      ${createButton({ className: "pause" })}
     </div>
   `;
 }
@@ -306,9 +310,9 @@ function createRandomControls(): string {
         </div>
       </div>
       <div class="random-generate-wrapper">
-        <button type="button" class="random-generate"></button>
-        <button type="button" class="random-save"></button>
-        <button type="button" class="random-reset"></button>
+        ${createButton({ className: "random-generate", width: "block" })}
+        ${createButton({ className: "random-save", width: "block" })}
+        ${createButton({ className: "random-reset", width: "block" })}
       </div>
     </div>
   `;
@@ -317,7 +321,7 @@ function createRandomControls(): string {
 function createDrawingFiles(): string {
   return `
     <div class="custom-drawing-files" style="display: none">
-      <button type="button" class="save"></button>
+      ${createButton({ className: "save", width: "block" })}
       <div class="user-select-container">
         <div class="selectButton">
           <label for="custom-file"></label>
@@ -390,7 +394,7 @@ function createImageImport(): string {
   return `
     <div class="image-import" style="display: none">
       <input type="file" id="image-import-input" accept="image/jpeg,image/png,image/webp,image/gif,image/bmp,image/avif" style="display: none">
-      <button type="button" class="image-import-btn"></button>
+      ${createButton({ className: "image-import-btn", width: "block" })}
       <span class="image-import-formats"></span>
       <div class="random-param random-param--separated image-import-threshold">
         <label for="image-threshold-slider">

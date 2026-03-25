@@ -114,10 +114,6 @@
   box-shadow: 0 0 18px rgba(37, 219, 255, 0.18);
 }
 
-.playback-controls button {
-  margin-top: 0;
-  width: fit-content;
-  min-width: 0;
-  padding-inline: 22px;
+.playback-controls .ui-button {
   align-self: flex-start;
 }

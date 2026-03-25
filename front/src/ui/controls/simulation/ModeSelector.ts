@@ -8,6 +8,7 @@ class ModeSelector extends TileButtonGroup<Mode> {
       selector: ".mode-selector .tile-selector__button",
       root: parent,
       onChange: setMode,
+      onChangeDelayMs: 140,
     });
   }
 }

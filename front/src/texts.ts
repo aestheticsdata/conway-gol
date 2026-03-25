@@ -47,7 +47,7 @@ export const APP_TEXTS = {
       gradient: "Gradient",
       edgeBias: "Edge bias",
       centerBurst: "Center burst",
-      interference: "Interference",
+      interference: "Moiré",
       marbling: "Marbling",
     },
     rotation: "Rotation:",

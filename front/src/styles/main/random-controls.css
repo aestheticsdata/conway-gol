@@ -171,15 +171,9 @@ select.custom-select__native#zoo-species-native {
   border-color: rgba(87, 221, 255, 0.24);
 }
 
-.random-preset-selector .random-generate,
-.random-preset-selector .random-save,
-.random-preset-selector .random-reset {
-  display: inline-flex;
-  margin-top: 0;
-  width: 100%;
+.random-generate-wrapper .ui-button {
+  flex: 1 1 0;
   min-width: 0;
-  min-height: 52px;
-  padding-inline: 16px;
 }
 
 .random-generate-wrapper {

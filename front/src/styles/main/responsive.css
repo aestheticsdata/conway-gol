@@ -26,6 +26,7 @@
 
   .workspace-header__nav {
     width: 100%;
+    margin-left: 0;
     justify-content: flex-start;
   }
 
@@ -67,16 +68,6 @@
 
   .workspace-brand__title {
     font-size: 19px;
-  }
-
-  .workspace-mode-selector {
-    width: 100%;
-  }
-
-  .workspace-mode-selector .tile-selector__button {
-    min-width: 0;
-    width: 100%;
-    padding-inline: 14px;
   }
 
   .container {
