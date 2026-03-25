@@ -32,6 +32,7 @@ const RANDOM_PRESET_SEEDERS = {
  *   - checker: square size is inversely proportional to density
  *   - cross: arm thickness
  *   - noise: alive-cell probability; noiseType = generation algorithm
+ *   - conway: cell count per constellation (1→~80 cells); noiseType = spatial placement filter
  *
  * seed overrides the RNG for any preset (deterministic replay when non-null).
  */

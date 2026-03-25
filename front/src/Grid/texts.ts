@@ -13,5 +13,6 @@ export const GRID_TEXTS = {
     diagonal: "Diagonals",
     cross: "Cross",
     noise: "Classic noise",
+    conway: "Primordial bits",
   },
 } as const;

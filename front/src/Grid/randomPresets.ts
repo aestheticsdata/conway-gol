@@ -17,6 +17,7 @@ export const RANDOM_PRESETS = [
   { id: "diagonal", label: GRID_TEXTS.randomPresets.diagonal },
   { id: "cross", label: GRID_TEXTS.randomPresets.cross },
   { id: "noise", label: GRID_TEXTS.randomPresets.noise },
+  { id: "conway", label: GRID_TEXTS.randomPresets.conway },
 ] as const;
 
 export type RandomPresetId = (typeof RANDOM_PRESETS)[number]["id"];

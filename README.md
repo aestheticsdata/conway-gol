@@ -23,7 +23,7 @@ A full-stack implementation of [Conway's Game of Life](https://en.wikipedia.org/
 - Client-side app shell with real routes: `/login`, `/simulation`, `/zoo`, `/drawing`
 - Navigation API based router behind a framework-agnostic adapter and screen abstraction
 - Login screen used as a fake auth entry point for the future connected-user flow
-- Random mode with 13 named presets (geometric, fractal, and noise families), five generation controls (density, rotation, zoom, noise type, seed), a `Generate` action for a new variation, and a `Reset` button that restores all controls to their initial values
+- Random mode with 14 named presets (geometric, fractal, noise, and Conway-motif families), five generation controls (density, rotation, zoom, noise type, seed), a `Generate` action for a new variation, and a `Reset` button that restores all controls to their initial values
 - Zoo mode with 1,400+ catalog patterns
 - Drawing mode with save/load for custom patterns
 - Image import in drawing mode: upload any common image format, automatically converted to a cell pattern via grayscale + Floyd-Steinberg dithering, with a live threshold slider for post-import tuning
@@ -95,7 +95,12 @@ conway-gol/
 │   │   │   │   ├── randomPresetNoise.ts
 │   │   │   │   ├── randomPresetShapeSeeders.ts
 │   │   │   │   ├── randomPresetTypes.ts
-│   │   │   │   └── randomPresetUtils.ts
+│   │   │   │   ├── randomPresetUtils.ts
+│   │   │   │   └── shapes/
+│   │   │   │       ├── index.ts
+│   │   │   │       ├── stamp.ts
+│   │   │   │       ├── field.ts
+│   │   │   │       └── conway.ts
 │   │   │   └── zoom/
 │   │   │       └── ZoomBox.ts
 │   │   ├── lib/
@@ -349,7 +354,10 @@ The current route registry is intentionally small:
 
 `RandomPresetSeeder` in `front/src/Grid/seeding/RandomPresetSeeder.ts` is the entry point for random-mode initial states. It receives a flat cell buffer plus grid dimensions and dispatches to one of three focused modules:
 
-- `randomPresetShapeSeeders.ts` — geometric presets: `stars`, `circles`, `sinus`, `rings`, `stripes`, `checker`, `clusters`, `diagonal`, `cross`
+- `randomPresetShapeSeeders.ts` — re-export barrel; actual implementations live in `seeding/shapes/`:
+  - `shapes/stamp.ts` — stamp-based presets: `stars`, `circles`, `sinus`, `clusters`
+  - `shapes/field.ts` — field-formula presets: `rings`, `stripes`, `checker`, `diagonal`, `cross`
+  - `shapes/conway.ts` — **Primordial bits** preset (`conway`)
 - `randomPresetFractalSeeders.ts` — fractal presets: `sierpinski` (Sierpiński triangle), `cantor` (Cantor dust), `hilbert` (Hilbert curve)
 - `randomPresetNoise.ts` — the `noise` preset and the `applySpatialNoiseMask` post-processing step shared by all other presets
 
@@ -904,6 +912,47 @@ A fully offline image-to-grid import feature was added to drawing mode. No serve
 **Threshold slider:** always visible but disabled until an image is imported. Re-running only `floydSteinberg()` on slider input (the grayscale buffer is kept in component state) avoids reloading the image. A tooltip appears on pointer-hover over the disabled slider.
 
 **`@lib` alias** was added to both `vite.config.ts` and `tsconfig.json` so `ImageSeeder` can be imported outside the Grid layer without a relative path.
+
+### Phase 13 - Primordial bits preset and shapes/ module split (2026-03)
+
+#### New preset: Primordial bits (`conway`)
+
+A fourteenth random preset was added, designed around classic Conway life patterns. Unlike the other presets, the density slider controls **cell count per shape** (not shape count), producing a visual range from a single 3-cell blinker at 1–5% to a dense multi-ring organism of 80+ cells at 100%.
+
+Two generation modes are chosen randomly on each `Generate`:
+
+| Mode | Behaviour |
+|---|---|
+| **grow** | One tight cluster. Motifs are stamped within a radius `packRadius = √density × 15`, biased toward the centre with `rng² × packRadius`. The overlapping stamps fuse into a single organism that becomes more complex as density increases. |
+| **scatter** | 1–3 ring-spaced constellations. Motif count is split across constellations; the number of constellations grows gently with density (more separate small shapes). |
+
+**Density mapping.** The slider uses a quadratic curve (`density = (slider/100)²`), so `√density` is used inside the seeder to recover a linear proxy of the raw slider position. This spreads the visual change evenly: slider 30% → 5 motifs, slider 100% → 15 motifs.
+
+**Motif library.** 18 hand-coded patterns in four complexity tiers, unlocked progressively:
+
+| Complexity | Unlocked at slider | Examples |
+|---|---|---|
+| 1 | 0–25% | blinker, L-corner, zigzag (3 cells) |
+| 2 | 25–50% | block, tub, boat, beehive, loaf (4–7 cells) |
+| 3 | 50–75% | glider, R-pentomino, toad, beacon (5–8 cells) |
+| 4 | 75–100% | LWSS, acorn, B-heptomino, pi-heptomino (7–9 cells) |
+
+**Symmetry.** ~50% chance of none; otherwise h-mirror or v-mirror (never forced 4-fold). About 12% of motif placements break the mirror for an organic feel.
+
+**Noise type.** The spatial noise mask applies normally (skipping `uniform`, which is a no-op for all presets). Because each motif is a tight cluster of 3–9 pixels, the mask acts as a zone filter: a motif either survives as a unit or is killed entirely, rather than losing individual cells.
+
+#### shapes/ subfolder
+
+`randomPresetShapeSeeders.ts` (359 lines) was split into a `seeding/shapes/` subfolder so each preset family can be read and extended independently:
+
+| File | Contents |
+|---|---|
+| `shapes/stamp.ts` | Stamp-based presets: `stars`, `circles`, `sinus`, `clusters` |
+| `shapes/field.ts` | Field-formula presets: `rings`, `stripes`, `checker`, `diagonal`, `cross` |
+| `shapes/conway.ts` | Primordial bits preset: motif library, `stampConwayMotif`, `getConstellationPositions`, `seedConway` |
+| `shapes/index.ts` | Assembles and exports `SHAPE_RANDOM_PRESET_SEEDERS` |
+
+`randomPresetShapeSeeders.ts` is now a one-line re-export barrel. `RandomPresetSeeder.ts` is unchanged.
 
 ### Phase 9 - Fractal presets, new noise types, and seeder module split (2026-03)
 
