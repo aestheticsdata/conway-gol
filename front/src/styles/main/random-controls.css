@@ -298,7 +298,9 @@ select.custom-select__native#zoo-species-native {
 }
 
 #random-density-value,
-#random-seed-value {
+#random-seed-value,
+#random-rotation-value,
+#random-zoom-value {
   font-weight: bold;
   color: var(--accent);
   font-family: "JetBrains Mono", monospace;
