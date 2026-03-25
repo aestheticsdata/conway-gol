@@ -2,6 +2,10 @@ export const APP_TEXTS = {
   document: {
     title: "Conway's game of life",
   },
+  workspace: {
+    studioTitle: "CGL Studio",
+    exitStudio: "Exit Studio",
+  },
   modes: {
     label: "Mode",
     random: "random",

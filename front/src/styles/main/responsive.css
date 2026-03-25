@@ -4,51 +4,91 @@
     --workspace-right-pane-width: 336px;
   }
 
+  .workspace-screen {
+    height: auto;
+    min-height: 100vh;
+    overflow-x: clip;
+    overflow-y: visible;
+  }
+
   .container {
-    padding-inline: 24px;
     gap: 18px;
   }
 }
 
-@media (max-width: 1260px) {
-  .container {
-    flex-direction: column;
-    align-items: center;
-    padding-top: 72px;
-    gap: 24px;
+@media (max-width: 1460px) {
+  .workspace-header {
+    grid-template-columns: 1fr;
+    justify-items: start;
+    min-height: 0;
+    padding-inline: 20px;
   }
 
-  /* Keep inspector (random / zoo / drawing) directly under the left pane instead of below the canvas */
-  .left-pane {
+  .workspace-header__nav {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .container {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-stage {
     order: 1;
   }
 
-  .right-pane {
+  .left-pane {
     order: 2;
-  }
-
-  .canvas-wrapper {
-    order: 3;
-  }
-
-  .left-pane,
-  .right-pane {
-    width: min(100%, 1080px);
-    padding-top: 0;
-    flex: 0 1 auto;
-  }
-
-  .canvas-wrapper {
     width: 100%;
-    padding-top: 0;
-    justify-content: center;
-  }
-
-  .canvas-stack {
-    margin-inline: auto;
+    min-height: 0;
   }
 
   .right-pane {
-    padding-top: 0;
+    order: 3;
+    width: 100%;
+  }
+}
+
+@media (max-width: 900px) {
+  .workspace-screen {
+    min-height: 100vh;
+  }
+
+  .workspace-shell {
+    height: auto;
+    min-height: 100vh;
+    gap: 18px;
+  }
+
+  .workspace-header {
+    padding: 12px 14px 10px;
+    gap: 14px;
+  }
+
+  .workspace-brand__title {
+    font-size: 19px;
+  }
+
+  .workspace-mode-selector {
+    width: 100%;
+  }
+
+  .workspace-mode-selector .tile-selector__button {
+    min-width: 0;
+    width: 100%;
+    padding-inline: 14px;
+  }
+
+  .container {
+    width: min(calc(100% - 28px), var(--workspace-shell-max-width));
+    gap: 18px;
+  }
+
+  .left-pane {
+    padding: 20px;
+  }
+
+  .workspace-stage__frame {
+    min-height: auto;
   }
 }

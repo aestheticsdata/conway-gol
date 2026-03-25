@@ -122,14 +122,20 @@ function createModeSelector(route: WorkspaceRoute): string {
   ).join("");
 }
 
-function createModeSection(route: WorkspaceRoute): string {
+function createWorkspaceHeader(route: WorkspaceRoute): string {
   return `
-    <div class="pane-section pane-section--mode">
-      <div class="pane-section-label mode-selector-label" data-ui="mode-label"></div>
-      <div class="mode-selector tile-selector">
-        ${createModeSelector(route)}
+    <header class="workspace-header">
+      <div class="workspace-brand" aria-label="${APP_TEXTS.workspace.studioTitle}">
+        <span class="workspace-brand__mark" aria-hidden="true"></span>
+        <strong class="workspace-brand__title">${APP_TEXTS.workspace.studioTitle}</strong>
       </div>
-    </div>
+      <div class="workspace-header__nav">
+        <div class="workspace-mode-selector mode-selector tile-selector" aria-label="${APP_TEXTS.modes.label}">
+          ${createModeSelector(route)}
+        </div>
+      </div>
+      <button type="button" class="workspace-login-link">${APP_TEXTS.workspace.exitStudio}</button>
+    </header>
   `;
 }
 
@@ -187,10 +193,9 @@ function createPlaybackControls(): string {
   `;
 }
 
-function createWorkspaceSidebar(route: WorkspaceRoute): string {
+function createWorkspaceSidebar(): string {
   return `
     <aside class="left-pane">
-      ${createModeSection(route)}
       ${createIterationSection()}
       ${createTelemetrySection()}
       ${createSpeedSection()}
@@ -201,12 +206,16 @@ function createWorkspaceSidebar(route: WorkspaceRoute): string {
 
 function createCanvasArea(): string {
   return `
-    <div class="canvas-wrapper">
-      <div class="canvas-stack">
-        <canvas id="canvasID"></canvas>
-        <canvas id="canvas-drawing"></canvas>
+    <main class="workspace-stage">
+      <div class="workspace-stage__frame">
+        <div class="canvas-wrapper">
+          <div class="canvas-stack">
+            <canvas id="canvasID"></canvas>
+            <canvas id="canvas-drawing"></canvas>
+          </div>
+        </div>
       </div>
-    </div>
+    </main>
   `;
 }
 
@@ -414,11 +423,13 @@ function createWorkspaceInspector(): string {
 export function createWorkspaceView(route: WorkspaceRoute): string {
   return `
     <section class="workspace-screen">
-      <button type="button" class="workspace-login-link">Back to login</button>
-      <div class="container">
-        ${createWorkspaceSidebar(route)}
-        ${createCanvasArea()}
-        ${createWorkspaceInspector()}
+      <div class="workspace-shell">
+        ${createWorkspaceHeader(route)}
+        <div class="container">
+          ${createWorkspaceSidebar()}
+          ${createCanvasArea()}
+          ${createWorkspaceInspector()}
+        </div>
       </div>
     </section>
   `;

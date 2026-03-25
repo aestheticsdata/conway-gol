@@ -157,7 +157,6 @@ export class SimulationWorkspace {
   };
 
   private _applyStaticTexts(): void {
-    queryRequired<HTMLElement>('[data-ui="mode-label"]', this._root).textContent = APP_TEXTS.modes.label;
     queryRequired<HTMLElement>('.tile-selector__text[data-mode="random"]', this._root).textContent =
       APP_TEXTS.modes.random;
     queryRequired<HTMLElement>('.tile-selector__text[data-mode="zoo"]', this._root).textContent = APP_TEXTS.modes.zoo;

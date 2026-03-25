@@ -44,12 +44,6 @@
     background 160ms ease;
 }
 
-.workspace-login-link {
-  position: absolute;
-  top: 18px;
-  right: 36px;
-}
-
 .auth-screen .auth-card .auth-form .auth-submit::before,
 .workspace-login-link::before,
 .playback-controls button::before,

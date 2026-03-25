@@ -3,9 +3,11 @@
   --bg-elevated: rgba(8, 18, 33, 0.88);
   --bg-panel: rgba(12, 23, 41, 0.78);
   --bg-soft: rgba(18, 31, 54, 0.72);
+  --bg-stage: rgba(5, 12, 24, 0.9);
   --text-main: #f5fbff;
   --text-muted: #8fa9c2;
   --border: rgba(117, 161, 205, 0.2);
+  --border-strong: rgba(117, 161, 205, 0.3);
   --accent: #25dbff;
   --accent-strong: #09c6ff;
 

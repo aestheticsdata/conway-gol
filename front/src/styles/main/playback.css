@@ -80,7 +80,7 @@
 }
 
 .speed-selector {
-  width: min(100%, var(--left-pane-compact-block-width));
+  width: 100%;
 }
 
 .speed-header {
