@@ -209,6 +209,8 @@
 }
 
 .drawing-toolbox .item {
+  position: relative;
+  isolation: isolate;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -218,37 +220,81 @@
   border: 1px solid transparent;
   border-radius: calc(var(--radius) + 4px);
   background: transparent;
+  color: rgba(196, 210, 228, 0.92);
+  overflow: hidden;
   transition:
+    color 140ms ease,
     background-color 140ms ease,
     border-color 140ms ease,
     transform 140ms ease,
     box-shadow 140ms ease;
 }
 
+.drawing-toolbox .item::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(110, 150, 210, 0.12), rgba(110, 150, 210, 0.08));
+  opacity: 0;
+  transition:
+    opacity 140ms ease,
+    background 140ms ease;
+}
+
 .drawing-toolbox .item:hover,
 .drawing-toolbox .item:focus-visible {
   border-color: rgba(117, 161, 205, 0.24);
   background: rgba(12, 24, 42, 0.38);
+  color: rgba(245, 251, 255, 0.96);
   outline: none;
 }
 
-.drawing-toolbox .item.is-selected {
-  border-color: rgba(255, 204, 0, 0.26);
-  background: var(--canvas-zoom-highlight-stroke-color);
-  box-shadow: 0 8px 22px rgba(255, 204, 0, 0.18);
+.drawing-toolbox .item:hover::before,
+.drawing-toolbox .item:focus-visible::before {
+  opacity: 1;
 }
 
-.drawing-toolbox .item img {
+.drawing-toolbox .item.is-selected {
+  border-color: rgba(37, 219, 255, 0.3);
+  background-color: rgba(12, 30, 46, 0.74);
+  color: var(--accent);
+  box-shadow:
+    inset 0 0 0 1px rgba(37, 219, 255, 0.3),
+    0 10px 24px rgba(0, 0, 0, 0.22),
+    0 0 22px rgba(37, 219, 255, 0.14);
+}
+
+.drawing-toolbox .item.is-selected::before {
+  background: linear-gradient(180deg, rgba(37, 219, 255, 0.12), rgba(37, 219, 255, 0.04));
+  opacity: 1;
+}
+
+.drawing-toolbox .item > * {
+  position: relative;
+  z-index: 1;
+}
+
+.drawing-toolbox__icon {
+  display: grid;
+  place-items: center;
+  line-height: 0;
+}
+
+.drawing-toolbox__icon svg {
   width: 18px;
   height: 18px;
-  opacity: 0.92;
-  filter: brightness(0) saturate(100%) invert(84%) sepia(8%) saturate(472%) hue-rotate(174deg) brightness(93%)
-    contrast(94%);
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
-.drawing-toolbox .item.is-selected img {
-  filter: brightness(0) saturate(100%) invert(8%) sepia(25%) saturate(1038%) hue-rotate(179deg) brightness(95%)
-    contrast(97%);
+.drawing-toolbox .item.eraser .drawing-toolbox__icon svg {
+  width: 24px;
+  height: 24px;
+  stroke-width: 2.05;
 }
 
 .zoombox-container {

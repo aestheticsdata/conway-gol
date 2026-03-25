@@ -2,6 +2,7 @@ import { DRAWING_ROUTE, SIMULATION_ROUTE, ZOO_ROUTE } from "@app/routes";
 import { NOISE_CENTER_BURST_ICON } from "@assets/icons/noiseCenterBurstIcon";
 import { NOISE_CLUSTERS_ICON } from "@assets/icons/noiseClustersIcon";
 import { NOISE_EDGE_BIAS_ICON } from "@assets/icons/noiseEdgeBiasIcon";
+import { ERASER_ICON } from "@assets/icons/eraserIcon";
 import { NOISE_GRADIENT_ICON } from "@assets/icons/noiseGradientIcon";
 import { NOISE_INTERFERENCE_ICON } from "@assets/icons/noiseInterferenceIcon";
 import { NOISE_MARBLING_ICON } from "@assets/icons/noiseMarblingIcon";
@@ -109,9 +110,9 @@ const RANDOM_NOISE_OPTIONS: readonly RandomNoiseOption[] = [
   },
 ];
 
-const DRAWING_TOOL_ICON_PATHS: Record<DrawingTool, string> = {
-  pencil: "assets/pencil/icons8-pencil-24.png",
-  eraser: "assets/eraser/icons8-erase-24.png",
+const DRAWING_TOOL_ICONS: Record<DrawingTool, string> = {
+  pencil: PENCIL_ICON,
+  eraser: ERASER_ICON,
 };
 
 function createModeSelector(route: WorkspaceRoute): string {
@@ -378,11 +379,11 @@ function createDrawingSaveAction(): string {
 }
 
 function createDrawingTool(tool: DrawingTool): string {
-  const iconPath = DRAWING_TOOL_ICON_PATHS[tool];
+  const icon = DRAWING_TOOL_ICONS[tool];
 
   return `
-    <div class="item ${tool}" role="button" tabindex="0" aria-pressed="false">
-      <img src="${iconPath}" alt="" data-tool="${tool}">
+    <div class="item ${tool}" data-tool="${tool}" role="button" tabindex="0" aria-pressed="false">
+      <span class="drawing-toolbox__icon" aria-hidden="true">${icon}</span>
     </div>
   `;
 }
@@ -400,9 +401,9 @@ function createDrawingToolbox(): string {
 
 function createCustomCursor(): string {
   return `
-    <div class="custom-cursor" style="display: none">
-      <img class="cursor pencil" src="${DRAWING_TOOL_ICON_PATHS.pencil}" alt="" data-tool="pencil" style="display: none">
-      <img class="cursor eraser" src="${DRAWING_TOOL_ICON_PATHS.eraser}" alt="" data-tool="eraser" style="display: none">
+    <div class="custom-cursor" aria-hidden="true" style="display: none">
+      <span class="cursor pencil" data-tool="pencil" style="display: none">${DRAWING_TOOL_ICONS.pencil}</span>
+      <span class="cursor eraser" data-tool="eraser" style="display: none">${DRAWING_TOOL_ICONS.eraser}</span>
     </div>
   `;
 }

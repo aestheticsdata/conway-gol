@@ -17,9 +17,9 @@
   --canvas-cell-dead-color: transparent;
   --canvas-cell-border-color: rgb(204, 204, 204);
   --canvas-cell-outside-color: transparent;
-  --canvas-preview-alive-color: rgba(112, 186, 223, 0.75);
-  --canvas-preview-erase-color: rgba(204, 204, 204, 0.35);
-  --canvas-zoom-highlight-stroke-color: rgba(255, 204, 0, 1);
+  --canvas-preview-alive-color: rgba(37, 219, 255, 0.84);
+  --canvas-preview-erase-color: rgba(37, 219, 255, 0.84);
+  --canvas-zoom-highlight-stroke-color: rgba(37, 219, 255, 0.96);
 
   --telemetry-surface-top: rgba(32, 47, 71, 0.92);
   --telemetry-surface-bottom: rgba(13, 20, 34, 0.92);

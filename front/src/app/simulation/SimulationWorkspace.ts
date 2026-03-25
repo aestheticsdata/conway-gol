@@ -182,12 +182,14 @@ export class SimulationWorkspace {
       CONTROL_TEXTS.drawing.customDrawingLabel;
     queryRequired<HTMLLabelElement>('label[for="zoo-species-trigger"]', this._root).textContent = APP_TEXTS.zoo.species;
 
-    queryAll<HTMLImageElement>('img[data-tool="pencil"]', this._root).forEach((img) => {
-      img.alt = CONTROL_TEXTS.drawing.tools.pencilAlt;
-    });
-    queryAll<HTMLImageElement>('img[data-tool="eraser"]', this._root).forEach((img) => {
-      img.alt = CONTROL_TEXTS.drawing.tools.eraserAlt;
-    });
+    queryRequired<HTMLElement>('.drawing-toolbox .item[data-tool="pencil"]', this._root).setAttribute(
+      "aria-label",
+      CONTROL_TEXTS.drawing.tools.pencilAlt,
+    );
+    queryRequired<HTMLElement>('.drawing-toolbox .item[data-tool="eraser"]', this._root).setAttribute(
+      "aria-label",
+      CONTROL_TEXTS.drawing.tools.eraserAlt,
+    );
   }
 
   private _currentRandomPreset(): RandomPresetId {

@@ -128,6 +128,31 @@
 
 .right-pane .custom-cursor {
   position: absolute;
+  z-index: 160;
+  pointer-events: none;
+}
+
+.right-pane .custom-cursor .cursor {
+  display: block;
+  color: var(--accent);
+  line-height: 0;
+  filter: drop-shadow(0 0 10px rgba(37, 219, 255, 0.28));
+}
+
+.right-pane .custom-cursor .cursor svg {
+  width: 21px;
+  height: 21px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.right-pane .custom-cursor .cursor.eraser svg {
+  width: 27px;
+  height: 27px;
+  stroke-width: 2.15;
 }
 
 .pane-section {

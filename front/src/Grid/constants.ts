@@ -25,9 +25,9 @@ export const DEFAULT_CANVAS_THEME: CanvasTheme = {
   deadCellColor: "transparent",
   borderCellColor: "rgb(204, 204, 204)",
   outsideCellColor: "transparent",
-  previewAliveCellColor: "rgba(112, 186, 223, 0.75)",
-  previewEraseCellColor: "rgba(204, 204, 204, 0.35)",
-  zoomHighlightStrokeColor: "rgba(255,204,0,1)",
+  previewAliveCellColor: "rgba(37, 219, 255, 0.84)",
+  previewEraseCellColor: "rgba(37, 219, 255, 0.84)",
+  zoomHighlightStrokeColor: "rgba(37, 219, 255, 0.96)",
 };
 
 function readCssColorVariable(styles: CSSStyleDeclaration, variableName: string, fallback: string): string {

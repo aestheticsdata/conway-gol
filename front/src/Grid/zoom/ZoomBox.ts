@@ -94,11 +94,11 @@ class ZoomBox {
       }
     }
 
-    // Overlay center cell with the drawing-mode color + gold border.
+    // Overlay center cell with the active cursor blue + blue border.
     const cx = ZOOM_CENTER.x;
     const cy = ZOOM_CENTER.y;
     this._zoomContext.fillStyle =
-      drawingMode === "pencil" ? this._theme.aliveCellColor : this._theme.previewEraseCellColor;
+      drawingMode === "pencil" ? this._theme.previewAliveCellColor : this._theme.previewEraseCellColor;
     this._zoomContext.fillRect(cx * cellPx + 1, cy * cellPx + 1, cellPx - 1, cellPx - 1);
     this._zoomContext.strokeStyle = this._theme.zoomHighlightStrokeColor;
     this._zoomContext.strokeRect(cx * cellPx, cy * cellPx, cellPx + 1, cellPx + 1);
