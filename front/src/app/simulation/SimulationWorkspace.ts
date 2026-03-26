@@ -643,8 +643,8 @@ export class SimulationWorkspace {
         this._drawingToolBox.show();
         this._zoomBox.show();
         this._userCustomSelector.show();
+        this._userCustomSelector.setCurrentValue(this._selectedSpecies ?? "");
         await this._userCustomSelector.getCustomList();
-        this._selectedSpecies = this._userCustomSelector.currentValue() || null;
         this._imageImporter ??= new ImageImporter((grid) => {
           this._clearDrawingRestoreSnapshot();
           this._grid?.seedFromGrid(grid);

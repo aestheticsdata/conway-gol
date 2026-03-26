@@ -180,6 +180,10 @@
   color: var(--accent);
 }
 
+.custom-drawing-files .custom-select.custom-select--placeholder .custom-select__value {
+  color: rgba(196, 210, 228, 0.56);
+}
+
 .custom-drawing-files .custom-select__menu {
   top: calc(100% + 8px);
 }

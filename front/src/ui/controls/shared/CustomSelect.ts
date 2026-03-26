@@ -9,6 +9,7 @@ export type CustomSelectOption = {
 
 type CustomSelectConfig = {
   onChange?: (value: string) => void;
+  placeholder?: string;
   visibleOptionCount?: number;
 };
 
@@ -20,11 +21,13 @@ class CustomSelect {
   private readonly _menu: HTMLElement;
   private readonly _options: HTMLElement;
   private readonly _onChange?: (value: string) => void;
+  private readonly _placeholder?: string;
   private _items: readonly CustomSelectOption[] = [];
 
   constructor(root: HTMLElement, config: CustomSelectConfig = {}) {
     this._root = root;
     this._onChange = config.onChange;
+    this._placeholder = config.placeholder;
     this._nativeSelect = queryRequired<HTMLSelectElement>("select.custom-select__native", root);
     this._trigger = queryRequired<HTMLButtonElement>(".custom-select__trigger", root);
     this._value = queryRequired<HTMLElement>(".custom-select__value", root);
@@ -62,8 +65,8 @@ class CustomSelect {
     this._items = options;
     const fallbackValue = options[0]?.value ?? "";
     const nextValue =
-      selectedValue && options.some((option) => option.value === selectedValue)
-        ? selectedValue
+      selectedValue !== undefined
+        ? (options.some((option) => option.value === selectedValue) ? selectedValue : "")
         : options.some((option) => option.value === this._nativeSelect.value)
           ? this._nativeSelect.value
           : fallbackValue;
@@ -73,10 +76,10 @@ class CustomSelect {
         const option = document.createElement("option");
         option.value = value;
         option.textContent = label;
-        option.selected = value === nextValue;
         return option;
       }),
     );
+    this._applyValue(nextValue);
 
     this._options.replaceChildren(
       ...options.map(({ value, label, html }) => {
@@ -99,12 +102,12 @@ class CustomSelect {
   }
 
   public setValue(value: string, emitChange = false): void {
-    if (this._items.length === 0) {
-      return;
-    }
-
-    const nextValue = this._items.some((option) => option.value === value) ? value : (this._items[0]?.value ?? "");
-    this._nativeSelect.value = nextValue;
+    const nextValue = this._items.some((option) => option.value === value)
+      ? value
+      : value === "" && this._placeholder
+        ? ""
+        : (this._items[0]?.value ?? "");
+    this._applyValue(nextValue);
     this._syncUI();
     this._setMenuOpen(false);
 
@@ -114,7 +117,8 @@ class CustomSelect {
   }
 
   public value(): string {
-    return this._nativeSelect.value;
+    const currentValue = this._nativeSelect.value;
+    return this._items.some((option) => option.value === currentValue) ? currentValue : "";
   }
 
   public handleDocumentPointerDown(event: PointerEvent): void {
@@ -151,15 +155,28 @@ class CustomSelect {
     this._root.classList.toggle("custom-select--open", open);
   }
 
+  private _applyValue(value: string): void {
+    if (value) {
+      this._nativeSelect.value = value;
+      return;
+    }
+
+    this._nativeSelect.selectedIndex = -1;
+  }
+
   private _syncUI(): void {
-    const currentValue = this._nativeSelect.value;
-    const currentOption = this._items.find((option) => option.value === currentValue) ?? this._items[0];
+    const currentValue = this.value();
+    const currentOption = this._items.find((option) => option.value === currentValue);
+    const isPlaceholder = !currentOption && Boolean(this._placeholder);
 
     if (currentOption?.html) {
       this._value.innerHTML = currentOption.html;
+    } else if (currentOption) {
+      this._value.textContent = currentOption.label;
     } else {
-      this._value.textContent = currentOption?.label ?? "";
+      this._value.textContent = this._placeholder ?? "";
     }
+    this._root.classList.toggle("custom-select--placeholder", isPlaceholder);
 
     Array.from(this._options.children).forEach((child) => {
       const option = child as HTMLElement;

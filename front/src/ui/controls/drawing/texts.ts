@@ -25,6 +25,7 @@ export const CONTROL_TEXTS = {
     },
   },
   userCustomSelector: {
+    placeholder: "select custom pattern",
     prompt: {
       title: "save custom preset",
       inputPlaceholder: "preset name",

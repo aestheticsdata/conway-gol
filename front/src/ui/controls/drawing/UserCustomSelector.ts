@@ -30,6 +30,7 @@ class UserCustomSelector {
     this._savePresetModal = savePresetModal ?? new SavePresetModal();
     this._customSelect = new CustomSelect(queryRequired<HTMLElement>(".custom-drawing-custom-select"), {
       onChange: this._onSelectChange,
+      placeholder: CONTROL_TEXTS.userCustomSelector.placeholder,
       visibleOptionCount: 8,
     });
     this.saveBtn.addEventListener("click", this._save);
@@ -68,6 +69,10 @@ class UserCustomSelector {
     return this._selectedValue;
   }
 
+  public setCurrentValue(value: string): void {
+    this._selectedValue = value;
+  }
+
   private _save = async () => {
     const filename = await this._savePresetModal.open({
       title: CONTROL_TEXTS.userCustomSelector.prompt.title,
@@ -92,9 +97,7 @@ class UserCustomSelector {
 
   private _createSelectButton(): void {
     const selectedValue =
-      this._selectedValue && this._userCustomList.includes(this._selectedValue)
-        ? this._selectedValue
-        : (this._userCustomList[0] ?? "");
+      this._selectedValue && this._userCustomList.includes(this._selectedValue) ? this._selectedValue : "";
 
     this._customSelect.setOptions(
       this._userCustomList.map((userCritter) => ({ value: userCritter, label: userCritter })),
