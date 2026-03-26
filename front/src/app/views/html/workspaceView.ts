@@ -207,16 +207,18 @@ function createPlaybackControls(): string {
   `;
 }
 
-function createDrawingActionsSidebar(): string {
+function createDrawingActionsSidebar(route: WorkspaceRoute): string {
+  const fadeInClass = route === DRAWING_ROUTE ? " route-pane-fade-in" : "";
+
   return `
-    <aside class="drawing-actions-pane" style="display: none">
+    <aside class="drawing-actions-pane${fadeInClass}" style="display: none">
       ${createDrawingSaveAction()}
       ${createImageImport()}
     </aside>
   `;
 }
 
-function createWorkspaceSidebar(): string {
+function createWorkspaceSidebar(route: WorkspaceRoute): string {
   return `
     <div class="left-column">
       <aside class="left-pane">
@@ -225,7 +227,7 @@ function createWorkspaceSidebar(): string {
         ${createSpeedSection()}
         ${createPlaybackControls()}
       </aside>
-      ${createDrawingActionsSidebar()}
+      ${createDrawingActionsSidebar(route)}
     </div>
   `;
 }
@@ -510,7 +512,7 @@ function createImageImport(): string {
 
 function createWorkspaceInspector(): string {
   return `
-    <aside class="right-pane">
+    <aside class="right-pane route-pane-fade-in">
       ${createRandomControls()}
       ${createZooSelector()}
       <div class="drawing-pane" style="display: none">
@@ -529,7 +531,7 @@ export function createWorkspaceView(route: WorkspaceRoute): string {
       <div class="workspace-shell">
         ${createWorkspaceHeader(route)}
         <div class="container">
-          ${createWorkspaceSidebar()}
+          ${createWorkspaceSidebar(route)}
           ${createCanvasArea()}
           ${createWorkspaceInspector()}
         </div>
