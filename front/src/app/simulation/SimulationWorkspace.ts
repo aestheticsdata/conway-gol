@@ -311,6 +311,8 @@ export class SimulationWorkspace {
   };
 
   private _onReset = (): void => {
+    this._stopPlayback();
+    this._setPlaybackButtonState(false);
     if (this._selectedMode !== "random" || !this._grid) return;
     this._randomPresetVariation = false;
     this._randomAutoSeed = null;
@@ -653,6 +655,7 @@ export class SimulationWorkspace {
   private _setDrawingPlaybackState(isPlaying: boolean): void {
     this._imageImporter?.setPlaybackActive(isPlaying);
     this._grid?.setDrawingPlaybackActive(isPlaying);
+    this._randomControls.setPlaybackActive(isPlaying);
   }
 
   private _togglePause = (): void => {
@@ -695,10 +698,6 @@ export class SimulationWorkspace {
   };
 
   private _stopPlayback(): void {
-    if (!this._isPlaying) {
-      return;
-    }
-
     this._stop();
     this._isPlaying = false;
     this._setDrawingPlaybackState(false);

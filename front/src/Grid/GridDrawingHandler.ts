@@ -54,6 +54,7 @@ class GridDrawingHandler {
   private _brushShape: BrushShape;
   private _hoverPointer: GridPointerPosition | null = null;
   private _dragPointer: GridPointerPosition | null = null;
+  private _lastPaintPointer: GridPointerPosition | null = null;
   private _isDown = false;
   private _isPlaybackActive = false;
 
@@ -130,6 +131,7 @@ class GridDrawingHandler {
     this._cursor.style.display = "none";
     this._hoverPointer = null;
     this._dragPointer = null;
+    this._lastPaintPointer = null;
     this._clearOverlay();
   };
 
@@ -149,7 +151,12 @@ class GridDrawingHandler {
       if (this._drawingMode === "hand") {
         this._translateAtPointer(pointer);
       } else {
-        this._paintAtPointer(pointer);
+        if (this._lastPaintPointer) {
+          this._paintStroke(this._lastPaintPointer, pointer);
+        } else {
+          this._paintAtPointer(pointer);
+        }
+        this._lastPaintPointer = pointer;
       }
     }
 
@@ -176,6 +183,7 @@ class GridDrawingHandler {
       this._dragPointer = pointer;
     } else {
       this._paintAtPointer(pointer);
+      this._lastPaintPointer = pointer;
     }
     this._zoombox.displayArea(
       this._getZoomArea(pointer.xPos, pointer.yPos),
@@ -191,6 +199,7 @@ class GridDrawingHandler {
   private _onMouseUp = (): void => {
     this._isDown = false;
     this._dragPointer = null;
+    this._lastPaintPointer = null;
   };
 
   // ── Private helpers ────────────────────────────────────────────────────────
@@ -222,7 +231,7 @@ class GridDrawingHandler {
   }
 
   /**
-   * Extract the 14×14 neighbourhood around (x, y) from the simulation state.
+   * Extract the square zoom neighbourhood around (x, y) from the simulation state.
    * Cells outside [0, GRID_COLS-1] / [0, GRID_ROWS-1] are marked as BORDER.
    * Returns [[OUTSIDE]] when the cursor is outside the valid cell range.
    */
@@ -263,6 +272,56 @@ class GridDrawingHandler {
     if (hasChanged) {
       this._emitStateChange();
     }
+  }
+
+  private _paintStroke(from: GridPointerPosition, to: GridPointerPosition): void {
+    const newState = this._drawingMode === "pencil" ? CELL_STATE.ALIVE : CELL_STATE.DEAD;
+    let hasChanged = false;
+    for (const point of this._getLinePoints(from, to)) {
+      this._forEachShapeCell(point.yPos, point.xPos, (row, col) => {
+        if (this._getCell(row, col) === newState) {
+          return;
+        }
+
+        this._setCell(row, col, newState);
+        this._renderCell(row, col);
+        hasChanged = true;
+      });
+    }
+
+    if (hasChanged) {
+      this._emitStateChange();
+    }
+  }
+
+  private _getLinePoints(from: GridPointerPosition, to: GridPointerPosition): GridPointerPosition[] {
+    const points: GridPointerPosition[] = [];
+    let x = from.xPos;
+    let y = from.yPos;
+    const dx = Math.abs(to.xPos - from.xPos);
+    const dy = Math.abs(to.yPos - from.yPos);
+    const sx = from.xPos < to.xPos ? 1 : -1;
+    const sy = from.yPos < to.yPos ? 1 : -1;
+    let err = dx - dy;
+
+    while (true) {
+      points.push({ xPos: x, yPos: y });
+      if (x === to.xPos && y === to.yPos) {
+        break;
+      }
+
+      const e2 = err * 2;
+      if (e2 > -dy) {
+        err -= dy;
+        x += sx;
+      }
+      if (e2 < dx) {
+        err += dx;
+        y += sy;
+      }
+    }
+
+    return points;
   }
 
   private _translateAtPointer(pointer: GridPointerPosition): void {

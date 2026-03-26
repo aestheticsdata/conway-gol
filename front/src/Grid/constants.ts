@@ -126,16 +126,20 @@ export const INITIAL_DENSITY = 0.18;
 /** Pixel magnification factor applied inside the zoom canvas. */
 export const ZOOM_LEVEL = 4;
 
-/** Side length of the zoom area in cells. */
-export const ZOOM_SIZE = 14;
+export const ZOOM = {
+  // Use one square size for the zoom grid. Even values are normalized to odd.
+  SIZE: 15,
+} as const;
+
+/** Side length of the square zoom area in cells (always a positive odd integer). */
+export const ZOOM_SIZE = toPositiveOdd(ZOOM.SIZE);
 
 /** Pixel dimension of the zoom canvas. */
 export const ZOOM_CANVAS_PX = CELL_SIZE * ZOOM_LEVEL * ZOOM_SIZE;
 
 /**
  * Grid coordinates of the hovered cell inside the zoom area.
- * With an even-sized viewport, the focus cell occupies the upper-left slot
- * of the central 2×2 block so we can still highlight one exact cell.
+ * Because ZOOM_SIZE is normalized to odd, this is always the exact center cell.
  */
 export const ZOOM_FOCUS = {
   x: Math.floor((ZOOM_SIZE - 1) / 2),

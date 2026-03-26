@@ -138,6 +138,11 @@ class RandomControlsPanel {
     this._seedDisabledTooltip.hide();
   }
 
+  public setPlaybackActive(isPlaying: boolean): void {
+    this._randomGenerateBtn.disabled = isPlaying;
+    this._randomSaveBtn.disabled = isPlaying;
+  }
+
   public destroy(): void {
     this._randomPresetSelect.destroy();
     this._randomizePaneBtn.removeEventListener("click", this._onRandomizePane);

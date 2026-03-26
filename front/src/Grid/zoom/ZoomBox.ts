@@ -17,7 +17,7 @@ import type { BrushShape } from "@ui/controls/drawing/constants";
 import type { DrawingMode } from "@ui/controls/drawing/DrawingToolBox";
 
 /**
- * ZoomBox — 4× magnified 14×14 neighbourhood view around the drawing cursor.
+ * ZoomBox — 4× magnified square neighbourhood view around the drawing cursor.
  *
  * Receives a plain number[][] area from Grid._getZoomArea() and renders it
  * directly — no Cell objects, no internal state matrix.
@@ -71,7 +71,7 @@ class ZoomBox {
   }
 
   /**
-   * Render the 14×14 area around the cursor.
+   * Render the zoom area around the cursor.
    * @param area  number[][] from Grid._getZoomArea(). [[OUTSIDE]] when out of range.
    * @param drawingMode  Current drawing mode, controls brush highlight rendering.
    * @param brushShape  Active brush shape — used to highlight all brush cells.
