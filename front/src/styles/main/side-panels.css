@@ -44,6 +44,10 @@
   color: rgba(245, 251, 255, 0.92);
 }
 
+.image-import-threshold.is-disabled .ui-slider-field__value {
+  color: rgba(196, 210, 228, 0.44);
+}
+
 .image-threshold-slider__tooltip-target {
   position: absolute;
   inset: -6px 0;

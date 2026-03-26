@@ -10,6 +10,11 @@
   letter-spacing: 0.12em;
 }
 
+.iteration--secondary {
+  margin-top: 4px;
+  font-size: 11px;
+}
+
 .cell-stats {
   font-size: 14px;
   color: var(--text-muted);
@@ -27,6 +32,8 @@
 }
 
 .iteration-counter,
+.stabilization-counter,
+.cycle-detected-counter,
 .alive-cells-counter,
 .dead-cells-counter {
   display: inline-block;
@@ -50,6 +57,18 @@
   font-weight: 700;
 }
 
+.stabilization-counter {
+  color: var(--text-main);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.cycle-detected-counter {
+  color: var(--text-main);
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .telemetry-chart {
   display: block;
   width: 100%;
@@ -69,6 +88,10 @@
 }
 
 .telemetry-chart-legend {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
   width: 100%;
   margin-top: 4px;
   font-size: 12px;
@@ -77,6 +100,30 @@
   text-align: left;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.telemetry-chart-legend-label {
+  min-width: 0;
+}
+
+.telemetry-chart-legend-value {
+  flex: 0 0 auto;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: normal;
+}
+
+.telemetry-chart-legend-value--positive {
+  color: var(--telemetry-positive);
+}
+
+.telemetry-chart-legend-value--negative {
+  color: var(--telemetry-negative);
+}
+
+.telemetry-chart-legend-value--neutral {
+  color: var(--telemetry-neutral);
 }
 
 .speed-selector {

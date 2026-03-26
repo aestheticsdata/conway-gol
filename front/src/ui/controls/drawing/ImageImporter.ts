@@ -21,18 +21,22 @@ class ImageImporter {
   private readonly _input: HTMLInputElement;
   private readonly _btn: HTMLButtonElement;
   private readonly _formatsLabel: HTMLElement;
+  private readonly _thresholdField: HTMLElement;
   private readonly _thresholdSlider: HTMLInputElement;
   private readonly _thresholdTooltipTarget: HTMLElement;
   private readonly _thresholdValue: HTMLElement;
   private readonly _tooltip: Tooltip;
   private readonly _onImport: (grid: number[][]) => void;
   private _grayscale: Float32Array | null = null;
+  private _hasImportedImage = false;
+  private _isPlaybackActive = false;
 
   constructor(onImport: (grid: number[][]) => void) {
     this._container = queryRequired<HTMLElement>(".image-import");
     this._input = queryRequired<HTMLInputElement>("#image-import-input", this._container);
     this._btn = queryRequired<HTMLButtonElement>(".image-import-btn", this._container);
     this._formatsLabel = queryRequired<HTMLElement>(".image-import-formats", this._container);
+    this._thresholdField = queryRequired<HTMLElement>(".image-import-threshold", this._container);
     this._thresholdSlider = queryRequired<HTMLInputElement>("#image-threshold-slider", this._container);
     this._thresholdTooltipTarget = queryRequired<HTMLElement>(
       ".image-threshold-slider__tooltip-target",
@@ -45,7 +49,7 @@ class ImageImporter {
     this._btn.textContent = TEXTS.button;
     this._formatsLabel.textContent = FORMATS_LABEL;
     queryRequired<HTMLElement>("#image-threshold-label", this._container).textContent = TEXTS.thresholdLabel;
-    this._thresholdSlider.disabled = true;
+    this._syncThresholdAvailability();
     syncSliderFill(this._thresholdSlider);
 
     this._btn.addEventListener("click", () => this._input.click());
@@ -65,11 +69,21 @@ class ImageImporter {
     this._container.style.display = "none";
     this._tooltip.hide();
     this._grayscale = null;
-    this._thresholdSlider.disabled = true;
-    this._thresholdTooltipTarget.style.display = "";
+    this._hasImportedImage = false;
+    this._isPlaybackActive = false;
     this._thresholdSlider.value = String(DEFAULT_THRESHOLD);
     this._thresholdValue.textContent = String(DEFAULT_THRESHOLD);
+    this._syncThresholdAvailability();
     syncSliderFill(this._thresholdSlider);
+  }
+
+  public setPlaybackActive(isActive: boolean): void {
+    this._isPlaybackActive = isActive;
+    this._syncThresholdAvailability();
+
+    if (isActive) {
+      this._tooltip.hide();
+    }
   }
 
   public destroy(): void {
@@ -92,6 +106,13 @@ class ImageImporter {
     this._tooltip.hide();
   };
 
+  private _syncThresholdAvailability(): void {
+    const isEnabled = this._hasImportedImage && !this._isPlaybackActive;
+    this._thresholdSlider.disabled = !isEnabled;
+    this._thresholdField.classList.toggle("is-disabled", !isEnabled);
+    this._thresholdTooltipTarget.style.display = this._hasImportedImage ? "none" : "";
+  }
+
   private _onFileChange = async (e: Event): Promise<void> => {
     const input = e.currentTarget as HTMLInputElement;
     const file = input.files?.[0];
@@ -102,10 +123,10 @@ class ImageImporter {
     try {
       const { grid, grayscale } = await seedFromImage(file, GRID_COLS, GRID_ROWS, DEFAULT_THRESHOLD);
       this._grayscale = grayscale;
-      this._thresholdSlider.disabled = false;
-      this._thresholdTooltipTarget.style.display = "none";
+      this._hasImportedImage = true;
       this._thresholdSlider.value = String(DEFAULT_THRESHOLD);
       this._thresholdValue.textContent = String(DEFAULT_THRESHOLD);
+      this._syncThresholdAvailability();
       syncSliderFill(this._thresholdSlider);
       this._onImport(grid);
     } catch (err) {

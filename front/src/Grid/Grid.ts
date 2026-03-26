@@ -22,12 +22,16 @@ import type { SimulationStateStats } from "./Simulation";
 import type { RandomSeedParams } from "./seeding/RandomPresetSeeder";
 import type ZoomBox from "./zoom/ZoomBox";
 
+export type GridStateChangeStats = SimulationStateStats & {
+  changedCells: number | null;
+};
+
 type GridBaseOptions = {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
   species?: string;
   onLoad?: (comments: string[]) => void;
-  onStateChange?: (stats: SimulationStateStats) => void;
+  onStateChange?: (stats: GridStateChangeStats) => void;
 };
 
 type RandomGridOptions = GridBaseOptions & {
@@ -65,7 +69,7 @@ class Grid {
   private readonly _canvas: HTMLCanvasElement;
   private readonly _ctx: CanvasRenderingContext2D;
   private readonly _simulation: Simulation;
-  private readonly _onStateChange?: (stats: SimulationStateStats) => void;
+  private readonly _onStateChange?: (stats: GridStateChangeStats) => void;
   private readonly _theme: CanvasTheme;
   private readonly _cellColors: readonly string[];
   private readonly _previewCellColors: readonly string[];
@@ -136,10 +140,10 @@ class Grid {
    * Called by Main on every animation frame that passes the FPS gate.
    */
   public processNextGeneration(): void {
-    this._simulation.tick();
+    const tickResult = this._simulation.tick();
     this._render();
     this._drawGrid();
-    this._emitStateChange();
+    this._emitStateChange(tickResult.changedCells);
   }
 
   public setRotation(deg: number): void {
@@ -195,6 +199,11 @@ class Grid {
   /** Snapshot current simulation state as a full grid. */
   public toGrid(): number[][] {
     return this._simulation.toGrid();
+  }
+
+  /** Snapshot current simulation state as a flat 0/1 buffer. */
+  public copyState(): Uint8Array {
+    return this._simulation.copyState();
   }
 
   /**
@@ -300,8 +309,11 @@ class Grid {
 
   // ── State ─────────────────────────────────────────────────────────────────
 
-  private _emitStateChange(): void {
-    this._onStateChange?.(this._simulation.getStateStats());
+  private _emitStateChange(changedCells: number | null = null): void {
+    this._onStateChange?.({
+      ...this._simulation.getStateStats(),
+      changedCells,
+    });
   }
 }
 

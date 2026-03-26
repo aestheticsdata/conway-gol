@@ -16,7 +16,6 @@ import { createButton } from "@ui/components/button/createButton";
 import { createSliderField } from "@ui/components/slider/createSlider";
 import { DEFAULT_BRUSH_SIZE, MAX_BRUSH_SIZE, MIN_BRUSH_SIZE } from "@ui/controls/drawing/constants";
 import { CONTROL_TEXTS } from "@ui/controls/drawing/texts";
-
 import { createTileSelectorButton } from "@views/html/tileSelector";
 
 import type { WorkspaceRoute } from "@app/routes";
@@ -155,6 +154,14 @@ function createIterationSection(): string {
         <span class="iteration-label"></span>
         <span class="iteration-counter"></span>
       </div>
+      <div class="iteration iteration--secondary">
+        <span class="stabilization-label"></span>
+        <span class="stabilization-counter"></span>
+      </div>
+      <div class="iteration iteration--secondary">
+        <span class="cycle-detected-label"></span>
+        <span class="cycle-detected-counter"></span>
+      </div>
     </div>
   `;
 }
@@ -173,9 +180,15 @@ function createTelemetrySection(): string {
         </div>
       </div>
       <canvas class="telemetry-chart alive-variation-chart"></canvas>
-      <div class="telemetry-chart-legend alive-variation-legend"></div>
+      <div class="telemetry-chart-legend alive-variation-legend">
+        <span class="telemetry-chart-legend-label alive-variation-legend-label"></span>
+        <span class="telemetry-chart-legend-value telemetry-chart-legend-value--neutral alive-variation-legend-value">0</span>
+      </div>
       <canvas class="telemetry-chart alive-count-chart"></canvas>
-      <div class="telemetry-chart-legend alive-count-legend"></div>
+      <div class="telemetry-chart-legend alive-count-legend">
+        <span class="telemetry-chart-legend-label alive-count-legend-label"></span>
+        <span class="telemetry-chart-legend-value telemetry-chart-legend-value--neutral alive-count-legend-value">0</span>
+      </div>
     </div>
   `;
 }

@@ -14,6 +14,8 @@ export const APP_TEXTS = {
   },
   playback: {
     iteration: "Iteration:",
+    stabilization: "Stable after:",
+    cycleDetected: "Cycle detected at:",
     aliveCells: "Alive cells:",
     deadCells: "Dead cells:",
     fps: "FPS:",

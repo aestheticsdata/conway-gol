@@ -26,9 +26,9 @@ A full-stack implementation of [Conway's Game of Life](https://en.wikipedia.org/
 - Random mode with 14 named presets (geometric, fractal, noise, and Conway-motif families), five generation controls (density, rotation, zoom, noise type, seed), a `Generate` action for a new variation, and a `Reset` button that restores all controls to their initial values
 - Zoo mode with 1,400+ catalog patterns
 - Drawing mode with save/load for custom patterns plus a `Restore` action that re-seeds the grid from the snapshot captured on the first `Play` press for the current drawing
-- Image import in drawing mode: upload any common image format, automatically converted to a cell pattern via grayscale + Floyd-Steinberg dithering, with a live threshold slider for post-import tuning
+- Image import in drawing mode: upload any common image format, automatically converted to a cell pattern via grayscale + Floyd-Steinberg dithering, with a live threshold slider for post-import tuning that is disabled while playback is running
 - Zoom view around the cursor
-- Left-side playback telemetry with iteration count, live/dead cell counts, a real-time alive-cell variation graph, and a real-time absolute alive-cell graph
+- Left-side playback telemetry with iteration count, fixed-state and cycle-detection counters, live/dead cell counts, a real-time alive-cell variation graph, and a real-time absolute alive-cell graph
 - Tokens-based visual system for colors, radius, spacing, form fields, telemetry, and canvas rendering
 - Custom-styled random-preset dropdown consistent with the app visual language
 - Reusable tile-style buttons used for workspace mode selection and random noise type selection
@@ -712,7 +712,7 @@ The slider (0–255) controls the `threshold` argument to `floydSteinberg`:
 - **128** (default): roughly half the pixels become ALIVE based on luminance
 - **high values** (close to 255): most pixels become ALIVE → dense grid
 
-The slider is disabled until the first image is loaded. Hovering over a disabled slider shows a tooltip via the shared `Tooltip` component.
+The slider is disabled until the first image is loaded. After an image has been imported, starting playback disables it again until playback is stopped. Hovering over a disabled slider before the first import shows a tooltip via the shared `Tooltip` component.
 
 ### Relevant files
 
@@ -1017,7 +1017,7 @@ A fully offline image-to-grid import feature was added to drawing mode. No serve
 | `front/src/lib/image/ImageSeeder.ts` | Pure processing library — format detection, grayscale, dithering |
 | `front/src/ui/controls/drawing/ImageImporter.ts` | UI component — file picker, formats label, threshold slider |
 
-**Threshold slider:** always visible but disabled until an image is imported. Re-running only `floydSteinberg()` on slider input (the grayscale buffer is kept in component state) avoids reloading the image. A tooltip appears on pointer-hover over the disabled slider.
+**Threshold slider:** always visible but disabled until an image is imported. Re-running only `floydSteinberg()` on slider input (the grayscale buffer is kept in component state) avoids reloading the image. Once playback starts in drawing mode, the slider is disabled again until playback stops so the imported threshold cannot be edited mid-simulation. A tooltip appears on pointer-hover over the disabled slider before the first import.
 
 **`@lib` alias** was added to both `vite.config.ts` and `tsconfig.json` so `ImageSeeder` can be imported outside the Grid layer without a relative path.
 
@@ -1112,9 +1112,15 @@ The left control column was reorganized into separated visual sections so that p
 
 - mode buttons
 - iteration counter
+- fixed-state and cycle-detection counters
 - a telemetry block with alive cells, dead cells, and a live variation graph
 - an FPS slider with inline numeric readout
 - the start / pause button
+
+The playback status block now distinguishes two different long-term outcomes:
+
+- `Stable after` is used only for fixed points, where one generation is exactly identical to the previous one and the grid will therefore remain unchanged forever.
+- `Cycle detected at` is used for repeating loops, where a previously seen full-grid state reappears after one or more different generations, covering oscillators such as blinkers as well as longer periods.
 
 The new `AliveVariationChart` control does not plot the total number of living cells. Instead, it plots the signed delta between two successive states:
 
@@ -1122,12 +1128,14 @@ The new `AliveVariationChart` control does not plot the total number of living c
 - points below the center line mean the alive-cell count decreased
 - the dotted horizontal midline is the zero-variation reference
 - the final marker turns green when the variation is positive and red when it is negative
+- the legend now shows the latest signed delta beside the chart title, using the same positive / negative / neutral color coding as the latest point
 
 The telemetry stack now also includes an `AliveCountChart` directly below the variation graph. Unlike the delta graph, it plots the absolute number of living cells over time:
 
 - the curve rises when the population grows and falls when it shrinks
 - the bottom axis is zero and the top of the chart tracks the current visible maximum
 - the last marker stays neutral because the chart encodes magnitude rather than signed change
+- the legend now shows the latest absolute alive-cell count beside the chart title
 
 The chart keeps the axes inside the canvas, including single-sided arrowheads at the top of the Y axis and the end of the X axis. The left panel width and numeric columns were also fixed so changing counters no longer causes horizontal layout jitter.
 

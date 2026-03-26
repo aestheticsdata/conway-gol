@@ -10,6 +10,10 @@ export type SimulationStateStats = {
   dead: number;
 };
 
+export type SimulationTickResult = {
+  changedCells: number;
+};
+
 /**
  * Pure Conway's Game of Life simulation engine.
  *
@@ -61,6 +65,10 @@ class Simulation {
       alive,
       dead: this._current.length - alive,
     };
+  }
+
+  public copyState(): Uint8Array {
+    return this._current.slice();
   }
 
   // ── Seeding ────────────────────────────────────────────────────────────────
@@ -118,13 +126,16 @@ class Simulation {
    *
    * After computing _next, the two buffers are swapped in O(1) — no copying.
    */
-  public tick(): void {
+  public tick(): SimulationTickResult {
+    let changedCells = 0;
+
     for (let row = 0; row < this.rows; row++) {
       for (let col = 0; col < this.cols; col++) {
         const n = this._countLivingNeighbours(row, col);
-        const current = this._current[row * this.cols + col];
+        const index = row * this.cols + col;
+        const current = this._current[index];
         // ALIVE=1 and DEAD=0, so we can directly sum neighbour values
-        this._next[row * this.cols + col] =
+        const next =
           current === CELL_STATE.ALIVE
             ? n === 2 || n === 3
               ? CELL_STATE.ALIVE
@@ -132,10 +143,17 @@ class Simulation {
             : n === 3
               ? CELL_STATE.ALIVE
               : CELL_STATE.DEAD;
+        this._next[index] = next;
+
+        if (next !== current) {
+          changedCells++;
+        }
       }
     }
     // O(1) swap — no memory allocation
     [this._current, this._next] = [this._next, this._current];
+
+    return { changedCells };
   }
 
   // ── Serialization ──────────────────────────────────────────────────────────

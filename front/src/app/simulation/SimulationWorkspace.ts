@@ -21,14 +21,19 @@ import SavePresetModal from "@ui/lib/SavePresetModal";
 import Tooltip from "@ui/lib/Tooltip";
 
 import type { WorkspaceRoute } from "@app/routes";
+import type { GridStateChangeStats } from "@grid/Grid";
 import type { RandomPresetId } from "@grid/randomPresets";
-import type { SimulationStateStats } from "@grid/Simulation";
 import type { RandomSeedParams } from "@grid/seeding/RandomPresetSeeder";
 
 type SimulationWorkspaceOptions = {
   root: HTMLElement;
   route: WorkspaceRoute;
   onRouteModeChange: (route: WorkspaceRoute) => void;
+};
+
+type SeenStateEntry = {
+  iteration: number;
+  state: Uint32Array;
 };
 
 export class SimulationWorkspace {
@@ -40,8 +45,12 @@ export class SimulationWorkspace {
   private readonly _drawingCanvas: HTMLCanvasElement;
   private readonly _drawingContext: CanvasRenderingContext2D;
   private readonly _iterationCounter: HTMLElement;
+  private readonly _stabilizationCounter: HTMLElement;
+  private readonly _cycleDetectedCounter: HTMLElement;
   private readonly _aliveCellsCounter: HTMLElement;
   private readonly _deadCellsCounter: HTMLElement;
+  private readonly _aliveVariationLegendValue: HTMLElement;
+  private readonly _aliveCountLegendValue: HTMLElement;
   private readonly _aliveVariationChart: AliveVariationChart;
   private readonly _aliveCountChart: AliveCountChart;
   private readonly _critterService = new CritterService();
@@ -66,6 +75,11 @@ export class SimulationWorkspace {
   private _isPlaying = false;
   private _grid: Grid | null = null;
   private _iterationCounterValue = 0;
+  private _stabilizationIterationValue: number | null = null;
+  private _cycleDetectedIterationValue: number | null = null;
+  private _legendLastAliveCount: number | null = null;
+  private readonly _seenStates = new Map<string, SeenStateEntry[]>();
+  private _previousPackedState: Uint32Array | null = null;
   private _selectedMode: Mode;
   private _zooSelector?: ZooSelector;
   private _fps = 12;
@@ -103,8 +117,12 @@ export class SimulationWorkspace {
     this._drawingContext = getRequiredContext2D(this._drawingCanvas);
 
     this._iterationCounter = queryRequired<HTMLElement>(".iteration-counter", this._root);
+    this._stabilizationCounter = queryRequired<HTMLElement>(".stabilization-counter", this._root);
+    this._cycleDetectedCounter = queryRequired<HTMLElement>(".cycle-detected-counter", this._root);
     this._aliveCellsCounter = queryRequired<HTMLElement>(".alive-cells-counter", this._root);
     this._deadCellsCounter = queryRequired<HTMLElement>(".dead-cells-counter", this._root);
+    this._aliveVariationLegendValue = queryRequired<HTMLElement>(".alive-variation-legend-value", this._root);
+    this._aliveCountLegendValue = queryRequired<HTMLElement>(".alive-count-legend-value", this._root);
     this._aliveVariationChart = new AliveVariationChart(
       queryRequired<HTMLCanvasElement>(".alive-variation-chart", this._root),
     );
@@ -150,7 +168,7 @@ export class SimulationWorkspace {
     this._setFPS();
     this._setPlaybackButtonState(false);
     this._updateDrawingRestoreButton();
-    this._resetIterationCounter();
+    this._resetSimulationPlaybackState();
 
     new ModeSelector(this._changeMode, this._root);
     document.addEventListener("pointerdown", this._handleDocumentPointerDown);
@@ -199,11 +217,15 @@ export class SimulationWorkspace {
     queryRequired<HTMLElement>('.tile-selector__text[data-mode="drawing"]', this._root).textContent =
       APP_TEXTS.modes.drawing;
     queryRequired<HTMLElement>(".iteration-label", this._root).textContent = `${APP_TEXTS.playback.iteration} `;
+    queryRequired<HTMLElement>(".stabilization-label", this._root).textContent = `${APP_TEXTS.playback.stabilization} `;
+    queryRequired<HTMLElement>(".cycle-detected-label", this._root).textContent =
+      `${APP_TEXTS.playback.cycleDetected} `;
     queryRequired<HTMLElement>(".alive-cells-label", this._root).textContent = `${APP_TEXTS.playback.aliveCells} `;
     queryRequired<HTMLElement>(".dead-cells-label", this._root).textContent = `${APP_TEXTS.playback.deadCells} `;
     queryRequired<HTMLElement>("#speed-label", this._root).textContent = APP_TEXTS.playback.fps;
-    queryRequired<HTMLElement>(".alive-variation-legend", this._root).textContent = APP_TEXTS.playback.aliveVariation;
-    queryRequired<HTMLElement>(".alive-count-legend", this._root).textContent = APP_TEXTS.playback.aliveCount;
+    queryRequired<HTMLElement>(".alive-variation-legend-label", this._root).textContent =
+      APP_TEXTS.playback.aliveVariation;
+    queryRequired<HTMLElement>(".alive-count-legend-label", this._root).textContent = APP_TEXTS.playback.aliveCount;
     queryRequired<HTMLButtonElement>(".drawing-save-action .save", this._root).textContent =
       CONTROL_TEXTS.drawing.saveButton;
     queryRequired<HTMLLabelElement>('label[for="custom-file-trigger"]', this._root).textContent =
@@ -287,9 +309,7 @@ export class SimulationWorkspace {
     if (this._selectedMode !== "random" || !this._grid) return;
     this._randomPresetVariation = false;
     this._randomAutoSeed = null;
-    this._resetIterationCounter();
-    this._aliveVariationChart.reset();
-    this._aliveCountChart.reset();
+    this._resetSimulationPlaybackState();
     this._grid.resetTransforms();
     this._grid.reseedRandomPreset(this._currentRandomPreset(), false, this._currentRandomParams());
   };
@@ -299,9 +319,7 @@ export class SimulationWorkspace {
     if (!this._randomControls.isAutoSeedEnabled()) {
       this._randomAutoSeed = null;
     }
-    this._resetIterationCounter();
-    this._aliveVariationChart.reset();
-    this._aliveCountChart.reset();
+    this._resetSimulationPlaybackState();
     this._grid.reseedRandomPreset(
       this._currentRandomPreset(),
       this._randomPresetVariation,
@@ -314,6 +332,7 @@ export class SimulationWorkspace {
       return;
     }
 
+    this._resetSimulationPlaybackState();
     this._grid.clearCanvas();
   };
 
@@ -333,15 +352,192 @@ export class SimulationWorkspace {
     this._iterationCounter.textContent = "0";
   }
 
-  private _updateCellStats = (stats: Pick<SimulationStateStats, "alive" | "dead">): void => {
+  private _resetStabilizationCounter(): void {
+    this._stabilizationIterationValue = null;
+    this._stabilizationCounter.textContent = "-";
+  }
+
+  private _resetCycleDetectedCounter(): void {
+    this._cycleDetectedIterationValue = null;
+    this._cycleDetectedCounter.textContent = "-";
+  }
+
+  private _resetStabilizationTracking(): void {
+    this._resetStabilizationCounter();
+    this._resetCycleDetectedCounter();
+    this._seenStates.clear();
+    this._previousPackedState = null;
+  }
+
+  private _resetTelemetryLegendValues(): void {
+    this._legendLastAliveCount = null;
+    this._setTelemetryLegendValue(this._aliveVariationLegendValue, "0", "neutral");
+    this._setTelemetryLegendValue(this._aliveCountLegendValue, "0", "neutral");
+  }
+
+  private _updateCellStats = (stats: Pick<GridStateChangeStats, "alive" | "dead">): void => {
     this._aliveCellsCounter.textContent = String(stats.alive);
     this._deadCellsCounter.textContent = String(stats.dead);
   };
 
-  private _handleStateChange = (stats: SimulationStateStats): void => {
+  private _updateTelemetryLegendValues(stats: GridStateChangeStats): void {
+    const previousAliveCount = this._legendLastAliveCount;
+    const aliveVariation =
+      stats.changedCells === null || previousAliveCount === null ? 0 : stats.alive - previousAliveCount;
+
+    this._legendLastAliveCount = stats.alive;
+
+    this._setTelemetryLegendValue(
+      this._aliveVariationLegendValue,
+      this._formatSignedValue(aliveVariation),
+      this._toneForValue(aliveVariation),
+    );
+    this._setTelemetryLegendValue(
+      this._aliveCountLegendValue,
+      String(stats.alive),
+      stats.alive > 0 ? "positive" : "neutral",
+    );
+  }
+
+  private _setTelemetryLegendValue(
+    element: HTMLElement,
+    value: string,
+    tone: "positive" | "negative" | "neutral",
+  ): void {
+    element.textContent = value;
+    element.classList.remove(
+      "telemetry-chart-legend-value--positive",
+      "telemetry-chart-legend-value--negative",
+      "telemetry-chart-legend-value--neutral",
+    );
+    element.classList.add(`telemetry-chart-legend-value--${tone}`);
+  }
+
+  private _formatSignedValue(value: number): string {
+    if (value > 0) {
+      return `+${value}`;
+    }
+    return String(value);
+  }
+
+  private _toneForValue(value: number): "positive" | "negative" | "neutral" {
+    if (value > 0) {
+      return "positive";
+    }
+    if (value < 0) {
+      return "negative";
+    }
+    return "neutral";
+  }
+
+  private _updateStabilizationCounter(stats: GridStateChangeStats): void {
+    const currentSnapshot = this._grid?.copyState();
+    if (!currentSnapshot) {
+      return;
+    }
+
+    const packedState = this._packState(currentSnapshot);
+
+    if (stats.changedCells === null) {
+      this._resetStabilizationTracking();
+      this._rememberState(this._iterationCounterValue, packedState);
+      this._previousPackedState = packedState;
+      return;
+    }
+
+    if (
+      this._stabilizationIterationValue === null &&
+      this._previousPackedState !== null &&
+      this._packedStatesEqual(this._previousPackedState, packedState)
+    ) {
+      this._stabilizationIterationValue = Math.max(0, this._iterationCounterValue - 1);
+      this._stabilizationCounter.textContent = String(this._stabilizationIterationValue);
+      this._previousPackedState = packedState;
+      return;
+    }
+
+    if (this._cycleDetectedIterationValue === null) {
+      const cycleDetectedAtIteration = this._findSeenStateIteration(packedState, this._iterationCounterValue - 1);
+      if (cycleDetectedAtIteration !== null) {
+        this._cycleDetectedIterationValue = cycleDetectedAtIteration;
+        this._cycleDetectedCounter.textContent = String(cycleDetectedAtIteration);
+        this._previousPackedState = packedState;
+        return;
+      }
+    }
+
+    this._rememberState(this._iterationCounterValue, packedState);
+    this._previousPackedState = packedState;
+  }
+
+  private _findSeenStateIteration(state: Uint32Array, maxIteration: number): number | null {
+    const bucket = this._seenStates.get(this._hashPackedState(state));
+    if (!bucket) {
+      return null;
+    }
+
+    for (const entry of bucket) {
+      if (entry.iteration <= maxIteration && this._packedStatesEqual(entry.state, state)) {
+        return entry.iteration;
+      }
+    }
+
+    return null;
+  }
+
+  private _rememberState(iteration: number, state: Uint32Array): void {
+    const hash = this._hashPackedState(state);
+    const bucket = this._seenStates.get(hash);
+    if (bucket) {
+      bucket.push({ iteration, state });
+      return;
+    }
+
+    this._seenStates.set(hash, [{ iteration, state }]);
+  }
+
+  private _packState(state: Uint8Array): Uint32Array {
+    const packed = new Uint32Array(Math.ceil(state.length / 32));
+    for (let index = 0; index < state.length; index++) {
+      if (state[index] === 0) {
+        continue;
+      }
+
+      packed[index >>> 5] |= 1 << (index & 31);
+    }
+    return packed;
+  }
+
+  private _hashPackedState(state: Uint32Array): string {
+    let hash = 2166136261;
+    for (let index = 0; index < state.length; index++) {
+      hash ^= state[index] >>> 0;
+      hash = Math.imul(hash, 16777619) >>> 0;
+    }
+
+    return hash.toString(16);
+  }
+
+  private _packedStatesEqual(left: Uint32Array, right: Uint32Array): boolean {
+    if (left.length !== right.length) {
+      return false;
+    }
+
+    for (let index = 0; index < left.length; index++) {
+      if (left[index] !== right[index]) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private _handleStateChange = (stats: GridStateChangeStats): void => {
     this._updateCellStats(stats);
+    this._updateTelemetryLegendValues(stats);
     this._aliveVariationChart.push(stats.alive);
     this._aliveCountChart.push(stats.alive);
+    this._updateStabilizationCounter(stats);
   };
 
   private _resetPlaybackControls(): void {
@@ -353,6 +549,8 @@ export class SimulationWorkspace {
 
   private _resetSimulationPlaybackState(): void {
     this._resetIterationCounter();
+    this._resetStabilizationTracking();
+    this._resetTelemetryLegendValues();
     this._aliveVariationChart.reset();
     this._aliveCountChart.reset();
   }
@@ -364,9 +562,7 @@ export class SimulationWorkspace {
 
     this._randomPresetVariation = false;
     this._refreshAutoSeed();
-    this._resetIterationCounter();
-    this._aliveVariationChart.reset();
-    this._aliveCountChart.reset();
+    this._resetSimulationPlaybackState();
     this._grid.reseedRandomPreset(this._currentRandomPreset(), false, this._currentRandomParams());
   };
 
@@ -377,9 +573,7 @@ export class SimulationWorkspace {
 
     this._randomPresetVariation = true;
     this._refreshAutoSeed();
-    this._resetIterationCounter();
-    this._aliveVariationChart.reset();
-    this._aliveCountChart.reset();
+    this._resetSimulationPlaybackState();
     this._grid.reseedRandomPreset(this._currentRandomPreset(), true, this._currentRandomParams());
   };
 
@@ -397,9 +591,7 @@ export class SimulationWorkspace {
       this._randomAutoSeed = null;
     }
 
-    this._resetIterationCounter();
-    this._aliveVariationChart.reset();
-    this._aliveCountChart.reset();
+    this._resetSimulationPlaybackState();
     this._grid.syncTransforms(this._randomControls.currentRotation(), this._randomControls.currentZoom());
     this._grid.reseedRandomPreset(this._currentRandomPreset(), true, this._currentRandomParams());
   };
@@ -449,18 +641,23 @@ export class SimulationWorkspace {
     this._pauseBtnLabel.textContent = isPlaying ? APP_TEXTS.playback.pause : APP_TEXTS.playback.start;
   }
 
+  private _setDrawingPlaybackState(isPlaying: boolean): void {
+    this._imageImporter?.setPlaybackActive(isPlaying);
+  }
+
   private _togglePause = (): void => {
     if (this._isPlaying) {
       this._stopPlayback();
       this._setPlaybackButtonState(false);
+      return;
     } else {
       this._captureDrawingRestoreSnapshot();
       this._setPlaybackButtonState(true);
       this._start();
       this._isPlaying = true;
+      this._setDrawingPlaybackState(true);
       return;
     }
-    this._isPlaying = false;
   };
 
   private _step = (_timestamp: number): void => {
@@ -494,6 +691,7 @@ export class SimulationWorkspace {
 
     this._stop();
     this._isPlaying = false;
+    this._setDrawingPlaybackState(false);
   }
 
   private _captureDrawingRestoreSnapshot(): void {
