@@ -347,7 +347,8 @@ export class SimulationWorkspace {
       return;
     }
 
-    this._clearDrawingRestoreSnapshot();
+    this._stopPlayback();
+    this._setPlaybackButtonState(false);
     this._resetSimulationPlaybackState();
     this._grid.clearCanvas();
   };
