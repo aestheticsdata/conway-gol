@@ -3,11 +3,10 @@ export function createLoginView(): string {
     <section class="auth-screen">
       <div class="auth-screen__grid"></div>
       <div class="auth-card">
-        <div class="auth-card__eyebrow">Portfolio Demo</div>
-        <h1 class="auth-card__title">Login to Conway</h1>
+        <div class="auth-card__eyebrow">Conway's Game of Life</div>
+        <h1 class="auth-card__title">Login</h1>
         <p class="auth-card__copy">
-          Fake auth for now. This route validates the client-side router,
-          the future connected mode, and the app shell separation.
+          Conway's Game of Life is a cellular automaton where simple rules govern the birth and death of cells on a grid, creating complex, evolving patterns from chaos.
         </p>
         <form class="auth-form">
           <label class="auth-field">
