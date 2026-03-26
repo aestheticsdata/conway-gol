@@ -3,7 +3,7 @@ export const CONTROL_TEXTS = {
     saveButton: "Save Drawing",
     clearCanvasButton: "Clear canvas",
     restoreButton: "Restore",
-    restoreDisabledHint: "Restore initial drawing after playing",
+    restoreDisabledHint: "Restore drawing after changes",
     savedPatternsLabel: "Saved patterns",
     brushSizeLabel: "Brush Size",
     brushShapeLabel: "Brush Shape",
@@ -15,7 +15,7 @@ export const CONTROL_TEXTS = {
     shapes: {
       square: "Square",
       cross: "Cross",
-      frame: "Hollow Square",
+      hollowSquare: "Hollow Square",
       circle: "Circle",
       hollowCircle: "Hollow Circle",
       diamond: "Diamond",

@@ -93,6 +93,7 @@ export class SimulationWorkspace {
   private _critterList?: string[];
   private _drawingToolBox?: DrawingToolBox;
   private _drawingInitialGridSnapshot: number[][] | null = null;
+  private _drawingInitialStateSnapshot: Uint8Array | null = null;
   private _zoomBox?: ZoomBox;
   private _userCustomSelector?: UserCustomSelector;
   private _imageImporter?: ImageImporter;
@@ -539,9 +540,12 @@ export class SimulationWorkspace {
 
   private _handleStateChange = (stats: GridStateChangeStats): void => {
     this._updateCellStats(stats);
-    this._updateTelemetryLegendValues(stats);
-    this._aliveVariationChart.push(stats.alive);
-    this._aliveCountChart.push(stats.alive);
+    this._syncDrawingRestoreButton();
+    if (this._cycleDetectedIterationValue === null) {
+      this._updateTelemetryLegendValues(stats);
+      this._aliveVariationChart.push(stats.alive);
+      this._aliveCountChart.push(stats.alive);
+    }
     this._updateStabilizationCounter(stats);
   };
 
@@ -706,22 +710,47 @@ export class SimulationWorkspace {
     }
 
     this._drawingInitialGridSnapshot = this._grid.toGrid();
-    this._updateDrawingRestoreButton();
+    this._drawingInitialStateSnapshot = this._grid.copyState();
+    this._updateDrawingRestoreButton(false);
   }
 
   private _clearDrawingRestoreSnapshot(): void {
     this._drawingInitialGridSnapshot = null;
+    this._drawingInitialStateSnapshot = null;
     this._updateDrawingRestoreButton();
   }
 
-  private _updateDrawingRestoreButton(): void {
-    const isDisabled = this._drawingInitialGridSnapshot === null;
+  private _syncDrawingRestoreButton(): void {
+    if (this._selectedMode !== "drawing" || !this._grid || !this._drawingInitialStateSnapshot) {
+      this._updateDrawingRestoreButton();
+      return;
+    }
+
+    this._updateDrawingRestoreButton(!this._statesEqual(this._grid.copyState(), this._drawingInitialStateSnapshot));
+  }
+
+  private _updateDrawingRestoreButton(hasChanges = false): void {
+    const isDisabled = this._drawingInitialStateSnapshot === null || !hasChanges;
     this._drawingRestoreButton.disabled = isDisabled;
     this._drawingRestoreTooltipTarget.hidden = !isDisabled;
 
     if (!isDisabled) {
       this._drawingRestoreTooltip.hide();
     }
+  }
+
+  private _statesEqual(left: Uint8Array, right: Uint8Array): boolean {
+    if (left.length !== right.length) {
+      return false;
+    }
+
+    for (let index = 0; index < left.length; index++) {
+      if (left[index] !== right[index]) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   private _handleRestoreTooltipPointerEnter = (event: PointerEvent): void => {

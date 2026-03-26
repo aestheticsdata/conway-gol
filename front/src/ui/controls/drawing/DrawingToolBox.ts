@@ -35,6 +35,11 @@ const BRUSH_SHAPE_OPTIONS: CustomSelectOption[] = [
     html: shapeOptionHtml(BRUSH_SHAPE_SQUARE_ICON, CONTROL_TEXTS.drawing.shapes.square),
   },
   {
+    value: "hollow-square",
+    label: CONTROL_TEXTS.drawing.shapes.hollowSquare,
+    html: shapeOptionHtml(BRUSH_SHAPE_FRAME_ICON, CONTROL_TEXTS.drawing.shapes.hollowSquare),
+  },
+  {
     value: "cross",
     label: CONTROL_TEXTS.drawing.shapes.cross,
     html: shapeOptionHtml(BRUSH_SHAPE_CROSS_ICON, CONTROL_TEXTS.drawing.shapes.cross),
@@ -58,11 +63,6 @@ const BRUSH_SHAPE_OPTIONS: CustomSelectOption[] = [
     value: "hollow-diamond",
     label: CONTROL_TEXTS.drawing.shapes.hollowDiamond,
     html: shapeOptionHtml(BRUSH_SHAPE_HOLLOW_DIAMOND_ICON, CONTROL_TEXTS.drawing.shapes.hollowDiamond),
-  },
-  {
-    value: "frame",
-    label: CONTROL_TEXTS.drawing.shapes.frame,
-    html: shapeOptionHtml(BRUSH_SHAPE_FRAME_ICON, CONTROL_TEXTS.drawing.shapes.frame),
   },
   {
     value: "hline",
