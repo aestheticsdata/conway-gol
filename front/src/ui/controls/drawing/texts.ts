@@ -5,6 +5,9 @@ export const CONTROL_TEXTS = {
     restoreButton: "Restore",
     restoreDisabledHint: "Restore drawing after changes",
     savedPatternsLabel: "Saved patterns",
+    cursorCoordinatesLabel: "Cursor coordinates",
+    cursorXAxisLabel: "X",
+    cursorYAxisLabel: "Y",
     brushSizeLabel: "Brush Size",
     brushShapeLabel: "Brush Shape",
     tools: {

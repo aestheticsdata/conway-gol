@@ -82,7 +82,7 @@ function matchesGenericShape(
   switch (shape) {
     case "cross":
       return rowOffset === 0 || colOffset === 0;
-    case "frame":
+    case "hollow-square":
       return Math.abs(rowOffset) === radius || Math.abs(colOffset) === radius;
     case "diamond":
       return Math.abs(rowOffset) + Math.abs(colOffset) <= radius;

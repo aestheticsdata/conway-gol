@@ -20,6 +20,7 @@ export type CanvasTheme = {
   previewAliveCellColor: string;
   previewEraseCellColor: string;
   zoomHighlightStrokeColor: string;
+  centerGuideColor: string;
 };
 
 export const DEFAULT_CANVAS_THEME: CanvasTheme = {
@@ -33,6 +34,7 @@ export const DEFAULT_CANVAS_THEME: CanvasTheme = {
   previewAliveCellColor: "rgba(37, 219, 255, 0.84)",
   previewEraseCellColor: "rgba(243, 177, 101, 0.78)",
   zoomHighlightStrokeColor: "rgba(37, 219, 255, 0.96)",
+  centerGuideColor: "rgb(204, 204, 204)",
 };
 
 function readCssColorVariable(styles: CSSStyleDeclaration, variableName: string, fallback: string): string {
@@ -77,6 +79,11 @@ export function getCanvasTheme(): CanvasTheme {
       "--canvas-zoom-highlight-stroke-color",
       DEFAULT_CANVAS_THEME.zoomHighlightStrokeColor,
     ),
+    centerGuideColor: readCssColorVariable(
+      styles,
+      "--canvas-center-guide-color",
+      DEFAULT_CANVAS_THEME.centerGuideColor,
+    ),
   };
 }
 
@@ -85,12 +92,7 @@ export function getCanvasCellColors(theme: CanvasTheme): readonly string[] {
 }
 
 export function getZoomCanvasCellColors(theme: CanvasTheme): readonly string[] {
-  return [
-    theme.deadCellColor,
-    theme.aliveCellColor,
-    theme.zoomBoundaryCellColor,
-    theme.zoomBoundaryCellColor,
-  ] as const;
+  return [theme.deadCellColor, theme.aliveCellColor, theme.zoomBoundaryCellColor, theme.zoomBoundaryCellColor] as const;
 }
 
 export function getCanvasPreviewCellColors(theme: CanvasTheme): readonly string[] {
@@ -110,6 +112,8 @@ export const CELL_SIZE = 5;
 export const GRID_SIZE = toPositiveOdd(GRID.SIZE);
 export const GRID_COLS = GRID_SIZE;
 export const GRID_ROWS = GRID_SIZE;
+export const GRID_CENTER_COL = Math.floor(GRID_COLS / 2);
+export const GRID_CENTER_ROW = Math.floor(GRID_ROWS / 2);
 
 /** Grid size in pixels, derived from cell count and CELL_SIZE. */
 export const GRID_PX_WIDTH = GRID_COLS * CELL_SIZE;

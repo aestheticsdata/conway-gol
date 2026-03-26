@@ -12,6 +12,11 @@ type GridPointerPosition = {
   yPos: number;
 };
 
+type DrawingPointerCell = {
+  x: number;
+  y: number;
+};
+
 export type GridDrawingHandlerDeps = {
   cursor: HTMLElement;
   drawingCanvas: HTMLCanvasElement;
@@ -26,7 +31,13 @@ export type GridDrawingHandlerDeps = {
   renderCell: (row: number, col: number) => void;
   emitStateChange: () => void;
   getPreviewCellColor: (state: number) => string;
+  centerGuideColor: string;
+  centerRow: number;
+  centerCol: number;
+  onPointerCellChange?: (position: DrawingPointerCell | null) => void;
 };
+
+const CENTER_GUIDE_TOLERANCE = 0.5 + Number.EPSILON;
 
 /**
  * Handles all drawing-mode interactions: mouse events, cursor visibility,
@@ -45,6 +56,10 @@ class GridDrawingHandler {
   private readonly _renderCell: (row: number, col: number) => void;
   private readonly _emitStateChange: () => void;
   private readonly _getPreviewCellColor: (state: number) => string;
+  private readonly _centerGuideColor: string;
+  private readonly _centerRow: number;
+  private readonly _centerCol: number;
+  private readonly _onPointerCellChange?: (position: DrawingPointerCell | null) => void;
   private readonly _pencilCursor: HTMLElement | null;
   private readonly _eraserCursor: HTMLElement | null;
   private readonly _handCursor: HTMLElement | null;
@@ -55,6 +70,7 @@ class GridDrawingHandler {
   private _hoverPointer: GridPointerPosition | null = null;
   private _dragPointer: GridPointerPosition | null = null;
   private _lastPaintPointer: GridPointerPosition | null = null;
+  private _lastReportedPointer: DrawingPointerCell | null = null;
   private _isDown = false;
   private _isPlaybackActive = false;
 
@@ -72,6 +88,10 @@ class GridDrawingHandler {
     this._renderCell = deps.renderCell;
     this._emitStateChange = deps.emitStateChange;
     this._getPreviewCellColor = deps.getPreviewCellColor;
+    this._centerGuideColor = deps.centerGuideColor;
+    this._centerRow = deps.centerRow;
+    this._centerCol = deps.centerCol;
+    this._onPointerCellChange = deps.onPointerCellChange;
     this._pencilCursor = this._cursor.querySelector<HTMLElement>(".cursor.pencil");
     this._eraserCursor = this._cursor.querySelector<HTMLElement>(".cursor.eraser");
     this._handCursor = this._cursor.querySelector<HTMLElement>(".cursor.hand");
@@ -116,6 +136,7 @@ class GridDrawingHandler {
     this._drawingCanvas.removeEventListener("mousedown", this._onMouseDown);
     window.removeEventListener("mouseup", this._onMouseUp);
     this._hoverPointer = null;
+    this._notifyPointerCellChange(null);
     this._clearOverlay();
   }
 
@@ -132,6 +153,7 @@ class GridDrawingHandler {
     this._hoverPointer = null;
     this._dragPointer = null;
     this._lastPaintPointer = null;
+    this._notifyPointerCellChange(null);
     this._clearOverlay();
   };
 
@@ -142,11 +164,13 @@ class GridDrawingHandler {
     const pointer = this._getPointerPosition(e.offsetX, e.offsetY);
     if (!pointer) {
       this._hoverPointer = null;
+      this._notifyPointerCellChange(null);
       this._clearOverlay();
       return;
     }
 
     this._hoverPointer = pointer;
+    this._notifyPointerCellChange(pointer);
     if (this._isDown) {
       if (this._drawingMode === "hand") {
         this._translateAtPointer(pointer);
@@ -179,6 +203,7 @@ class GridDrawingHandler {
     }
 
     this._hoverPointer = pointer;
+    this._notifyPointerCellChange(pointer);
     if (this._drawingMode === "hand") {
       this._dragPointer = pointer;
     } else {
@@ -346,9 +371,16 @@ class GridDrawingHandler {
   }
 
   private _forEachShapeCell(anchorRow: number, anchorCol: number, cb: (row: number, col: number) => void): void {
+    const seen = new Set<string>();
+
     for (const { rowOffset, colOffset } of getBrushOffsets(this._brushShape, this._brushSize)) {
       const row = Math.max(0, Math.min(GRID_ROWS - 1, anchorRow + rowOffset));
       const col = Math.max(0, Math.min(GRID_COLS - 1, anchorCol + colOffset));
+      const key = `${row}:${col}`;
+      if (seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
       cb(row, col);
     }
   }
@@ -356,14 +388,22 @@ class GridDrawingHandler {
   private _renderHoverPreview(): void {
     this._clearOverlay();
 
-    if (!this._hoverPointer || this._cursor.style.display === "none" || this._drawingMode === "hand") {
+    if (!this._hoverPointer || this._cursor.style.display === "none") {
       return;
     }
 
-    const hoverState = this._drawingMode === "pencil" ? CELL_STATE.ALIVE : CELL_STATE.DEAD;
-    this._forEachShapeCell(this._hoverPointer.yPos, this._hoverPointer.xPos, (row, col) => {
-      this._renderCellOnOverlay(hoverState, row, col);
-    });
+    if (this._drawingMode !== "hand") {
+      const hoverState = this._drawingMode === "pencil" ? CELL_STATE.ALIVE : CELL_STATE.DEAD;
+      this._forEachShapeCell(this._hoverPointer.yPos, this._hoverPointer.xPos, (row, col) => {
+        this._renderCellOnOverlay(hoverState, row, col);
+      });
+    }
+
+    const shouldShowGuides = this._isBrushCenteredOnGrid(this._hoverPointer);
+
+    if (shouldShowGuides) {
+      this._renderCenterGuides();
+    }
   }
 
   private _clearOverlay(): void {
@@ -384,6 +424,34 @@ class GridDrawingHandler {
     return Math.max(MIN_BRUSH_SIZE, Math.min(MAX_BRUSH_SIZE, Math.round(size)));
   }
 
+  private _notifyPointerCellChange(pointer: GridPointerPosition | null): void {
+    const nextPointer = this._toDrawablePointer(pointer);
+    if (
+      this._lastReportedPointer?.x === nextPointer?.x &&
+      this._lastReportedPointer?.y === nextPointer?.y
+    ) {
+      return;
+    }
+
+    this._lastReportedPointer = nextPointer;
+    this._onPointerCellChange?.(nextPointer);
+  }
+
+  private _toDrawablePointer(pointer: GridPointerPosition | null): DrawingPointerCell | null {
+    if (!pointer) {
+      return null;
+    }
+
+    if (pointer.xPos < 0 || pointer.yPos < 0 || pointer.xPos >= GRID_COLS || pointer.yPos >= GRID_ROWS) {
+      return null;
+    }
+
+    return {
+      x: pointer.xPos,
+      y: pointer.yPos,
+    };
+  }
+
   private _renderCellOnOverlay(state: number, row: number, col: number): void {
     const x = col * CELL_SIZE + 1;
     const y = row * CELL_SIZE + 1;
@@ -391,6 +459,59 @@ class GridDrawingHandler {
     this._drawingContext.clearRect(x, y, size, size);
     this._drawingContext.fillStyle = this._getPreviewCellColor(state);
     this._drawingContext.fillRect(x, y, size, size);
+  }
+
+  private _isBrushCenteredOnGrid(pointer: GridPointerPosition): boolean {
+    if (this._drawingMode === "hand") {
+      return false;
+    }
+
+    const centroid = this._getShapeCentroid(pointer.yPos, pointer.xPos);
+    if (!centroid) {
+      return false;
+    }
+
+    return this._isNearGridCenter(centroid.row, centroid.col);
+  }
+
+  private _getShapeCentroid(anchorRow: number, anchorCol: number): { row: number; col: number } | null {
+    let rowTotal = 0;
+    let colTotal = 0;
+    let count = 0;
+
+    this._forEachShapeCell(anchorRow, anchorCol, (row, col) => {
+      rowTotal += row;
+      colTotal += col;
+      count++;
+    });
+
+    if (count === 0) {
+      return null;
+    }
+
+    return {
+      row: rowTotal / count,
+      col: colTotal / count,
+    };
+  }
+
+  private _isNearGridCenter(row: number, col: number): boolean {
+    return (
+      Math.abs(row - this._centerRow) <= CENTER_GUIDE_TOLERANCE &&
+      Math.abs(col - this._centerCol) <= CENTER_GUIDE_TOLERANCE
+    );
+  }
+
+  private _renderCenterGuides(): void {
+    const x = this._centerCol * CELL_SIZE + 1;
+    const y = this._centerRow * CELL_SIZE + 1;
+
+    this._drawingContext.save();
+    this._drawingContext.globalAlpha = 0.5;
+    this._drawingContext.fillStyle = this._centerGuideColor;
+    this._drawingContext.fillRect(1, y, this._drawingCanvas.width - 2, CELL_SIZE);
+    this._drawingContext.fillRect(x, 1, CELL_SIZE, this._drawingCanvas.height - 2);
+    this._drawingContext.restore();
   }
 }
 

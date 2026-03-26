@@ -28,7 +28,9 @@ function shapeOptionHtml(icon: string, label: string): string {
   return `<span class="custom-select__option-content"><span class="custom-select__option-icon" aria-hidden="true">${icon}</span><span class="custom-select__option-label">${label}</span></span>`;
 }
 
-const BRUSH_SHAPE_OPTIONS: CustomSelectOption[] = [
+type BrushShapeOption = Omit<CustomSelectOption, "value"> & { value: BrushShape };
+
+const BRUSH_SHAPE_OPTIONS: BrushShapeOption[] = [
   {
     value: "square",
     label: CONTROL_TEXTS.drawing.shapes.square,
@@ -81,6 +83,10 @@ const BRUSH_SHAPE_OPTIONS: CustomSelectOption[] = [
   },
 ];
 
+function isBrushShape(value: string): value is BrushShape {
+  return BRUSH_SHAPE_OPTIONS.some((option) => option.value === value);
+}
+
 class DrawingToolBox {
   public readonly toolboxDOM: HTMLElement;
   private _selectedMode: DrawingMode = "pencil";
@@ -104,7 +110,13 @@ class DrawingToolBox {
     };
     this._brushShapeSelect = new CustomSelect(
       queryRequired<HTMLElement>(".drawing-brush-shape-select", this.toolboxDOM),
-      { onChange: (value) => this._onShapeChange(value as BrushShape) },
+      {
+        onChange: (value) => {
+          if (isBrushShape(value)) {
+            this._onShapeChange(value);
+          }
+        },
+      },
     );
     this._brushShapeSelect.setOptions(BRUSH_SHAPE_OPTIONS, DEFAULT_BRUSH_SHAPE);
     this._brushSizeLabel = queryRequired<HTMLElement>("#drawing-brush-size-label", this.toolboxDOM);

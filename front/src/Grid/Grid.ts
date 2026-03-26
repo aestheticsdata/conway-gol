@@ -2,6 +2,8 @@ import Data from "@data/Data";
 import { drawGrid } from "@helpers/canvas";
 import {
   CELL_SIZE,
+  GRID_CENTER_COL,
+  GRID_CENTER_ROW,
   GRID_COLS,
   GRID_ROWS,
   getCanvasCellColors,
@@ -24,6 +26,11 @@ import type ZoomBox from "./zoom/ZoomBox";
 
 export type GridStateChangeStats = SimulationStateStats & {
   changedCells: number | null;
+};
+
+export type DrawingCursorPosition = {
+  x: number;
+  y: number;
 };
 
 type GridBaseOptions = {
@@ -52,6 +59,7 @@ type DrawingGridOptions = GridBaseOptions & {
   drawingToolbox: DrawingToolBox;
   userCustomSelector: UserCustomSelector;
   zoombox: ZoomBox;
+  onPointerCellChange?: (position: DrawingCursorPosition | null) => void;
 };
 
 type GridOptions = RandomGridOptions | ZooGridOptions | DrawingGridOptions;
@@ -112,6 +120,10 @@ class Grid {
           renderCell: (row, col) => this._renderCell(row, col),
           emitStateChange: () => this._emitStateChange(),
           getPreviewCellColor: (state) => this._previewCellColors[state],
+          centerGuideColor: this._theme.centerGuideColor,
+          centerRow: GRID_CENTER_ROW,
+          centerCol: GRID_CENTER_COL,
+          onPointerCellChange: options.onPointerCellChange,
         });
         this._drawingHandler = handler;
         options.drawingToolbox.register((mode) => handler.setDrawingMode(mode));

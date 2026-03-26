@@ -21,7 +21,7 @@ import SavePresetModal from "@ui/lib/SavePresetModal";
 import Tooltip from "@ui/lib/Tooltip";
 
 import type { WorkspaceRoute } from "@app/routes";
-import type { GridStateChangeStats } from "@grid/Grid";
+import type { DrawingCursorPosition, GridStateChangeStats } from "@grid/Grid";
 import type { RandomPresetId } from "@grid/randomPresets";
 import type { RandomSeedParams } from "@grid/seeding/RandomPresetSeeder";
 
@@ -62,6 +62,8 @@ export class SimulationWorkspace {
   private readonly _drawingRestoreButton: HTMLButtonElement;
   private readonly _drawingRestoreTooltipTarget: HTMLElement;
   private readonly _drawingRestoreTooltip: Tooltip;
+  private readonly _drawingCursorXValue: HTMLElement;
+  private readonly _drawingCursorYValue: HTMLElement;
   private readonly _speedSlider: HTMLInputElement;
   private readonly _speedValue: HTMLElement;
   private readonly _commentsDOMSelector: HTMLElement;
@@ -134,6 +136,8 @@ export class SimulationWorkspace {
     this._drawingRestoreButton = queryRequired<HTMLButtonElement>(".drawing-restore", this._root);
     this._drawingRestoreTooltipTarget = queryRequired<HTMLElement>(".drawing-restore-tooltip-target", this._root);
     this._drawingRestoreTooltip = new Tooltip();
+    this._drawingCursorXValue = queryRequired<HTMLElement>(".drawing-cursor-x-value", this._root);
+    this._drawingCursorYValue = queryRequired<HTMLElement>(".drawing-cursor-y-value", this._root);
     this._speedSlider = queryRequired<HTMLInputElement>("#speed-slider", this._root);
     this._speedValue = queryRequired<HTMLElement>(".speed-value", this._root);
     this._commentsDOMSelector = queryRequired<HTMLElement>(".critter-comments", this._root);
@@ -264,6 +268,10 @@ export class SimulationWorkspace {
     this._zooSelector?.handleDocumentKeyDown(event);
     this._userCustomSelector?.handleDocumentKeyDown(event);
     this._drawingToolBox?.handleDocumentKeyDown(event);
+  };
+
+  private _handleDrawingPointerCellChange = (position: DrawingCursorPosition | null): void => {
+    this._updateDrawingCursorCoordinates(position);
   };
 
   private _currentRandomParams(): RandomSeedParams {
@@ -780,6 +788,11 @@ export class SimulationWorkspace {
     element.style.display = visible ? "block" : "none";
   }
 
+  private _updateDrawingCursorCoordinates(position: DrawingCursorPosition | null): void {
+    this._drawingCursorXValue.textContent = position ? String(position.x) : "--";
+    this._drawingCursorYValue.textContent = position ? String(position.y) : "--";
+  }
+
   private async _loadCritterList(): Promise<string[] | undefined> {
     if (this._critterList) {
       return this._critterList;
@@ -801,6 +814,7 @@ export class SimulationWorkspace {
 
     this._grid?.destroyListener();
     this._clearDrawingRestoreSnapshot();
+    this._updateDrawingCursorCoordinates(null);
     this._updateCellStats({
       alive: 0,
       dead: GRID_COLS * GRID_ROWS,
@@ -894,6 +908,7 @@ export class SimulationWorkspace {
           onStateChange: this._handleStateChange,
           userCustomSelector: this._userCustomSelector,
           zoombox: this._zoomBox,
+          onPointerCellChange: this._handleDrawingPointerCellChange,
           onLoad: (comments) => {
             this._renderComments(comments);
           },

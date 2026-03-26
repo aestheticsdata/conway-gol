@@ -485,6 +485,24 @@ function createDrawingToolbox(): string {
   `;
 }
 
+function createDrawingCursorCoordinates(): string {
+  return `
+    <div class="drawing-cursor-coordinates" aria-label="${CONTROL_TEXTS.drawing.cursorCoordinatesLabel}">
+      <div class="drawing-cursor-coordinates__heading">${CONTROL_TEXTS.drawing.cursorCoordinatesLabel}</div>
+      <div class="drawing-cursor-coordinates__values">
+        <div class="drawing-cursor-coordinate">
+          <span class="drawing-cursor-coordinate__label">${CONTROL_TEXTS.drawing.cursorXAxisLabel}</span>
+          <span class="drawing-cursor-coordinate__value drawing-cursor-x-value">--</span>
+        </div>
+        <div class="drawing-cursor-coordinate">
+          <span class="drawing-cursor-coordinate__label">${CONTROL_TEXTS.drawing.cursorYAxisLabel}</span>
+          <span class="drawing-cursor-coordinate__value drawing-cursor-y-value">--</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 function createCustomCursor(): string {
   return `
     <div class="custom-cursor" aria-hidden="true" style="display: none">
@@ -556,6 +574,7 @@ function createWorkspaceInspector(): string {
         <div class="zoombox-container"></div>
         ${createDrawingClearAction()}
         ${createDrawingToolbox()}
+        ${createDrawingCursorCoordinates()}
       </div>
       ${createCustomCursor()}
     </aside>
