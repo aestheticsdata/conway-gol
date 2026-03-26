@@ -25,7 +25,7 @@ A full-stack implementation of [Conway's Game of Life](https://en.wikipedia.org/
 - Login screen used as a fake auth entry point for the future connected-user flow
 - Random mode with 14 named presets (geometric, fractal, noise, and Conway-motif families), five generation controls (density, rotation, zoom, noise type, seed), a `Generate` action for a new variation, and a `Reset` button that restores all controls to their initial values
 - Zoo mode with 1,400+ catalog patterns
-- Drawing mode with save/load for custom patterns
+- Drawing mode with save/load for custom patterns plus a `Restore` action that re-seeds the grid from the snapshot captured on the first `Play` press for the current drawing
 - Image import in drawing mode: upload any common image format, automatically converted to a cell pattern via grayscale + Floyd-Steinberg dithering, with a live threshold slider for post-import tuning
 - Zoom view around the cursor
 - Left-side playback telemetry with iteration count, live/dead cell counts, a real-time alive-cell variation graph, and a real-time absolute alive-cell graph
@@ -407,6 +407,7 @@ This keeps Conway logic out of the renderer, DOM event handling out of `Simulati
 - the shell DOM for left pane, canvas area, and right pane
 - mode-specific UI visibility
 - telemetry counters and charts
+- drawing-mode restore snapshot lifecycle: the first `Play` captures the current grid, `Restore` re-seeds from that saved state, and loading/importing/mode changes clear the snapshot
 - random preset controls and the custom dropdown, including rotation, zoom, and reset
 - reusable tile-button groups for route mode selection and random noise type selection
 - route-to-mode synchronization between `/simulation`, `/zoo`, and `/drawing`
@@ -868,6 +869,18 @@ Catalog patterns are stored as JSON with the `.hxf` extension:
 Custom patterns are submitted in the same JSON shape through `POST /usercustom/:filename`, but are persisted in the database rather than the filesystem.
 
 ## Refactoring History
+
+### Phase 16 - Drawing-mode Restore snapshot (2026-03)
+
+Drawing mode gained a `Restore` button next to `Clear canvas`.
+
+Unlike a generic reset, `Restore` does not blank the grid or regenerate a pattern. Instead, `SimulationWorkspace` stores a full-grid `number[][]` snapshot the first time playback starts for the current drawing session.
+
+- The button stays disabled until that first `Play` click has captured a snapshot.
+- `Restore` stops playback, resets the iteration counter and telemetry charts, and re-seeds `Grid` from the stored snapshot.
+- Loading a different custom drawing, importing an image, or leaving/re-entering drawing mode clears the stored snapshot so stale state is never restored.
+
+**Files involved:** `front/src/app/simulation/SimulationWorkspace.ts`, `front/src/app/views/html/workspaceView.ts`, `front/src/ui/controls/drawing/texts.ts`
 
 ### Phase 14 - Interference and marbling noise types (2026-03)
 

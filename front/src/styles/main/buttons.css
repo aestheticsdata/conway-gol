@@ -40,7 +40,7 @@
 :where(.ui-button--compact) {
   height: 36px;
   margin-top: 0;
-  padding: 0 16px;
+  padding: 0 12px;
   line-height: 1;
 }
 
@@ -108,4 +108,17 @@
 
 :where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)):active::after {
   opacity: 0.08;
+}
+
+:where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)):disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+  color: rgba(196, 210, 228, 0.62);
+  border-color: rgba(117, 161, 205, 0.18);
+  box-shadow: none;
+}
+
+:where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)):disabled::before,
+:where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)):disabled::after {
+  opacity: 0;
 }

@@ -5,6 +5,7 @@ type UiButtonIcon = "pause" | "play";
 export type UiButtonOptions = {
   ariaLabel?: string;
   className?: string;
+  disabled?: boolean;
   icon?: UiButtonIcon;
   label?: string;
   size?: UiButtonSize;
@@ -17,7 +18,8 @@ function escapeHtml(value: string): string {
 }
 
 export function createButton(options: UiButtonOptions): string {
-  const { ariaLabel, className = "", icon, label = "", size = "compact", title, type = "button" } = options;
+  const { ariaLabel, className = "", disabled = false, icon, label = "", size = "compact", title, type = "button" } =
+    options;
 
   const classes = ["ui-button", `ui-button--${size}`, icon ? "ui-button--with-icon" : "", className]
     .filter(Boolean)
@@ -25,10 +27,11 @@ export function createButton(options: UiButtonOptions): string {
   const titleAttribute = title ? ` title="${escapeHtml(title)}"` : "";
   const ariaLabelAttribute = ariaLabel ? ` aria-label="${escapeHtml(ariaLabel)}"` : "";
   const dataIconAttribute = icon ? ` data-icon="${icon}"` : "";
+  const disabledAttribute = disabled ? " disabled" : "";
   const buttonLabel = escapeHtml(label);
   const content = icon
     ? `<span class="ui-button__icon" aria-hidden="true"></span><span class="ui-button__label">${buttonLabel}</span>`
     : buttonLabel;
 
-  return `<button type="${type}" class="${classes}"${titleAttribute}${ariaLabelAttribute}${dataIconAttribute}>${content}</button>`;
+  return `<button type="${type}" class="${classes}"${titleAttribute}${ariaLabelAttribute}${dataIconAttribute}${disabledAttribute}>${content}</button>`;
 }

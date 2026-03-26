@@ -18,6 +18,7 @@ import ZooSelector from "@ui/controls/simulation/ZooSelector";
 import AliveCountChart from "@ui/controls/telemetry/AliveCountChart";
 import AliveVariationChart from "@ui/controls/telemetry/AliveVariationChart";
 import SavePresetModal from "@ui/lib/SavePresetModal";
+import Tooltip from "@ui/lib/Tooltip";
 
 import type { WorkspaceRoute } from "@app/routes";
 import type { RandomPresetId } from "@grid/randomPresets";
@@ -49,6 +50,9 @@ export class SimulationWorkspace {
   private readonly _pauseBtn: HTMLButtonElement;
   private readonly _pauseBtnLabel: HTMLElement;
   private readonly _drawingClearButton: HTMLButtonElement;
+  private readonly _drawingRestoreButton: HTMLButtonElement;
+  private readonly _drawingRestoreTooltipTarget: HTMLElement;
+  private readonly _drawingRestoreTooltip: Tooltip;
   private readonly _speedSlider: HTMLInputElement;
   private readonly _speedValue: HTMLElement;
   private readonly _commentsDOMSelector: HTMLElement;
@@ -74,6 +78,7 @@ export class SimulationWorkspace {
   private _randomAutoSeed: number | null = null;
   private _critterList?: string[];
   private _drawingToolBox?: DrawingToolBox;
+  private _drawingInitialGridSnapshot: number[][] | null = null;
   private _zoomBox?: ZoomBox;
   private _userCustomSelector?: UserCustomSelector;
   private _imageImporter?: ImageImporter;
@@ -107,6 +112,9 @@ export class SimulationWorkspace {
     this._pauseBtn = queryRequired<HTMLButtonElement>("button.pause", this._root);
     this._pauseBtnLabel = queryRequired<HTMLElement>(".ui-button__label", this._pauseBtn);
     this._drawingClearButton = queryRequired<HTMLButtonElement>(".drawing-clear", this._root);
+    this._drawingRestoreButton = queryRequired<HTMLButtonElement>(".drawing-restore", this._root);
+    this._drawingRestoreTooltipTarget = queryRequired<HTMLElement>(".drawing-restore-tooltip-target", this._root);
+    this._drawingRestoreTooltip = new Tooltip();
     this._speedSlider = queryRequired<HTMLInputElement>("#speed-slider", this._root);
     this._speedValue = queryRequired<HTMLElement>(".speed-value", this._root);
     this._commentsDOMSelector = queryRequired<HTMLElement>(".critter-comments", this._root);
@@ -134,8 +142,14 @@ export class SimulationWorkspace {
     this._applyStaticTexts();
     this._pauseBtn.addEventListener("click", this._togglePause);
     this._drawingClearButton.addEventListener("click", this._onClearCanvas);
+    this._drawingRestoreButton.addEventListener("click", this._onRestoreDrawing);
+    this._drawingRestoreTooltipTarget.addEventListener("pointerenter", this._handleRestoreTooltipPointerEnter);
+    this._drawingRestoreTooltipTarget.addEventListener("pointermove", this._handleRestoreTooltipPointerMove);
+    this._drawingRestoreTooltipTarget.addEventListener("pointerleave", this._hideRestoreTooltip);
+    this._drawingRestoreTooltipTarget.addEventListener("pointercancel", this._hideRestoreTooltip);
     this._setFPS();
     this._setPlaybackButtonState(false);
+    this._updateDrawingRestoreButton();
     this._resetIterationCounter();
 
     new ModeSelector(this._changeMode, this._root);
@@ -161,6 +175,14 @@ export class SimulationWorkspace {
     this._drawingToolBox?.destroy();
     this._savePresetModal.destroy();
     this._imageImporter?.destroy();
+    this._drawingRestoreTooltip.destroy();
+    this._pauseBtn.removeEventListener("click", this._togglePause);
+    this._drawingClearButton.removeEventListener("click", this._onClearCanvas);
+    this._drawingRestoreButton.removeEventListener("click", this._onRestoreDrawing);
+    this._drawingRestoreTooltipTarget.removeEventListener("pointerenter", this._handleRestoreTooltipPointerEnter);
+    this._drawingRestoreTooltipTarget.removeEventListener("pointermove", this._handleRestoreTooltipPointerMove);
+    this._drawingRestoreTooltipTarget.removeEventListener("pointerleave", this._hideRestoreTooltip);
+    this._drawingRestoreTooltipTarget.removeEventListener("pointercancel", this._hideRestoreTooltip);
     document.removeEventListener("pointerdown", this._handleDocumentPointerDown);
     document.removeEventListener("keydown", this._handleDocumentKeyDown);
   }
@@ -295,6 +317,17 @@ export class SimulationWorkspace {
     this._grid.clearCanvas();
   };
 
+  private _onRestoreDrawing = (): void => {
+    if (this._selectedMode !== "drawing" || !this._grid || !this._drawingInitialGridSnapshot) {
+      return;
+    }
+
+    this._stopPlayback();
+    this._setPlaybackButtonState(false);
+    this._resetSimulationPlaybackState();
+    this._grid.seedFromGrid(this._drawingInitialGridSnapshot);
+  };
+
   private _resetIterationCounter(): void {
     this._iterationCounterValue = 0;
     this._iterationCounter.textContent = "0";
@@ -312,10 +345,16 @@ export class SimulationWorkspace {
   };
 
   private _resetPlaybackControls(): void {
-    this._resetIterationCounter();
+    this._resetSimulationPlaybackState();
     this._fps = 12;
     this._speedSlider.value = String(this._fps);
     this._speedValue.textContent = String(this._fps);
+  }
+
+  private _resetSimulationPlaybackState(): void {
+    this._resetIterationCounter();
+    this._aliveVariationChart.reset();
+    this._aliveCountChart.reset();
   }
 
   private _onRandomPresetChange = (): void => {
@@ -412,13 +451,16 @@ export class SimulationWorkspace {
 
   private _togglePause = (): void => {
     if (this._isPlaying) {
-      this._stop();
+      this._stopPlayback();
       this._setPlaybackButtonState(false);
     } else {
+      this._captureDrawingRestoreSnapshot();
       this._setPlaybackButtonState(true);
       this._start();
+      this._isPlaying = true;
+      return;
     }
-    this._isPlaying = !this._isPlaying;
+    this._isPlaying = false;
   };
 
   private _step = (_timestamp: number): void => {
@@ -445,6 +487,63 @@ export class SimulationWorkspace {
     cancelAnimationFrame(this._requestAnimationID);
   };
 
+  private _stopPlayback(): void {
+    if (!this._isPlaying) {
+      return;
+    }
+
+    this._stop();
+    this._isPlaying = false;
+  }
+
+  private _captureDrawingRestoreSnapshot(): void {
+    if (this._selectedMode !== "drawing" || !this._grid || this._drawingInitialGridSnapshot !== null) {
+      return;
+    }
+
+    this._drawingInitialGridSnapshot = this._grid.toGrid();
+    this._updateDrawingRestoreButton();
+  }
+
+  private _clearDrawingRestoreSnapshot(): void {
+    this._drawingInitialGridSnapshot = null;
+    this._updateDrawingRestoreButton();
+  }
+
+  private _updateDrawingRestoreButton(): void {
+    const isDisabled = this._drawingInitialGridSnapshot === null;
+    this._drawingRestoreButton.disabled = isDisabled;
+    this._drawingRestoreTooltipTarget.hidden = !isDisabled;
+
+    if (!isDisabled) {
+      this._drawingRestoreTooltip.hide();
+    }
+  }
+
+  private _handleRestoreTooltipPointerEnter = (event: PointerEvent): void => {
+    this._showRestoreTooltip(event);
+  };
+
+  private _handleRestoreTooltipPointerMove = (event: PointerEvent): void => {
+    this._showRestoreTooltip(event);
+  };
+
+  private _hideRestoreTooltip = (): void => {
+    this._drawingRestoreTooltip.hide();
+  };
+
+  private _showRestoreTooltip(event: PointerEvent): void {
+    if (event.pointerType === "touch" || !this._drawingRestoreButton.disabled) {
+      this._drawingRestoreTooltip.hide();
+      return;
+    }
+
+    this._drawingRestoreTooltip.show(CONTROL_TEXTS.drawing.restoreDisabledHint, {
+      clientX: event.clientX,
+      clientY: event.clientY,
+    });
+  }
+
   private _setDisplay(element: HTMLElement, visible: boolean): void {
     element.style.display = visible ? "block" : "none";
   }
@@ -469,12 +568,12 @@ export class SimulationWorkspace {
     }
 
     this._grid?.destroyListener();
+    this._clearDrawingRestoreSnapshot();
     this._updateCellStats({
       alive: 0,
       dead: GRID_COLS * GRID_ROWS,
     });
-    this._aliveVariationChart.reset();
-    this._aliveCountChart.reset();
+    this._resetSimulationPlaybackState();
 
     switch (this._selectedMode) {
       case "random":
@@ -547,6 +646,7 @@ export class SimulationWorkspace {
         await this._userCustomSelector.getCustomList();
         this._selectedSpecies = this._userCustomSelector.currentValue() || null;
         this._imageImporter ??= new ImageImporter((grid) => {
+          this._clearDrawingRestoreSnapshot();
           this._grid?.seedFromGrid(grid);
         });
         this._imageImporter.show();

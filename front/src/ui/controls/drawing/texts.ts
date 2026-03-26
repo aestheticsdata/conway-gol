@@ -2,6 +2,8 @@ export const CONTROL_TEXTS = {
   drawing: {
     saveButton: "Save Drawing",
     clearCanvasButton: "Clear canvas",
+    restoreButton: "Restore",
+    restoreDisabledHint: "Restore initial drawing after playing",
     savedPatternsLabel: "Saved patterns",
     brushSizeLabel: "Brush Size",
     brushShapeLabel: "Brush Shape",

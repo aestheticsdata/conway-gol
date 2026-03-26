@@ -402,6 +402,14 @@ function createDrawingClearAction(): string {
         className: "drawing-clear",
         label: CONTROL_TEXTS.drawing.clearCanvasButton,
       })}
+      <div class="drawing-restore-wrapper">
+        ${createButton({
+          className: "drawing-restore",
+          disabled: true,
+          label: CONTROL_TEXTS.drawing.restoreButton,
+        })}
+        <span class="drawing-restore-tooltip-target" aria-hidden="true"></span>
+      </div>
     </div>
   `;
 }
