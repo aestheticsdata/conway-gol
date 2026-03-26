@@ -131,6 +131,8 @@ class GridDrawingHandler {
     this._zoombox.displayArea(
       this._getZoomArea(pointer.xPos, pointer.yPos),
       this._drawingMode,
+      this._brushShape,
+      this._brushSize,
       pointer.xPos,
       pointer.yPos,
     );
@@ -152,6 +154,8 @@ class GridDrawingHandler {
     this._zoombox.displayArea(
       this._getZoomArea(pointer.xPos, pointer.yPos),
       this._drawingMode,
+      this._brushShape,
+      this._brushSize,
       pointer.xPos,
       pointer.yPos,
     );

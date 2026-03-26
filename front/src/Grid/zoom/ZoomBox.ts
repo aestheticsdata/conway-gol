@@ -12,6 +12,7 @@ import { drawGrid } from "@helpers/canvas";
 import { getRequiredContext2D, queryRequired } from "@helpers/dom";
 
 import type { CanvasTheme } from "@grid/constants";
+import type { BrushShape } from "@ui/controls/drawing/constants";
 import type { DrawingMode } from "@ui/controls/drawing/DrawingToolBox";
 
 /**
@@ -72,20 +73,22 @@ class ZoomBox {
    * Render the 14×14 area around the cursor.
    * @param area  number[][] from Grid._getZoomArea(). [[OUTSIDE]] when out of range.
    * @param drawingMode  Current pencil/eraser mode, controls center cell highlight color.
+   * @param brushShape  Active brush shape — used to highlight all brush cells.
+   * @param brushSize  Active brush size.
    * @param x  Column coordinate (displayed in the HUD).
    * @param y  Row coordinate (displayed in the HUD).
    */
-  public displayArea(area: number[][], drawingMode: DrawingMode, x = 0, y = 0): void {
+  public displayArea(area: number[][], drawingMode: DrawingMode, brushShape: BrushShape, brushSize: number, x = 0, y = 0): void {
     if (!area) return;
-    this._renderArea(drawingMode, area);
+    this._renderArea(drawingMode, brushShape, brushSize, area);
     this._xPosDisplay.textContent = String(x);
     this._yPosDisplay.textContent = String(y);
   }
 
   // ── Private ────────────────────────────────────────────────────────────────
 
-  /** Render the full area, then overlay the center-cell highlight. */
-  private _renderArea(drawingMode: DrawingMode, area: number[][]): void {
+  /** Render the full area, then overlay all brush-shape cells with the cursor highlight. */
+  private _renderArea(drawingMode: DrawingMode, brushShape: BrushShape, brushSize: number, area: number[][]): void {
     // [[OUTSIDE]]: cursor is outside the valid cell range — skip render.
     if (area[0][0] === CELL_STATE.OUTSIDE) return;
 
@@ -104,16 +107,78 @@ class ZoomBox {
       }
     }
 
-    // Overlay center cell with the active cursor blue + blue border.
+    // Overlay all brush-shape cells with the active cursor highlight color.
+    const previewColor = drawingMode === "pencil" ? this._theme.previewAliveCellColor : this._theme.previewEraseCellColor;
+    this._zoomContext.fillStyle = previewColor;
+    this._zoomContext.strokeStyle = this._theme.zoomHighlightStrokeColor;
+
+    this._forEachBrushCell(brushShape, brushSize, (row, col) => {
+      if (area[row][col] === CELL_STATE.BORDER || area[row][col] === CELL_STATE.OUTSIDE) return;
+      this._zoomContext.fillRect(col * cellPx + 1, row * cellPx + 1, cellPx - 1, cellPx - 1);
+    });
+
+    // Draw the stroke border only around the center cell (cursor focus).
     const cx = ZOOM_FOCUS.x;
     const cy = ZOOM_FOCUS.y;
-    this._zoomContext.fillStyle =
-      drawingMode === "pencil" ? this._theme.previewAliveCellColor : this._theme.previewEraseCellColor;
-    this._zoomContext.fillRect(cx * cellPx + 1, cy * cellPx + 1, cellPx - 1, cellPx - 1);
-    this._zoomContext.strokeStyle = this._theme.zoomHighlightStrokeColor;
     this._zoomContext.strokeRect(cx * cellPx, cy * cellPx, cellPx + 1, cellPx + 1);
 
     this._drawVisibleGrid(area);
+  }
+
+  /**
+   * Iterate over all zoom-grid cells that belong to the current brush shape,
+   * centered at ZOOM_FOCUS. Mirrors the logic in GridDrawingHandler._forEachShapeCell.
+   */
+  private _forEachBrushCell(brushShape: BrushShape, brushSize: number, cb: (row: number, col: number) => void): void {
+    const focusRow = ZOOM_FOCUS.y;
+    const focusCol = ZOOM_FOCUS.x;
+
+    if (brushShape === "square") {
+      const half = Math.floor((brushSize - 1) / 2);
+      const startRow = Math.max(0, focusRow - half);
+      const startCol = Math.max(0, focusCol - half);
+      const endRow = Math.min(ZOOM_SIZE - 1, startRow + brushSize - 1);
+      const endCol = Math.min(ZOOM_SIZE - 1, startCol + brushSize - 1);
+      for (let row = startRow; row <= endRow; row++) {
+        for (let col = startCol; col <= endCol; col++) {
+          cb(row, col);
+        }
+      }
+      return;
+    }
+
+    const r =
+      brushShape === "circle" ||
+      brushShape === "hollow-circle" ||
+      brushShape === "diamond" ||
+      brushShape === "hollow-diamond"
+        ? brushSize + 1
+        : brushSize;
+
+    for (let dr = -r; dr <= r; dr++) {
+      for (let dc = -r; dc <= r; dc++) {
+        if (this._matchesBrushShape(brushShape, dr, dc, r)) {
+          const row = Math.max(0, Math.min(ZOOM_SIZE - 1, focusRow + dr));
+          const col = Math.max(0, Math.min(ZOOM_SIZE - 1, focusCol + dc));
+          cb(row, col);
+        }
+      }
+    }
+  }
+
+  private _matchesBrushShape(shape: BrushShape, dr: number, dc: number, r: number): boolean {
+    switch (shape) {
+      case "cross":          return dr === 0 || dc === 0;
+      case "frame":          return Math.abs(dr) === r || Math.abs(dc) === r;
+      case "circle":         return dr * dr + dc * dc <= r * r;
+      case "hollow-circle":  return dr * dr + dc * dc <= r * r && dr * dr + dc * dc > (r - 1) * (r - 1);
+      case "diamond":        return Math.abs(dr) + Math.abs(dc) <= r;
+      case "hollow-diamond": return Math.abs(dr) + Math.abs(dc) === r;
+      case "hline":          return dr === 0;
+      case "vline":          return dc === 0;
+      case "x":              return Math.abs(dr) === Math.abs(dc);
+      default:               return false;
+    }
   }
 
   /** Fill the zoom canvas with DEAD color on first render. */
