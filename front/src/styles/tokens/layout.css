@@ -1,4 +1,6 @@
 :root {
+  --separator-gap: 12px;
+  --pane-padding: 16px;
   --workspace-shell-max-width: 1680px;
   --workspace-left-pane-width: 318px;
   --workspace-right-pane-width: 360px;

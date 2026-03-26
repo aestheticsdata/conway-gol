@@ -16,6 +16,7 @@ import { createButton } from "@ui/components/button/createButton";
 import { createSliderField } from "@ui/components/slider/createSlider";
 import { DEFAULT_BRUSH_SIZE, MAX_BRUSH_SIZE, MIN_BRUSH_SIZE } from "@ui/controls/drawing/constants";
 import { CONTROL_TEXTS } from "@ui/controls/drawing/texts";
+
 import { createTileSelectorButton } from "@views/html/tileSelector";
 
 import type { WorkspaceRoute } from "@app/routes";
@@ -206,14 +207,26 @@ function createPlaybackControls(): string {
   `;
 }
 
+function createDrawingActionsSidebar(): string {
+  return `
+    <aside class="drawing-actions-pane" style="display: none">
+      ${createDrawingSaveAction()}
+      ${createImageImport()}
+    </aside>
+  `;
+}
+
 function createWorkspaceSidebar(): string {
   return `
-    <aside class="left-pane">
-      ${createIterationSection()}
-      ${createTelemetrySection()}
-      ${createSpeedSection()}
-      ${createPlaybackControls()}
-    </aside>
+    <div class="left-column">
+      <aside class="left-pane">
+        ${createIterationSection()}
+        ${createTelemetrySection()}
+        ${createSpeedSection()}
+        ${createPlaybackControls()}
+      </aside>
+      ${createDrawingActionsSidebar()}
+    </div>
   `;
 }
 
@@ -393,9 +406,30 @@ function createDrawingTool(tool: DrawingTool): string {
 function createDrawingToolbox(): string {
   return `
     <div class="drawing-toolbox" style="display: none">
-      <div class="drawing-toolbox__rail" role="toolbar" aria-label="Drawing tools">
+      <div class="drawing-toolbox__tools" role="toolbar" aria-label="Drawing tools">
         ${createDrawingTool("pencil")}
         ${createDrawingTool("eraser")}
+      </div>
+      <div class="custom-select drawing-brush-shape-select">
+        <button
+          type="button"
+          id="drawing-brush-shape-trigger"
+          class="custom-select__trigger"
+          aria-haspopup="listbox"
+          aria-expanded="false"
+          aria-controls="drawing-brush-shape-options"
+        >
+          <span class="custom-select__value"></span>
+        </button>
+        <div class="custom-select__menu" hidden>
+          <div
+            id="drawing-brush-shape-options"
+            class="custom-select__options"
+            role="listbox"
+            aria-labelledby="drawing-brush-shape-trigger"
+          ></div>
+        </div>
+        <select id="drawing-brush-shape-native" name="drawing-brush-shape" class="custom-select__native" tabindex="-1" aria-hidden="true"></select>
       </div>
       ${createSliderField({
         className: "drawing-toolbox__size",
@@ -483,8 +517,6 @@ function createWorkspaceInspector(): string {
         ${createDrawingFiles()}
         <div class="zoombox-container"></div>
         ${createDrawingToolbox()}
-        ${createDrawingSaveAction()}
-        ${createImageImport()}
       </div>
       ${createCustomCursor()}
     </aside>

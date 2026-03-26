@@ -53,6 +53,7 @@ export class SimulationWorkspace {
   private readonly _commentsDOMSelector: HTMLElement;
   private readonly _zooPrimitivesDOMSelector: HTMLElement;
   private readonly _drawingInspectorDOMSelector: HTMLElement;
+  private readonly _drawingActionsSidebar: HTMLElement;
   private readonly _randomControls: RandomControlsPanel;
   private readonly _customCursor: HTMLElement;
   private readonly _changeZoo: (species: string) => void;
@@ -109,6 +110,7 @@ export class SimulationWorkspace {
     this._commentsDOMSelector = queryRequired<HTMLElement>(".critter-comments", this._root);
     this._zooPrimitivesDOMSelector = queryRequired<HTMLElement>(".zoo-selector", this._root);
     this._drawingInspectorDOMSelector = queryRequired<HTMLElement>(".drawing-pane", this._root);
+    this._drawingActionsSidebar = queryRequired<HTMLElement>(".drawing-actions-pane", this._root);
     this._randomControls = new RandomControlsPanel({
       root: this._root,
       onPresetChange: this._onRandomPresetChange,
@@ -153,6 +155,7 @@ export class SimulationWorkspace {
     this._randomControls.destroy();
     this._zooSelector?.destroy();
     this._userCustomSelector?.destroy();
+    this._drawingToolBox?.destroy();
     this._savePresetModal.destroy();
     this._imageImporter?.destroy();
     document.removeEventListener("pointerdown", this._handleDocumentPointerDown);
@@ -201,12 +204,14 @@ export class SimulationWorkspace {
     this._randomControls.handleDocumentPointerDown(event);
     this._zooSelector?.handleDocumentPointerDown(event);
     this._userCustomSelector?.handleDocumentPointerDown(event);
+    this._drawingToolBox?.handleDocumentPointerDown(event);
   };
 
   private _handleDocumentKeyDown = (event: KeyboardEvent): void => {
     this._randomControls.handleDocumentKeyDown(event);
     this._zooSelector?.handleDocumentKeyDown(event);
     this._userCustomSelector?.handleDocumentKeyDown(event);
+    this._drawingToolBox?.handleDocumentKeyDown(event);
   };
 
   private _currentRandomParams(): RandomSeedParams {
@@ -465,6 +470,7 @@ export class SimulationWorkspace {
         this._drawingToolBox?.hide();
         this._setDisplay(this._zooPrimitivesDOMSelector, false);
         this._drawingInspectorDOMSelector.style.display = "none";
+        this._setDisplay(this._drawingActionsSidebar, false);
         this._randomControls.show();
         this._commentsDOMSelector.replaceChildren();
         this._setDisplay(this._drawingCanvas, false);
@@ -489,6 +495,7 @@ export class SimulationWorkspace {
         this._randomControls.hide();
         this._zooSelector ??= new ZooSelector();
         this._drawingInspectorDOMSelector.style.display = "none";
+        this._setDisplay(this._drawingActionsSidebar, false);
         this._zooSelector.createSelectButton(
           this._zooPrimitivesDOMSelector,
           this._changeZoo,
@@ -517,6 +524,7 @@ export class SimulationWorkspace {
         this._randomControls.hide();
         this._setDisplay(this._zooPrimitivesDOMSelector, false);
         this._drawingInspectorDOMSelector.style.display = "flex";
+        this._setDisplay(this._drawingActionsSidebar, true);
         this._commentsDOMSelector.replaceChildren();
         this._setDisplay(this._drawingCanvas, true);
         this._drawingToolBox ??= new DrawingToolBox();

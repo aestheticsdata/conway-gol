@@ -1,10 +1,10 @@
 .drawing-pane {
   display: flex;
   flex-direction: column;
-  gap: 22px;
-  padding: 26px 22px 24px;
+  gap: 0;
+  padding: var(--pane-padding);
   border: 1px solid var(--border);
-  border-radius: calc(var(--radius) + 14px);
+  border-radius: var(--radius);
   background: linear-gradient(180deg, rgba(12, 24, 42, 0.9), rgba(8, 17, 31, 0.88)), var(--bg-elevated);
   box-shadow: var(--shadow);
   backdrop-filter: blur(20px);
@@ -16,7 +16,7 @@
 
 .image-import {
   margin-top: 0;
-  padding-top: 20px;
+  padding-top: var(--separator-gap);
   border-top: 1px solid rgba(117, 161, 205, 0.18);
 }
 
@@ -57,9 +57,9 @@
 
 .zoo-selector {
   margin-top: 0;
-  padding: 24px;
+  padding: var(--pane-padding);
   border: 1px solid var(--border);
-  border-radius: calc(var(--radius) + 4px);
+  border-radius: var(--radius);
   background: linear-gradient(180deg, rgba(12, 24, 42, 0.9), rgba(8, 17, 31, 0.88)), var(--bg-elevated);
   box-shadow: var(--shadow);
   backdrop-filter: blur(20px);
@@ -82,7 +82,7 @@
   margin-top: 18px;
   padding: 22px 18px;
   border: 1px solid rgba(117, 161, 205, 0.18);
-  border-radius: calc(var(--radius) + 4px);
+  border-radius: var(--radius);
   background: linear-gradient(180deg, rgba(24, 40, 64, 0.86), rgba(18, 31, 54, 0.74));
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
@@ -147,6 +147,7 @@
   flex-direction: column;
   gap: 18px;
   padding-top: 0;
+  padding-bottom: var(--separator-gap);
 }
 
 .custom-drawing-files label {
@@ -164,12 +165,9 @@
   margin: 0;
 }
 
-.custom-drawing-files .custom-drawing-custom-select {
-  --custom-select-trigger-height: 42px;
-}
 
 .custom-drawing-files .custom-select__trigger {
-  border-radius: calc(var(--radius) + 6px);
+  border-radius: var(--radius);
   background: rgba(27, 40, 61, 0.88);
   box-shadow: inset 0 0 0 1px rgba(117, 161, 205, 0.12);
   color: var(--accent);
@@ -189,6 +187,12 @@
 
 .drawing-save-action {
   display: flex;
+  padding-bottom: var(--separator-gap);
+}
+
+.drawing-pane .drawing-save-action {
+  padding-top: var(--separator-gap);
+  border-top: 1px solid rgba(117, 161, 205, 0.18);
 }
 
 .drawing-toolbox {
@@ -197,17 +201,23 @@
   align-items: flex-start;
   gap: 16px;
   min-height: 0;
-  padding-top: 0;
+  padding-top: var(--separator-gap);
+  padding-bottom: var(--separator-gap);
+  border-top: 1px solid rgba(117, 161, 205, 0.18);
 }
 
-.drawing-toolbox__rail {
+.drawing-toolbox__tools {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
   padding: 4px;
   border: 1px solid rgba(117, 161, 205, 0.18);
-  border-radius: calc(var(--radius) + 8px);
+  border-radius: var(--radius);
   background: rgba(27, 40, 61, 0.82);
+}
+
+.drawing-brush-shape-select {
+  width: 100%;
 }
 
 .drawing-toolbox__size {
@@ -239,7 +249,7 @@
   width: 42px;
   height: 42px;
   border: 1px solid transparent;
-  border-radius: calc(var(--radius) + 4px);
+  border-radius: var(--radius);
   background: transparent;
   color: rgba(196, 210, 228, 0.92);
   overflow: hidden;
@@ -324,6 +334,10 @@
   display: flex;
   align-items: flex-start;
   justify-content: flex-start;
+  padding-top: var(--separator-gap);
+  padding-bottom: var(--separator-gap);
+  border-top: 1px solid rgba(117, 161, 205, 0.18);
+  box-sizing: content-box;
 }
 
 .zoombox-container .zoombox {
@@ -331,7 +345,7 @@
   background-color: rgba(18, 31, 54, 0.72);
   height: 142px;
   width: 142px;
-  border-radius: calc(var(--radius) + 3px);
+  border-radius: var(--radius);
   overflow: hidden;
 }
 

@@ -2,6 +2,7 @@ import { CELL_STATE } from "@cell/constants";
 import { MAX_BRUSH_SIZE, MIN_BRUSH_SIZE } from "@ui/controls/drawing/constants";
 import { CELL_SIZE, GRID_COLS, GRID_ROWS, ZOOM_FOCUS, ZOOM_SIZE } from "./constants";
 
+import type { BrushShape } from "@ui/controls/drawing/constants";
 import type { DrawingMode } from "@ui/controls/drawing/DrawingToolBox";
 import type ZoomBox from "./zoom/ZoomBox";
 
@@ -17,6 +18,7 @@ export type GridDrawingHandlerDeps = {
   zoombox: ZoomBox;
   initialDrawingMode: DrawingMode;
   initialBrushSize: number;
+  initialBrushShape: BrushShape;
   getCell: (row: number, col: number) => number;
   setCell: (row: number, col: number, state: number) => void;
   renderCell: (row: number, col: number) => void;
@@ -45,6 +47,7 @@ class GridDrawingHandler {
 
   private _drawingMode: DrawingMode;
   private _brushSize: number;
+  private _brushShape: BrushShape;
   private _hoverPointer: GridPointerPosition | null = null;
   private _isDown = false;
 
@@ -55,6 +58,7 @@ class GridDrawingHandler {
     this._zoombox = deps.zoombox;
     this._drawingMode = deps.initialDrawingMode;
     this._brushSize = this._clampBrushSize(deps.initialBrushSize);
+    this._brushShape = deps.initialBrushShape;
     this._getCell = deps.getCell;
     this._setCell = deps.setCell;
     this._renderCell = deps.renderCell;
@@ -72,6 +76,11 @@ class GridDrawingHandler {
 
   public setBrushSize(size: number): void {
     this._brushSize = this._clampBrushSize(size);
+    this._renderHoverPreview();
+  }
+
+  public setBrushShape(shape: BrushShape): void {
+    this._brushShape = shape;
     this._renderHoverPreview();
   }
 
@@ -210,7 +219,7 @@ class GridDrawingHandler {
     const newState = this._drawingMode === "pencil" ? CELL_STATE.ALIVE : CELL_STATE.DEAD;
     let hasChanged = false;
 
-    this._forEachBrushCell(pointer.yPos, pointer.xPos, (row, col) => {
+    this._forEachShapeCell(pointer.yPos, pointer.xPos, (row, col) => {
       if (this._getCell(row, col) === newState) {
         return;
       }
@@ -225,7 +234,56 @@ class GridDrawingHandler {
     }
   }
 
-  private _forEachBrushCell(anchorRow: number, anchorCol: number, cb: (row: number, col: number) => void): void {
+  private _forEachShapeCell(anchorRow: number, anchorCol: number, cb: (row: number, col: number) => void): void {
+    if (this._brushShape === "square") {
+      this._forEachSquareCells(anchorRow, anchorCol, cb);
+      return;
+    }
+
+    const r =
+      this._brushShape === "circle" ||
+      this._brushShape === "hollow-circle" ||
+      this._brushShape === "diamond" ||
+      this._brushShape === "hollow-diamond"
+        ? this._brushSize + 1
+        : this._brushSize;
+    for (let dr = -r; dr <= r; dr++) {
+      for (let dc = -r; dc <= r; dc++) {
+        if (this._matchesShape(dr, dc, r)) {
+          const row = Math.max(0, Math.min(GRID_ROWS - 1, anchorRow + dr));
+          const col = Math.max(0, Math.min(GRID_COLS - 1, anchorCol + dc));
+          cb(row, col);
+        }
+      }
+    }
+  }
+
+  private _matchesShape(dr: number, dc: number, r: number): boolean {
+    switch (this._brushShape) {
+      case "cross":
+        return dr === 0 || dc === 0;
+      case "frame":
+        return Math.abs(dr) === r || Math.abs(dc) === r;
+      case "circle":
+        return dr * dr + dc * dc <= r * r;
+      case "hollow-circle":
+        return dr * dr + dc * dc <= r * r && dr * dr + dc * dc > (r - 1) * (r - 1);
+      case "diamond":
+        return Math.abs(dr) + Math.abs(dc) <= r;
+      case "hollow-diamond":
+        return Math.abs(dr) + Math.abs(dc) === r;
+      case "hline":
+        return dr === 0;
+      case "vline":
+        return dc === 0;
+      case "x":
+        return Math.abs(dr) === Math.abs(dc);
+      default:
+        return false;
+    }
+  }
+
+  private _forEachSquareCells(anchorRow: number, anchorCol: number, cb: (row: number, col: number) => void): void {
     const startRow = Math.max(0, anchorRow - Math.floor((this._brushSize - 1) / 2));
     const startCol = Math.max(0, anchorCol - Math.floor((this._brushSize - 1) / 2));
     const endRow = Math.min(GRID_ROWS - 1, startRow + this._brushSize - 1);
@@ -246,7 +304,7 @@ class GridDrawingHandler {
     }
 
     const hoverState = this._drawingMode === "pencil" ? CELL_STATE.ALIVE : CELL_STATE.DEAD;
-    this._forEachBrushCell(this._hoverPointer.yPos, this._hoverPointer.xPos, (row, col) => {
+    this._forEachShapeCell(this._hoverPointer.yPos, this._hoverPointer.xPos, (row, col) => {
       this._renderCellOnOverlay(hoverState, row, col);
     });
   }

@@ -3,9 +3,22 @@ export const CONTROL_TEXTS = {
     saveButton: "Save Drawing",
     customDrawingLabel: "Custom Drawing",
     brushSizeLabel: "Brush Size",
+    brushShapeLabel: "Brush Shape",
     tools: {
       pencilAlt: "pencil",
       eraserAlt: "eraser",
+    },
+    shapes: {
+      square: "Square",
+      cross: "Cross",
+      frame: "Hollow Square",
+      circle: "Circle",
+      hollowCircle: "Hollow Circle",
+      diamond: "Diamond",
+      hollowDiamond: "Hollow Diamond",
+      hline: "H-Line",
+      vline: "V-Line",
+      x: "X-Shape",
     },
   },
   userCustomSelector: {

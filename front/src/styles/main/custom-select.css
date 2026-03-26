@@ -1,5 +1,5 @@
 .custom-select {
-  --custom-select-trigger-height: 44px;
+  --custom-select-trigger-px: 10px;
   --custom-select-option-height: 36px;
   --custom-select-option-gap: 2px;
   --custom-select-visible-options: 10;
@@ -33,11 +33,9 @@ select.custom-select__native {
   justify-content: flex-start;
   width: 100%;
   min-width: 0;
-  height: var(--custom-select-trigger-height);
-  margin-top: 0;
-  padding: 0 48px 0 16px;
+  padding: var(--custom-select-trigger-px) calc(var(--custom-select-trigger-px) * 2 + 14px) var(--custom-select-trigger-px) var(--custom-select-trigger-px);
   border: 0;
-  border-radius: calc(var(--radius) + 4px);
+  border-radius: var(--radius);
   background: rgba(12, 30, 46, 0.74);
   box-shadow: inset 0 0 0 1px rgba(117, 161, 205, 0.18);
   cursor: pointer;
@@ -66,7 +64,7 @@ select.custom-select__native {
   content: "";
   position: absolute;
   top: 50%;
-  right: 16px;
+  right: var(--custom-select-trigger-px);
   width: 14px;
   height: 9px;
   transform: translateY(-50%);
@@ -120,7 +118,7 @@ select.custom-select__native {
   z-index: 40;
   padding: 4px;
   border: 1px solid rgba(117, 161, 205, 0.18);
-  border-radius: calc(var(--radius) + 4px);
+  border-radius: var(--radius);
   background: rgba(9, 18, 33, 0.96);
   box-shadow: none;
   backdrop-filter: blur(18px);
@@ -168,7 +166,7 @@ select.custom-select__native {
   margin: 0;
   padding: 0 12px;
   border: 0;
-  border-radius: calc(var(--radius) + 1px);
+  border-radius: var(--radius);
   background: transparent;
   box-shadow: none;
   color: rgba(196, 210, 228, 0.92);
@@ -214,4 +212,40 @@ select.custom-select__native {
   opacity: 1;
   background: rgba(12, 30, 46, 0.74);
   border-color: rgba(37, 219, 255, 0.24);
+}
+
+.custom-select__option-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  pointer-events: none;
+}
+
+.custom-select__option-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  line-height: 0;
+}
+
+.custom-select__option-icon svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.custom-select__option-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

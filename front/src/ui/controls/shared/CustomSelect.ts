@@ -3,6 +3,8 @@ import { queryRequired } from "@helpers/dom";
 export type CustomSelectOption = {
   value: string;
   label: string;
+  /** Optional HTML string rendered inside the option button and the trigger value. Falls back to label text when absent. */
+  html?: string;
 };
 
 type CustomSelectConfig = {
@@ -77,13 +79,18 @@ class CustomSelect {
     );
 
     this._options.replaceChildren(
-      ...options.map(({ value, label }) => {
+      ...options.map(({ value, label, html }) => {
         const option = document.createElement("button");
         option.type = "button";
         option.className = "custom-select__option";
         option.dataset.value = value;
         option.setAttribute("role", "option");
-        option.textContent = label;
+        option.setAttribute("aria-label", label);
+        if (html) {
+          option.innerHTML = html;
+        } else {
+          option.textContent = label;
+        }
         return option;
       }),
     );
@@ -148,7 +155,11 @@ class CustomSelect {
     const currentValue = this._nativeSelect.value;
     const currentOption = this._items.find((option) => option.value === currentValue) ?? this._items[0];
 
-    this._value.textContent = currentOption?.label ?? "";
+    if (currentOption?.html) {
+      this._value.innerHTML = currentOption.html;
+    } else {
+      this._value.textContent = currentOption?.label ?? "";
+    }
 
     Array.from(this._options.children).forEach((child) => {
       const option = child as HTMLElement;
