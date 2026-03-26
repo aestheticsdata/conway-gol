@@ -10,6 +10,7 @@ import {
 } from "@grid/constants";
 import { drawGrid } from "@helpers/canvas";
 import { getRequiredContext2D, queryRequired } from "@helpers/dom";
+import { getBrushOffsets } from "@ui/controls/drawing/brushOffsets";
 
 import type { CanvasTheme } from "@grid/constants";
 import type { BrushShape } from "@ui/controls/drawing/constants";
@@ -78,7 +79,14 @@ class ZoomBox {
    * @param x  Column coordinate (displayed in the HUD).
    * @param y  Row coordinate (displayed in the HUD).
    */
-  public displayArea(area: number[][], drawingMode: DrawingMode, brushShape: BrushShape, brushSize: number, x = 0, y = 0): void {
+  public displayArea(
+    area: number[][],
+    drawingMode: DrawingMode,
+    brushShape: BrushShape,
+    brushSize: number,
+    x = 0,
+    y = 0,
+  ): void {
     if (!area) return;
     this._renderArea(drawingMode, brushShape, brushSize, area);
     this._xPosDisplay.textContent = String(x);
@@ -108,7 +116,8 @@ class ZoomBox {
     }
 
     if (drawingMode !== "hand") {
-      const previewColor = drawingMode === "pencil" ? this._theme.previewAliveCellColor : this._theme.previewEraseCellColor;
+      const previewColor =
+        drawingMode === "pencil" ? this._theme.previewAliveCellColor : this._theme.previewEraseCellColor;
       this._zoomContext.fillStyle = previewColor;
 
       this._forEachBrushCell(brushShape, brushSize, (row, col) => {
@@ -131,54 +140,10 @@ class ZoomBox {
    * centered at ZOOM_FOCUS. Mirrors the logic in GridDrawingHandler._forEachShapeCell.
    */
   private _forEachBrushCell(brushShape: BrushShape, brushSize: number, cb: (row: number, col: number) => void): void {
-    const focusRow = ZOOM_FOCUS.y;
-    const focusCol = ZOOM_FOCUS.x;
-
-    if (brushShape === "square") {
-      const half = Math.floor((brushSize - 1) / 2);
-      const startRow = Math.max(0, focusRow - half);
-      const startCol = Math.max(0, focusCol - half);
-      const endRow = Math.min(ZOOM_SIZE - 1, startRow + brushSize - 1);
-      const endCol = Math.min(ZOOM_SIZE - 1, startCol + brushSize - 1);
-      for (let row = startRow; row <= endRow; row++) {
-        for (let col = startCol; col <= endCol; col++) {
-          cb(row, col);
-        }
-      }
-      return;
-    }
-
-    const r =
-      brushShape === "circle" ||
-      brushShape === "hollow-circle" ||
-      brushShape === "diamond" ||
-      brushShape === "hollow-diamond"
-        ? brushSize + 1
-        : brushSize;
-
-    for (let dr = -r; dr <= r; dr++) {
-      for (let dc = -r; dc <= r; dc++) {
-        if (this._matchesBrushShape(brushShape, dr, dc, r)) {
-          const row = Math.max(0, Math.min(ZOOM_SIZE - 1, focusRow + dr));
-          const col = Math.max(0, Math.min(ZOOM_SIZE - 1, focusCol + dc));
-          cb(row, col);
-        }
-      }
-    }
-  }
-
-  private _matchesBrushShape(shape: BrushShape, dr: number, dc: number, r: number): boolean {
-    switch (shape) {
-      case "cross":          return dr === 0 || dc === 0;
-      case "frame":          return Math.abs(dr) === r || Math.abs(dc) === r;
-      case "circle":         return dr * dr + dc * dc <= r * r;
-      case "hollow-circle":  return dr * dr + dc * dc <= r * r && dr * dr + dc * dc > (r - 1) * (r - 1);
-      case "diamond":        return Math.abs(dr) + Math.abs(dc) <= r;
-      case "hollow-diamond": return Math.abs(dr) + Math.abs(dc) === r;
-      case "hline":          return dr === 0;
-      case "vline":          return dc === 0;
-      case "x":              return Math.abs(dr) === Math.abs(dc);
-      default:               return false;
+    for (const { rowOffset, colOffset } of getBrushOffsets(brushShape, brushSize)) {
+      const row = Math.max(0, Math.min(ZOOM_SIZE - 1, ZOOM_FOCUS.y + rowOffset));
+      const col = Math.max(0, Math.min(ZOOM_SIZE - 1, ZOOM_FOCUS.x + colOffset));
+      cb(row, col);
     }
   }
 
@@ -233,7 +198,9 @@ class ZoomBox {
     this._zoomContext.restore();
   }
 
-  private _getVisibleBounds(area: number[][]): { minRow: number; maxRow: number; minCol: number; maxCol: number } | null {
+  private _getVisibleBounds(
+    area: number[][],
+  ): { minRow: number; maxRow: number; minCol: number; maxCol: number } | null {
     let minRow = Number.POSITIVE_INFINITY;
     let maxRow = Number.NEGATIVE_INFINITY;
     let minCol = Number.POSITIVE_INFINITY;

@@ -1,4 +1,5 @@
 import { CELL_STATE } from "@cell/constants";
+import { getBrushOffsets } from "@ui/controls/drawing/brushOffsets";
 import { MAX_BRUSH_SIZE, MIN_BRUSH_SIZE } from "@ui/controls/drawing/constants";
 import { CELL_SIZE, GRID_COLS, GRID_ROWS, ZOOM_FOCUS, ZOOM_SIZE } from "./constants";
 
@@ -286,64 +287,10 @@ class GridDrawingHandler {
   }
 
   private _forEachShapeCell(anchorRow: number, anchorCol: number, cb: (row: number, col: number) => void): void {
-    if (this._brushShape === "square") {
-      this._forEachSquareCells(anchorRow, anchorCol, cb);
-      return;
-    }
-
-    const r =
-      this._brushShape === "circle" ||
-      this._brushShape === "hollow-circle" ||
-      this._brushShape === "diamond" ||
-      this._brushShape === "hollow-diamond"
-        ? this._brushSize + 1
-        : this._brushSize;
-    for (let dr = -r; dr <= r; dr++) {
-      for (let dc = -r; dc <= r; dc++) {
-        if (this._matchesShape(dr, dc, r)) {
-          const row = Math.max(0, Math.min(GRID_ROWS - 1, anchorRow + dr));
-          const col = Math.max(0, Math.min(GRID_COLS - 1, anchorCol + dc));
-          cb(row, col);
-        }
-      }
-    }
-  }
-
-  private _matchesShape(dr: number, dc: number, r: number): boolean {
-    switch (this._brushShape) {
-      case "cross":
-        return dr === 0 || dc === 0;
-      case "frame":
-        return Math.abs(dr) === r || Math.abs(dc) === r;
-      case "circle":
-        return dr * dr + dc * dc <= r * r;
-      case "hollow-circle":
-        return dr * dr + dc * dc <= r * r && dr * dr + dc * dc > (r - 1) * (r - 1);
-      case "diamond":
-        return Math.abs(dr) + Math.abs(dc) <= r;
-      case "hollow-diamond":
-        return Math.abs(dr) + Math.abs(dc) === r;
-      case "hline":
-        return dr === 0;
-      case "vline":
-        return dc === 0;
-      case "x":
-        return Math.abs(dr) === Math.abs(dc);
-      default:
-        return false;
-    }
-  }
-
-  private _forEachSquareCells(anchorRow: number, anchorCol: number, cb: (row: number, col: number) => void): void {
-    const startRow = Math.max(0, anchorRow - Math.floor((this._brushSize - 1) / 2));
-    const startCol = Math.max(0, anchorCol - Math.floor((this._brushSize - 1) / 2));
-    const endRow = Math.min(GRID_ROWS - 1, startRow + this._brushSize - 1);
-    const endCol = Math.min(GRID_COLS - 1, startCol + this._brushSize - 1);
-
-    for (let row = startRow; row <= endRow; row++) {
-      for (let col = startCol; col <= endCol; col++) {
-        cb(row, col);
-      }
+    for (const { rowOffset, colOffset } of getBrushOffsets(this._brushShape, this._brushSize)) {
+      const row = Math.max(0, Math.min(GRID_ROWS - 1, anchorRow + rowOffset));
+      const col = Math.max(0, Math.min(GRID_COLS - 1, anchorCol + colOffset));
+      cb(row, col);
     }
   }
 

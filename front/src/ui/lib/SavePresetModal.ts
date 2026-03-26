@@ -1,4 +1,5 @@
 import { CLOSE_ICON } from "@assets/icons/closeIcon";
+import { createButton } from "@ui/components/button/createButton";
 
 type SavePresetModalTexts = {
   title: string;
@@ -38,10 +39,12 @@ class SavePresetModal {
     this._overlay.innerHTML = `
       <div class="ui-save-modal__backdrop"></div>
       <section class="ui-save-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="ui-save-modal-title">
-        <button type="button" class="ui-save-modal__close" aria-label="${DEFAULT_TEXTS.closeLabel}">
-          <span aria-hidden="true">${CLOSE_ICON}</span>
-        </button>
-        <h2 id="ui-save-modal-title" class="ui-save-modal__title">${DEFAULT_TEXTS.title}</h2>
+        <div class="ui-save-modal__header">
+          <h2 id="ui-save-modal-title" class="ui-save-modal__title">${DEFAULT_TEXTS.title}</h2>
+          <button type="button" class="ui-save-modal__close" aria-label="${DEFAULT_TEXTS.closeLabel}">
+            <span aria-hidden="true">${CLOSE_ICON}</span>
+          </button>
+        </div>
         <input
           type="text"
           class="ui-save-modal__input"
@@ -51,8 +54,8 @@ class SavePresetModal {
         >
         <p class="ui-save-modal__error" hidden></p>
         <div class="ui-save-modal__actions">
-          <button type="button" class="ui-save-modal__cancel">${DEFAULT_TEXTS.cancelLabel}</button>
-          <button type="button" class="ui-save-modal__save">${DEFAULT_TEXTS.saveLabel}</button>
+          ${createButton({ className: "ui-save-modal__save", label: DEFAULT_TEXTS.saveLabel, size: "compact" })}
+          ${createButton({ className: "ui-save-modal__cancel", label: DEFAULT_TEXTS.cancelLabel, size: "compact" })}
         </div>
       </section>
     `;
