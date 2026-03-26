@@ -100,7 +100,7 @@ class Simulation {
   }
 
   /**
-   * Seed from a pre-built full-grid number[][] (156×156, values 0/1).
+   * Seed from a pre-built full-grid number[][] (values 0/1).
    * Used when Data has already computed centering and applied the pattern offset.
    */
   public seedFromGrid(grid: number[][]): void {

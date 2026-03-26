@@ -377,9 +377,15 @@ Generation is controlled by a `RandomSeedParams` object:
 | `seed` | `number \| null` | Non-null seeds the Mulberry32 PRNG for deterministic replay; `null` uses the preset's FNV-1a hash (stable default) or `Math.random()` (Generate) |
 | `noiseLevels` | `Record<NoiseType, number>` (0–1) | Per-noise-type intensity values. The UI stores one slider value per noise type and reuses it when switching tiles. |
 
-All presets are calibrated so that `density = 1` nearly fills the 156 × 156 grid.
+All presets are calibrated so that `density = 1` nearly fills the current grid (`GRID_ROWS × GRID_COLS`).
 
 `front/src/Grid/randomPresets.ts` is the source of truth for preset ids, labels, and the default preset. The UI and engine both read from this file, so the preset list is not duplicated.
+
+Grid geometry is configured in `front/src/Grid/constants.ts`:
+
+- `GRID.SIZE` is the single square grid size source of truth (in cells)
+- grid dimensions are normalized to a positive odd value (`GRID_SIZE`) so the board always has one exact center cell
+- pixel dimensions are derived from `CELL_SIZE`, so resizing cells and resizing the grid stay consistent
 
 #### Rendering and drawing interaction
 
@@ -441,7 +447,7 @@ The telemetry charts share reusable renderers under `front/src/ui/controls/telem
 - `AliveVariationChart.ts`: left-panel playback graph that renders the signed per-step change in living cells
 - `AliveCountChart.ts`: left-panel playback graph that renders the absolute number of living cells over time
 
-`Data` in `front/src/data/Data.ts` fetches catalog or custom patterns, centers them on the 156x156 grid, and exposes a plain `number[][]` seed for the simulation. After `load()` resolves, `Data.comments` holds the pattern's metadata lines for the caller to display.
+`Data` in `front/src/data/Data.ts` fetches catalog or custom patterns, centers them on the current grid dimensions, and exposes a plain `number[][]` seed for the simulation. After `load()` resolves, `Data.comments` holds the pattern's metadata lines for the caller to display.
 
 `ZoomBox` in `front/src/Grid/zoom/ZoomBox.ts` renders the magnified 14x14 area around the cursor in drawing mode.
 
@@ -684,7 +690,7 @@ File (user picks)
   │         bottom-right: 1/16
   │     error diffusion preserves perceived brightness and keeps shapes recognisable
   │
-  └─ number[][]                 156 × 156 grid passed to Grid.seedFromGrid()
+  └─ number[][]                 `GRID_ROWS × GRID_COLS` grid passed to Grid.seedFromGrid()
 ```
 
 The grayscale buffer is kept in memory by `ImageImporter` after the first import. Moving the threshold slider re-runs `floydSteinberg()` on the stored buffer without reloading or rescaling the image.

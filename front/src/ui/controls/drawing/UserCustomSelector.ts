@@ -17,7 +17,7 @@ class UserCustomSelector {
   /**
    * Injected by Grid in drawing mode.
    * Called at save time to get a fresh snapshot of the simulation state.
-   * Returns the full 156×156 grid as a number[][] (0=DEAD, 1=ALIVE).
+   * Returns the full current grid as a number[][] (0=DEAD, 1=ALIVE).
    */
   public getGridData: () => number[][] = () => [];
 

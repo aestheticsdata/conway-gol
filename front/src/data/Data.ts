@@ -1,5 +1,5 @@
 import { CELL_STATE } from "@cell/constants";
-import { CELL_SIZE, GRID, GRID_COLS, GRID_ROWS } from "@grid/constants";
+import { GRID_COLS, GRID_ROWS } from "@grid/constants";
 import PatternService from "@services/PatternService";
 import { species } from "./species/species";
 import { DATA_TEXTS } from "./texts";
@@ -33,8 +33,8 @@ class Data {
 
       // Center the pattern on the grid
       const position = [
-        Math.floor(((GRID.SIZE.Y / CELL_SIZE) >> 1) - (critterParsed.automata.length >> 1)),
-        Math.floor(((GRID.SIZE.X / CELL_SIZE) >> 1) - (critterParsed.automata[0].length >> 1)),
+        Math.floor((GRID_ROWS >> 1) - (critterParsed.automata.length >> 1)),
+        Math.floor((GRID_COLS >> 1) - (critterParsed.automata[0].length >> 1)),
       ];
 
       pattern = { position, content: critterParsed.automata };

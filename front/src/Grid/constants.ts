@@ -1,10 +1,13 @@
 // ── Grid rendering ─────────────────────────────────────────────────────────────
 export const GRID = {
-  SIZE: {
-    X: 780,
-    Y: 780,
-  },
+  // Use an odd value to keep a single, exact center cell.
+  SIZE: 167,
 } as const;
+
+function toPositiveOdd(value: number): number {
+  const int = Number.isFinite(value) ? Math.max(1, Math.floor(value)) : 1;
+  return int % 2 === 0 ? int + 1 : int;
+}
 
 export type CanvasTheme = {
   gridColor: string;
@@ -104,12 +107,17 @@ export function getCanvasPreviewCellColors(theme: CanvasTheme): readonly string[
 export const CELL_SIZE = 5;
 
 /** Number of columns (and rows) in the main grid. */
-export const GRID_COLS = GRID.SIZE.X / CELL_SIZE; // 156
-export const GRID_ROWS = GRID.SIZE.Y / CELL_SIZE; // 156
+export const GRID_SIZE = toPositiveOdd(GRID.SIZE);
+export const GRID_COLS = GRID_SIZE;
+export const GRID_ROWS = GRID_SIZE;
+
+/** Grid size in pixels, derived from cell count and CELL_SIZE. */
+export const GRID_PX_WIDTH = GRID_COLS * CELL_SIZE;
+export const GRID_PX_HEIGHT = GRID_ROWS * CELL_SIZE;
 
 /** Physical canvas size in pixels, including the extra outer border line. */
-export const CANVAS_PX_WIDTH = GRID_COLS * CELL_SIZE + 1;
-export const CANVAS_PX_HEIGHT = GRID_ROWS * CELL_SIZE + 1;
+export const CANVAS_PX_WIDTH = GRID_PX_WIDTH + 1;
+export const CANVAS_PX_HEIGHT = GRID_PX_HEIGHT + 1;
 
 /** Fraction of cells seeded as ALIVE on random initialisation (~18%). */
 export const INITIAL_DENSITY = 0.18;

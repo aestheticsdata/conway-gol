@@ -185,7 +185,7 @@ class Grid {
     }
   }
 
-  /** Load a pre-built 156×156 grid (e.g. from an imported image) and repaint. */
+  /** Load a pre-built full-grid state (e.g. from an imported image) and repaint. */
   public seedFromGrid(grid: number[][]): void {
     this._simulation.seedFromGrid(grid);
     this._render();
