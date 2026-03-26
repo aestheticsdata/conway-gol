@@ -2,6 +2,14 @@ export const APP_TEXTS = {
   document: {
     title: "Conway's game of life",
   },
+  auth: {
+    eyebrow: "Conway's Game of Life",
+    nav: {
+      login: "Login",
+      register: "Register",
+      about: "About",
+    },
+  },
   workspace: {
     studioTitle: "CGL Studio",
     exitStudio: "Exit Studio",

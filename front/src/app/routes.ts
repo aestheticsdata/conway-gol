@@ -2,6 +2,8 @@ import type { AppPath } from "@navigation/NavigationAdapter";
 import type { Mode } from "@ui/controls/simulation/ModeSelector";
 
 export const LOGIN_ROUTE = "/login";
+export const REGISTER_ROUTE = "/register";
+export const ABOUT_ROUTE = "/about";
 export const SIMULATION_ROUTE = "/simulation";
 export const ZOO_ROUTE = "/zoo";
 export const DRAWING_ROUTE = "/drawing";
@@ -9,6 +11,15 @@ export const DRAWING_ROUTE = "/drawing";
 export type WorkspaceRoute = typeof SIMULATION_ROUTE | typeof ZOO_ROUTE | typeof DRAWING_ROUTE;
 
 export const DEFAULT_APP_ROUTE: AppPath = LOGIN_ROUTE;
+
+export const PUBLIC_APP_ROUTES: readonly AppPath[] = [
+  LOGIN_ROUTE,
+  REGISTER_ROUTE,
+  ABOUT_ROUTE,
+  SIMULATION_ROUTE,
+  ZOO_ROUTE,
+  DRAWING_ROUTE,
+];
 
 export const WORKSPACE_ROUTE_TO_MODE: Record<WorkspaceRoute, Mode> = {
   [SIMULATION_ROUTE]: "random",

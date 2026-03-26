@@ -1,13 +1,13 @@
-import { LOGIN_ROUTE } from "@app/routes";
+import { REGISTER_ROUTE } from "@app/routes";
 import { createButton } from "@ui/components/button/createButton";
 import { createAuthLayout } from "@views/html/authLayout";
 
-export function createLoginView(): string {
+export function createRegisterView(): string {
   return createAuthLayout({
-    activeRoute: LOGIN_ROUTE,
+    activeRoute: REGISTER_ROUTE,
     content: `
       <p class="auth-card__copy">
-        Conway's Game of Life is a cellular automaton where simple rules govern the birth and death of cells on a grid, creating complex, evolving patterns from chaos.
+        Create your studio access before the authentication flow is wired to the backend. This screen prepares the full registration journey on the frontend.
       </p>
       <form class="auth-form">
         <label class="auth-field">
@@ -16,7 +16,6 @@ export function createLoginView(): string {
             type="email"
             name="email"
             placeholder="you@example.com"
-            value="demo@conway.local"
             autocomplete="email"
             required
           >
@@ -27,19 +26,21 @@ export function createLoginView(): string {
             type="password"
             name="password"
             placeholder="••••••••"
-            value="demo-password"
-            autocomplete="current-password"
+            autocomplete="new-password"
             required
           >
         </label>
-        ${createButton({
-          type: "submit",
-          className: "auth-submit",
-          icon: "arrow-right",
-          iconPosition: "trailing",
-          label: "Enter Simulation",
-          size: "compact",
-        })}
+        <label class="auth-field">
+          <span>Confirm Password</span>
+          <input
+            type="password"
+            name="passwordConfirmation"
+            placeholder="••••••••"
+            autocomplete="new-password"
+            required
+          >
+        </label>
+        ${createButton({ type: "submit", className: "auth-submit", label: "Create Account", size: "compact" })}
       </form>
     `,
   });

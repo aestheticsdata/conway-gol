@@ -37,6 +37,45 @@
   justify-content: center;
 }
 
+.ui-button--with-icon {
+  gap: 0.65em;
+}
+
+.ui-button__label {
+  display: inline-block;
+}
+
+.ui-button__icon {
+  position: relative;
+  display: inline-block;
+  flex: 0 0 auto;
+  color: inherit;
+  font-size: 1em;
+  line-height: 1;
+}
+
+:where(.ui-button[data-icon="arrow-right"] .ui-button__icon) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+}
+
+:where(.ui-button[data-icon="arrow-right"] .ui-button__icon--arrow-right svg) {
+  display: block;
+  width: 0.9em;
+  height: 0.68em;
+  overflow: visible;
+}
+
+:where(.ui-button[data-icon="arrow-right"] .ui-button__icon--arrow-right path) {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 :where(.ui-button--compact) {
   height: 36px;
   margin-top: 0;
@@ -85,12 +124,16 @@
 }
 
 :where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)):hover::before,
-:where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)):focus-visible::before {
+:where(
+    button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)
+  ):focus-visible::before {
   opacity: 1;
 }
 
 :where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)):hover::after,
-:where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)):focus-visible::after {
+:where(
+    button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)
+  ):focus-visible::after {
   opacity: 1;
 }
 

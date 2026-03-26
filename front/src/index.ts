@@ -1,9 +1,19 @@
-import { DEFAULT_APP_ROUTE, DRAWING_ROUTE, LOGIN_ROUTE, SIMULATION_ROUTE, ZOO_ROUTE } from "@app/routes";
+import {
+  ABOUT_ROUTE,
+  DEFAULT_APP_ROUTE,
+  DRAWING_ROUTE,
+  LOGIN_ROUTE,
+  REGISTER_ROUTE,
+  SIMULATION_ROUTE,
+  ZOO_ROUTE,
+} from "@app/routes";
 import { queryRequired } from "@helpers/dom";
 import { NavigationApiAdapter } from "@navigation/NavigationApiAdapter";
 import { AppRouter } from "@router/AppRouter";
 import { normalizeBasePath } from "@router/paths";
+import { AboutView } from "@views/AboutView";
 import { LoginView } from "@views/LoginView";
+import { RegisterView } from "@views/RegisterView";
 import { SimulationView } from "@views/SimulationView";
 
 import type { AppPath } from "@navigation/NavigationAdapter";
@@ -22,6 +32,14 @@ router = new AppRouter(
     {
       path: LOGIN_ROUTE,
       create: () => new LoginView(navigate),
+    },
+    {
+      path: REGISTER_ROUTE,
+      create: () => new RegisterView(navigate),
+    },
+    {
+      path: ABOUT_ROUTE,
+      create: () => new AboutView(),
     },
     {
       path: SIMULATION_ROUTE,

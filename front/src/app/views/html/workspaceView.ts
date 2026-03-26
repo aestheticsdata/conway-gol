@@ -17,6 +17,7 @@ import { createButton } from "@ui/components/button/createButton";
 import { createSliderField } from "@ui/components/slider/createSlider";
 import { DEFAULT_BRUSH_SIZE, MAX_BRUSH_SIZE, MIN_BRUSH_SIZE } from "@ui/controls/drawing/constants";
 import { CONTROL_TEXTS } from "@ui/controls/drawing/texts";
+import { createWorkspaceBrand } from "@views/html/appHeader";
 import { createTileSelectorButton } from "@views/html/tileSelector";
 
 import type { WorkspaceRoute } from "@app/routes";
@@ -132,10 +133,7 @@ function createModeSelector(route: WorkspaceRoute): string {
 function createWorkspaceHeader(route: WorkspaceRoute): string {
   return `
     <header class="workspace-header">
-      <div class="workspace-brand" aria-label="${APP_TEXTS.workspace.studioTitle}">
-        <span class="workspace-brand__mark" aria-hidden="true"></span>
-        <strong class="workspace-brand__title">${APP_TEXTS.workspace.studioTitle}</strong>
-      </div>
+      ${createWorkspaceBrand()}
       <div class="workspace-header__nav">
         <div class="workspace-mode-selector mode-selector tile-selector" aria-label="${APP_TEXTS.modes.label}">
           ${createModeSelector(route)}
@@ -143,6 +141,8 @@ function createWorkspaceHeader(route: WorkspaceRoute): string {
       </div>
       ${createButton({
         className: "workspace-login-link",
+        icon: "arrow-right",
+        iconPosition: "trailing",
         label: APP_TEXTS.workspace.exitStudio,
       })}
     </header>
