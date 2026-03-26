@@ -19,7 +19,7 @@ import { CONTROL_TEXTS } from "./texts";
 import type { CustomSelectOption } from "@ui/controls/shared/CustomSelect";
 import type { BrushShape } from "./constants";
 
-export type DrawingMode = "pencil" | "eraser";
+export type DrawingMode = "pencil" | "eraser" | "hand";
 type Observer = (drawingMode: DrawingMode) => void;
 type BrushSizeObserver = (brushSize: number) => void;
 type BrushShapeObserver = (brushShape: BrushShape) => void;
@@ -100,6 +100,7 @@ class DrawingToolBox {
     this._tools = {
       pencil: queryRequired<HTMLElement>(".item.pencil", this.toolboxDOM),
       eraser: queryRequired<HTMLElement>(".item.eraser", this.toolboxDOM),
+      hand: queryRequired<HTMLElement>(".item.hand", this.toolboxDOM),
     };
     this._brushShapeSelect = new CustomSelect(
       queryRequired<HTMLElement>(".drawing-brush-shape-select", this.toolboxDOM),

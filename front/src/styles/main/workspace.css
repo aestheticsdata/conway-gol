@@ -171,6 +171,12 @@
   stroke-width: 2.15;
 }
 
+.right-pane .custom-cursor .cursor.hand svg {
+  width: 24px;
+  height: 24px;
+  stroke-width: 1.85;
+}
+
 .route-pane-fade-in {
   animation: route-pane-fade-in 200ms ease-in both;
 }

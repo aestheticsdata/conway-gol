@@ -108,6 +108,7 @@ class Grid {
           initialBrushShape: options.drawingToolbox.selectedBrushShape,
           getCell: (row, col) => this._simulation.getCell(row, col),
           setCell: (row, col, state) => this._simulation.setCell(row, col, state),
+          translateGrid: (rowDelta, colDelta) => this._translateGrid(rowDelta, colDelta),
           renderCell: (row, col) => this._renderCell(row, col),
           emitStateChange: () => this._emitStateChange(),
           getPreviewCellColor: (state) => this._previewCellColors[state],
@@ -131,6 +132,10 @@ class Grid {
 
   public destroyListener(): void {
     this._drawingHandler?.destroyListeners();
+  }
+
+  public setDrawingPlaybackActive(isActive: boolean): void {
+    this._drawingHandler?.setPlaybackActive(isActive);
   }
 
   // ── Public API ─────────────────────────────────────────────────────────────
@@ -298,6 +303,13 @@ class Grid {
       canvas: this._canvas,
       color: this._theme.gridColor,
     });
+  }
+
+  private _translateGrid(rowDelta: number, colDelta: number): void {
+    this._simulation.translate(rowDelta, colDelta);
+    this._render();
+    this._drawGrid();
+    this._emitStateChange();
   }
 
   // ── Rotation ──────────────────────────────────────────────────────────────

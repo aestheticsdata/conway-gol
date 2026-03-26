@@ -111,6 +111,28 @@ class Simulation {
     }
   }
 
+  /**
+   * Translate the current grid contents by a whole-cell offset.
+   * The drawing grid stays toroidal, so content wraps across all four edges.
+   */
+  public translate(rowDelta: number, colDelta: number): void {
+    const wrappedRowDelta = ((rowDelta % this.rows) + this.rows) % this.rows;
+    const wrappedColDelta = ((colDelta % this.cols) + this.cols) % this.cols;
+    if (wrappedRowDelta === 0 && wrappedColDelta === 0) {
+      return;
+    }
+
+    for (let row = 0; row < this.rows; row++) {
+      for (let col = 0; col < this.cols; col++) {
+        const targetRow = (row + wrappedRowDelta) % this.rows;
+        const targetCol = (col + wrappedColDelta) % this.cols;
+        this._next[targetRow * this.cols + targetCol] = this._current[row * this.cols + col];
+      }
+    }
+
+    [this._current, this._next] = [this._next, this._current];
+  }
+
   // ── Simulation step ────────────────────────────────────────────────────────
 
   /**

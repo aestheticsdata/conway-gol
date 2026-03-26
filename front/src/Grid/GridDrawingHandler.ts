@@ -21,6 +21,7 @@ export type GridDrawingHandlerDeps = {
   initialBrushShape: BrushShape;
   getCell: (row: number, col: number) => number;
   setCell: (row: number, col: number, state: number) => void;
+  translateGrid: (rowDelta: number, colDelta: number) => void;
   renderCell: (row: number, col: number) => void;
   emitStateChange: () => void;
   getPreviewCellColor: (state: number) => string;
@@ -39,17 +40,21 @@ class GridDrawingHandler {
   private readonly _zoombox: ZoomBox;
   private readonly _getCell: (row: number, col: number) => number;
   private readonly _setCell: (row: number, col: number, state: number) => void;
+  private readonly _translateGrid: (rowDelta: number, colDelta: number) => void;
   private readonly _renderCell: (row: number, col: number) => void;
   private readonly _emitStateChange: () => void;
   private readonly _getPreviewCellColor: (state: number) => string;
   private readonly _pencilCursor: HTMLElement | null;
   private readonly _eraserCursor: HTMLElement | null;
+  private readonly _handCursor: HTMLElement | null;
 
   private _drawingMode: DrawingMode;
   private _brushSize: number;
   private _brushShape: BrushShape;
   private _hoverPointer: GridPointerPosition | null = null;
+  private _dragPointer: GridPointerPosition | null = null;
   private _isDown = false;
+  private _isPlaybackActive = false;
 
   constructor(deps: GridDrawingHandlerDeps) {
     this._cursor = deps.cursor;
@@ -61,11 +66,13 @@ class GridDrawingHandler {
     this._brushShape = deps.initialBrushShape;
     this._getCell = deps.getCell;
     this._setCell = deps.setCell;
+    this._translateGrid = deps.translateGrid;
     this._renderCell = deps.renderCell;
     this._emitStateChange = deps.emitStateChange;
     this._getPreviewCellColor = deps.getPreviewCellColor;
     this._pencilCursor = this._cursor.querySelector<HTMLElement>(".cursor.pencil");
     this._eraserCursor = this._cursor.querySelector<HTMLElement>(".cursor.eraser");
+    this._handCursor = this._cursor.querySelector<HTMLElement>(".cursor.hand");
   }
 
   public setDrawingMode(mode: DrawingMode): void {
@@ -81,6 +88,14 @@ class GridDrawingHandler {
 
   public setBrushShape(shape: BrushShape): void {
     this._brushShape = shape;
+    this._renderHoverPreview();
+  }
+
+  public setPlaybackActive(isActive: boolean): void {
+    this._isPlaybackActive = isActive;
+    if (isActive) {
+      this._dragPointer = null;
+    }
     this._renderHoverPreview();
   }
 
@@ -113,6 +128,7 @@ class GridDrawingHandler {
   private _onMouseLeave = (_e: MouseEvent): void => {
     this._cursor.style.display = "none";
     this._hoverPointer = null;
+    this._dragPointer = null;
     this._clearOverlay();
   };
 
@@ -128,6 +144,14 @@ class GridDrawingHandler {
     }
 
     this._hoverPointer = pointer;
+    if (this._isDown) {
+      if (this._drawingMode === "hand") {
+        this._translateAtPointer(pointer);
+      } else {
+        this._paintAtPointer(pointer);
+      }
+    }
+
     this._zoombox.displayArea(
       this._getZoomArea(pointer.xPos, pointer.yPos),
       this._drawingMode,
@@ -136,9 +160,6 @@ class GridDrawingHandler {
       pointer.xPos,
       pointer.yPos,
     );
-    if (this._isDown) {
-      this._paintAtPointer(pointer);
-    }
     this._renderHoverPreview();
   };
 
@@ -150,7 +171,11 @@ class GridDrawingHandler {
     }
 
     this._hoverPointer = pointer;
-    this._paintAtPointer(pointer);
+    if (this._drawingMode === "hand") {
+      this._dragPointer = pointer;
+    } else {
+      this._paintAtPointer(pointer);
+    }
     this._zoombox.displayArea(
       this._getZoomArea(pointer.xPos, pointer.yPos),
       this._drawingMode,
@@ -164,6 +189,7 @@ class GridDrawingHandler {
 
   private _onMouseUp = (): void => {
     this._isDown = false;
+    this._dragPointer = null;
   };
 
   // ── Private helpers ────────────────────────────────────────────────────────
@@ -238,6 +264,27 @@ class GridDrawingHandler {
     }
   }
 
+  private _translateAtPointer(pointer: GridPointerPosition): void {
+    if (this._isPlaybackActive) {
+      this._dragPointer = pointer;
+      return;
+    }
+
+    if (!this._dragPointer) {
+      this._dragPointer = pointer;
+      return;
+    }
+
+    const rowDelta = pointer.yPos - this._dragPointer.yPos;
+    const colDelta = pointer.xPos - this._dragPointer.xPos;
+    if (rowDelta === 0 && colDelta === 0) {
+      return;
+    }
+
+    this._translateGrid(rowDelta, colDelta);
+    this._dragPointer = pointer;
+  }
+
   private _forEachShapeCell(anchorRow: number, anchorCol: number, cb: (row: number, col: number) => void): void {
     if (this._brushShape === "square") {
       this._forEachSquareCells(anchorRow, anchorCol, cb);
@@ -303,7 +350,7 @@ class GridDrawingHandler {
   private _renderHoverPreview(): void {
     this._clearOverlay();
 
-    if (!this._hoverPointer || this._cursor.style.display === "none") {
+    if (!this._hoverPointer || this._cursor.style.display === "none" || this._drawingMode === "hand") {
       return;
     }
 
@@ -318,13 +365,13 @@ class GridDrawingHandler {
   }
 
   private _syncCursorMode(): void {
-    if (!this._pencilCursor || !this._eraserCursor) {
+    if (!this._pencilCursor || !this._eraserCursor || !this._handCursor) {
       return;
     }
 
-    const showPencil = this._drawingMode === "pencil";
-    this._pencilCursor.style.display = showPencil ? "block" : "none";
-    this._eraserCursor.style.display = showPencil ? "none" : "block";
+    this._pencilCursor.style.display = this._drawingMode === "pencil" ? "block" : "none";
+    this._eraserCursor.style.display = this._drawingMode === "eraser" ? "block" : "none";
+    this._handCursor.style.display = this._drawingMode === "hand" ? "block" : "none";
   }
 
   private _clampBrushSize(size: number): number {

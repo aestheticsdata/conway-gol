@@ -10,6 +10,7 @@ export const CONTROL_TEXTS = {
     tools: {
       pencilAlt: "pencil",
       eraserAlt: "eraser",
+      handAlt: "hand",
     },
     shapes: {
       square: "Square",

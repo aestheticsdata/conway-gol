@@ -240,6 +240,10 @@ export class SimulationWorkspace {
       "aria-label",
       CONTROL_TEXTS.drawing.tools.eraserAlt,
     );
+    queryRequired<HTMLElement>('.drawing-toolbox .item[data-tool="hand"]', this._root).setAttribute(
+      "aria-label",
+      CONTROL_TEXTS.drawing.tools.handAlt,
+    );
   }
 
   private _currentRandomPreset(): RandomPresetId {
@@ -644,6 +648,7 @@ export class SimulationWorkspace {
 
   private _setDrawingPlaybackState(isPlaying: boolean): void {
     this._imageImporter?.setPlaybackActive(isPlaying);
+    this._grid?.setDrawingPlaybackActive(isPlaying);
   }
 
   private _togglePause = (): void => {

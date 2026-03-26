@@ -72,7 +72,7 @@ class ZoomBox {
   /**
    * Render the 14×14 area around the cursor.
    * @param area  number[][] from Grid._getZoomArea(). [[OUTSIDE]] when out of range.
-   * @param drawingMode  Current pencil/eraser mode, controls center cell highlight color.
+   * @param drawingMode  Current drawing mode, controls brush highlight rendering.
    * @param brushShape  Active brush shape — used to highlight all brush cells.
    * @param brushSize  Active brush size.
    * @param x  Column coordinate (displayed in the HUD).
@@ -107,19 +107,20 @@ class ZoomBox {
       }
     }
 
-    // Overlay all brush-shape cells with the active cursor highlight color.
-    const previewColor = drawingMode === "pencil" ? this._theme.previewAliveCellColor : this._theme.previewEraseCellColor;
-    this._zoomContext.fillStyle = previewColor;
-    this._zoomContext.strokeStyle = this._theme.zoomHighlightStrokeColor;
+    if (drawingMode !== "hand") {
+      const previewColor = drawingMode === "pencil" ? this._theme.previewAliveCellColor : this._theme.previewEraseCellColor;
+      this._zoomContext.fillStyle = previewColor;
 
-    this._forEachBrushCell(brushShape, brushSize, (row, col) => {
-      if (area[row][col] === CELL_STATE.BORDER || area[row][col] === CELL_STATE.OUTSIDE) return;
-      this._zoomContext.fillRect(col * cellPx + 1, row * cellPx + 1, cellPx - 1, cellPx - 1);
-    });
+      this._forEachBrushCell(brushShape, brushSize, (row, col) => {
+        if (area[row][col] === CELL_STATE.BORDER || area[row][col] === CELL_STATE.OUTSIDE) return;
+        this._zoomContext.fillRect(col * cellPx + 1, row * cellPx + 1, cellPx - 1, cellPx - 1);
+      });
+    }
 
     // Draw the stroke border only around the center cell (cursor focus).
     const cx = ZOOM_FOCUS.x;
     const cy = ZOOM_FOCUS.y;
+    this._zoomContext.strokeStyle = this._theme.zoomHighlightStrokeColor;
     this._zoomContext.strokeRect(cx * cellPx, cy * cellPx, cellPx + 1, cellPx + 1);
 
     this._drawVisibleGrid(area);

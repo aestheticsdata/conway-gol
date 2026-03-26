@@ -1,5 +1,6 @@
 import { DRAWING_ROUTE, SIMULATION_ROUTE, ZOO_ROUTE } from "@app/routes";
 import { ERASER_ICON } from "@assets/icons/eraserIcon";
+import { HAND_ICON } from "@assets/icons/handIcon";
 import { NOISE_CENTER_BURST_ICON } from "@assets/icons/noiseCenterBurstIcon";
 import { NOISE_CLUSTERS_ICON } from "@assets/icons/noiseClustersIcon";
 import { NOISE_EDGE_BIAS_ICON } from "@assets/icons/noiseEdgeBiasIcon";
@@ -34,7 +35,7 @@ type RandomNoiseOption = {
   ariaLabel: string;
 };
 
-type DrawingTool = "pencil" | "eraser";
+type DrawingTool = "pencil" | "eraser" | "hand";
 
 const MODE_SELECTOR_OPTIONS: ModeSelectorOption[] = [
   {
@@ -115,6 +116,7 @@ const RANDOM_NOISE_OPTIONS: readonly RandomNoiseOption[] = [
 const DRAWING_TOOL_ICONS: Record<DrawingTool, string> = {
   pencil: PENCIL_ICON,
   eraser: ERASER_ICON,
+  hand: HAND_ICON,
 };
 
 function createModeSelector(route: WorkspaceRoute): string {
@@ -443,6 +445,7 @@ function createDrawingToolbox(): string {
       <div class="drawing-toolbox__tools" role="toolbar" aria-label="Drawing tools">
         ${createDrawingTool("pencil")}
         ${createDrawingTool("eraser")}
+        ${createDrawingTool("hand")}
       </div>
       <div class="custom-select drawing-brush-shape-select">
         <button
@@ -487,6 +490,7 @@ function createCustomCursor(): string {
     <div class="custom-cursor" aria-hidden="true" style="display: none">
       <span class="cursor pencil" data-tool="pencil" style="display: none">${DRAWING_TOOL_ICONS.pencil}</span>
       <span class="cursor eraser" data-tool="eraser" style="display: none">${DRAWING_TOOL_ICONS.eraser}</span>
+      <span class="cursor hand" data-tool="hand" style="display: none">${DRAWING_TOOL_ICONS.hand}</span>
     </div>
   `;
 }
