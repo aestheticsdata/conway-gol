@@ -13,6 +13,7 @@
 
   --canvas-grid-color: rgba(204, 204, 204, 0.2);
   --canvas-zoom-grid-color: rgb(175, 175, 175);
+  --canvas-zoom-boundary-color: rgba(117, 161, 205, 0.24);
   --canvas-cell-alive-color: rgb(112, 186, 223);
   --canvas-cell-dead-color: transparent;
   --canvas-cell-border-color: rgb(204, 204, 204);

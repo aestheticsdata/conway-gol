@@ -1,10 +1,10 @@
 import { CELL_STATE } from "@cell/constants";
 import {
   CELL_SIZE,
-  getCanvasCellColors,
   getCanvasTheme,
+  getZoomCanvasCellColors,
   ZOOM_CANVAS_PX,
-  ZOOM_CENTER,
+  ZOOM_FOCUS,
   ZOOM_LEVEL,
   ZOOM_SIZE,
 } from "@grid/constants";
@@ -15,7 +15,7 @@ import type { CanvasTheme } from "@grid/constants";
 import type { DrawingMode } from "@ui/controls/drawing/DrawingToolBox";
 
 /**
- * ZoomBox — 4× magnified 7×7 neighbourhood view around the drawing cursor.
+ * ZoomBox — 4× magnified 14×14 neighbourhood view around the drawing cursor.
  *
  * Receives a plain number[][] area from Grid._getZoomArea() and renders it
  * directly — no Cell objects, no internal state matrix.
@@ -42,14 +42,19 @@ class ZoomBox {
   private readonly _cellColors: readonly string[];
 
   constructor() {
-    queryRequired<HTMLElement>(".zoombox-container").insertAdjacentHTML("afterbegin", this._html);
+    const zoomBoxContainer = queryRequired<HTMLElement>(".zoombox-container");
+    zoomBoxContainer.insertAdjacentHTML("afterbegin", this._html);
     this._zoombox = queryRequired<HTMLElement>(".zoombox");
+    const zoomBoxOuterPx = `${ZOOM_CANVAS_PX + 2}px`;
+    zoomBoxContainer.style.height = zoomBoxOuterPx;
+    this._zoombox.style.width = zoomBoxOuterPx;
+    this._zoombox.style.height = zoomBoxOuterPx;
     this._zoomCanvas = queryRequired<HTMLCanvasElement>("#zoombox", this._zoombox);
     this._zoomCanvas.width = ZOOM_CANVAS_PX;
     this._zoomCanvas.height = ZOOM_CANVAS_PX;
     this._zoomContext = getRequiredContext2D(this._zoomCanvas);
     this._theme = getCanvasTheme();
-    this._cellColors = getCanvasCellColors(this._theme);
+    this._cellColors = getZoomCanvasCellColors(this._theme);
     this._renderBlank();
     this._xPosDisplay = queryRequired<HTMLElement>(".x-pos", this._zoombox);
     this._yPosDisplay = queryRequired<HTMLElement>(".y-pos", this._zoombox);
@@ -64,7 +69,7 @@ class ZoomBox {
   }
 
   /**
-   * Render the 7×7 area around the cursor.
+   * Render the 14×14 area around the cursor.
    * @param area  number[][] from Grid._getZoomArea(). [[OUTSIDE]] when out of range.
    * @param drawingMode  Current pencil/eraser mode, controls center cell highlight color.
    * @param x  Column coordinate (displayed in the HUD).
@@ -89,21 +94,26 @@ class ZoomBox {
 
     for (let row = 0; row < ZOOM_SIZE; row++) {
       for (let col = 0; col < ZOOM_SIZE; col++) {
-        this._zoomContext.fillStyle = this._cellColors[area[row][col]];
+        const state = area[row][col];
+        this._zoomContext.fillStyle = this._cellColors[state];
+        if (state === CELL_STATE.BORDER || state === CELL_STATE.OUTSIDE) {
+          this._zoomContext.fillRect(col * cellPx, row * cellPx, cellPx, cellPx);
+          continue;
+        }
         this._zoomContext.fillRect(col * cellPx + 1, row * cellPx + 1, cellPx - 1, cellPx - 1);
       }
     }
 
     // Overlay center cell with the active cursor blue + blue border.
-    const cx = ZOOM_CENTER.x;
-    const cy = ZOOM_CENTER.y;
+    const cx = ZOOM_FOCUS.x;
+    const cy = ZOOM_FOCUS.y;
     this._zoomContext.fillStyle =
       drawingMode === "pencil" ? this._theme.previewAliveCellColor : this._theme.previewEraseCellColor;
     this._zoomContext.fillRect(cx * cellPx + 1, cy * cellPx + 1, cellPx - 1, cellPx - 1);
     this._zoomContext.strokeStyle = this._theme.zoomHighlightStrokeColor;
     this._zoomContext.strokeRect(cx * cellPx, cy * cellPx, cellPx + 1, cellPx + 1);
 
-    this._drawGrid(this._zoomContext);
+    this._drawVisibleGrid(area);
   }
 
   /** Fill the zoom canvas with DEAD color on first render. */
@@ -119,6 +129,67 @@ class ZoomBox {
       zoom: ZOOM_LEVEL,
       color: this._theme.zoomGridColor,
     });
+  }
+
+  private _drawVisibleGrid(area: number[][]): void {
+    const bounds = this._getVisibleBounds(area);
+    if (!bounds) return;
+
+    const cellPx = CELL_SIZE * ZOOM_LEVEL;
+    const left = bounds.minCol * cellPx;
+    const top = bounds.minRow * cellPx;
+    const width = (bounds.maxCol - bounds.minCol + 1) * cellPx;
+    const height = (bounds.maxRow - bounds.minRow + 1) * cellPx;
+
+    this._zoomContext.save();
+    this._zoomContext.beginPath();
+    this._zoomContext.strokeStyle = this._theme.zoomGridColor;
+    this._zoomContext.lineWidth = 1;
+
+    for (let col = 1; col < bounds.maxCol - bounds.minCol + 1; col++) {
+      const x = left + col * cellPx + 0.5;
+      this._zoomContext.moveTo(x, top);
+      this._zoomContext.lineTo(x, top + height);
+    }
+
+    for (let row = 1; row < bounds.maxRow - bounds.minRow + 1; row++) {
+      const y = top + row * cellPx + 0.5;
+      this._zoomContext.moveTo(left, y);
+      this._zoomContext.lineTo(left + width, y);
+    }
+
+    this._zoomContext.stroke();
+    this._zoomContext.fillStyle = this._theme.zoomGridColor;
+    this._zoomContext.fillRect(left, top, width, 1);
+    this._zoomContext.fillRect(left, top, 1, height);
+    this._zoomContext.fillRect(left, top + height - 1, width, 1);
+    this._zoomContext.fillRect(left + width - 1, top, 1, height);
+    this._zoomContext.restore();
+  }
+
+  private _getVisibleBounds(area: number[][]): { minRow: number; maxRow: number; minCol: number; maxCol: number } | null {
+    let minRow = Number.POSITIVE_INFINITY;
+    let maxRow = Number.NEGATIVE_INFINITY;
+    let minCol = Number.POSITIVE_INFINITY;
+    let maxCol = Number.NEGATIVE_INFINITY;
+
+    for (let row = 0; row < ZOOM_SIZE; row++) {
+      for (let col = 0; col < ZOOM_SIZE; col++) {
+        if (area[row][col] === CELL_STATE.BORDER || area[row][col] === CELL_STATE.OUTSIDE) {
+          continue;
+        }
+        minRow = Math.min(minRow, row);
+        maxRow = Math.max(maxRow, row);
+        minCol = Math.min(minCol, col);
+        maxCol = Math.max(maxCol, col);
+      }
+    }
+
+    if (!Number.isFinite(minRow) || !Number.isFinite(minCol) || !Number.isFinite(maxRow) || !Number.isFinite(maxCol)) {
+      return null;
+    }
+
+    return { minRow, maxRow, minCol, maxCol };
   }
 }
 

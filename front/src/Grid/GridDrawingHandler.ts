@@ -1,6 +1,6 @@
 import { CELL_STATE } from "@cell/constants";
 import { MAX_BRUSH_SIZE, MIN_BRUSH_SIZE } from "@ui/controls/drawing/constants";
-import { CELL_SIZE, GRID_COLS, GRID_ROWS, ZOOM_RADIUS, ZOOM_SIZE } from "./constants";
+import { CELL_SIZE, GRID_COLS, GRID_ROWS, ZOOM_FOCUS, ZOOM_SIZE } from "./constants";
 
 import type { DrawingMode } from "@ui/controls/drawing/DrawingToolBox";
 import type ZoomBox from "./zoom/ZoomBox";
@@ -182,7 +182,7 @@ class GridDrawingHandler {
   }
 
   /**
-   * Extract the 7×7 neighbourhood around (x, y) from the simulation state.
+   * Extract the 14×14 neighbourhood around (x, y) from the simulation state.
    * Cells outside [0, GRID_COLS-1] / [0, GRID_ROWS-1] are marked as BORDER.
    * Returns [[OUTSIDE]] when the cursor is outside the valid cell range.
    */
@@ -192,8 +192,8 @@ class GridDrawingHandler {
       for (let i = 0; i < ZOOM_SIZE; i++) {
         area.push([]);
         for (let j = 0; j < ZOOM_SIZE; j++) {
-          const row = i + y - ZOOM_RADIUS;
-          const col = j + x - ZOOM_RADIUS;
+          const row = i + y - ZOOM_FOCUS.y;
+          const col = j + x - ZOOM_FOCUS.x;
           if (row < 0 || row >= GRID_ROWS || col < 0 || col >= GRID_COLS) {
             area[i].push(CELL_STATE.BORDER);
           } else {

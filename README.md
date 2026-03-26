@@ -442,7 +442,7 @@ The telemetry charts share reusable renderers under `front/src/ui/controls/telem
 
 `Data` in `front/src/data/Data.ts` fetches catalog or custom patterns, centers them on the 156x156 grid, and exposes a plain `number[][]` seed for the simulation. After `load()` resolves, `Data.comments` holds the pattern's metadata lines for the caller to display.
 
-`ZoomBox` in `front/src/Grid/zoom/ZoomBox.ts` renders the magnified 7x7 area around the cursor in drawing mode.
+`ZoomBox` in `front/src/Grid/zoom/ZoomBox.ts` renders the magnified 14x14 area around the cursor in drawing mode.
 
 #### Shared custom select
 
@@ -879,6 +879,36 @@ Two additional `NoiseType` values extend random seeding and spatial post-masks:
 | `marbling` | Coordinates are domain-warped with low-frequency sinusoids, then a product of sines is evaluated — vein-like, marble or wood-grain structure at high density. |
 
 **Implementation:** `fillInterferenceNoise` and `fillMarblingNoise` in `front/src/Grid/seeding/randomPresetNoise.ts`; `applySpatialNoiseMask` uses the same low-mask preference as `center-burst` (threshold `0.5`). **UI:** `noiseInterferenceIcon.ts` and `noiseMarblingIcon.ts` (inline SVG, same tile-selector stroke styling as existing noise icons), labels in `front/src/texts.ts`, options in `workspaceView.ts` and `RandomControlsPanel.ts`.
+
+### Phase 15 - Drawing-mode zoom viewport expanded to 14×14 (2026-03)
+
+The zoom canvas shown while drawing was enlarged from a 7×7 to a 14×14 cell neighbourhood around the cursor.
+
+**Viewport and sizing**
+
+- `ZOOM_SIZE` is now a flat constant (`14`) instead of being derived from a radius. `ZOOM_CANVAS_PX` is computed dynamically as `CELL_SIZE × ZOOM_LEVEL × ZOOM_SIZE` (896 px at default settings), so resizing the viewport only requires changing `ZOOM_SIZE`.
+- `ZoomBox` sets the container, wrapper, and canvas dimensions at construction time from `ZOOM_CANVAS_PX` rather than relying on CSS fixed values.
+
+**Cursor focus point**
+
+`ZOOM_RADIUS` (always equal to `(size − 1) / 2`, integer) was replaced by `ZOOM_FOCUS`:
+
+```ts
+export const ZOOM_FOCUS = {
+  x: Math.floor((ZOOM_SIZE - 1) / 2),
+  y: Math.floor((ZOOM_SIZE - 1) / 2),
+} as const;
+```
+
+With an even-sized viewport the focus cell sits in the upper-left slot of the central 2×2 block — one deterministic cell is still highlighted, and the viewport shows three more cells ahead of the cursor than behind it.
+
+**Boundary cell tinting**
+
+A new theme token `zoomBoundaryCellColor` (`rgba(117, 161, 205, 0.24)`) and a matching CSS variable `--canvas-zoom-boundary-color` distinguish out-of-grid cells from regular dead cells in the zoom canvas. `getZoomCanvasCellColors()` returns this tint for both `BORDER` and `OUTSIDE` states, while the main canvas keeps using `getCanvasCellColors()` unchanged. Boundary cells skip the 1 px inset so they fill the full cell square, visually reinforcing the grid edge.
+
+**Clipped grid lines**
+
+`_drawGrid()` (full canvas) was replaced by `_drawVisibleGrid()`, which first calls `_getVisibleBounds()` to compute the bounding box of non-boundary cells, then draws grid lines and a border rectangle only over that region. When the cursor is near the edge, grid lines are not drawn over the tinted boundary area.
 
 ### Phase 11 - Random mode transforms, Grid split, and Reset (2026-03)
 

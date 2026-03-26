@@ -9,6 +9,7 @@ export const GRID = {
 export type CanvasTheme = {
   gridColor: string;
   zoomGridColor: string;
+  zoomBoundaryCellColor: string;
   aliveCellColor: string;
   deadCellColor: string;
   borderCellColor: string;
@@ -21,6 +22,7 @@ export type CanvasTheme = {
 export const DEFAULT_CANVAS_THEME: CanvasTheme = {
   gridColor: "rgb(204, 204, 204)",
   zoomGridColor: "rgb(175, 175, 175)",
+  zoomBoundaryCellColor: "rgba(117, 161, 205, 0.24)",
   aliveCellColor: "rgb(112, 186, 223)",
   deadCellColor: "transparent",
   borderCellColor: "rgb(204, 204, 204)",
@@ -44,6 +46,11 @@ export function getCanvasTheme(): CanvasTheme {
   return {
     gridColor: readCssColorVariable(styles, "--canvas-grid-color", DEFAULT_CANVAS_THEME.gridColor),
     zoomGridColor: readCssColorVariable(styles, "--canvas-zoom-grid-color", DEFAULT_CANVAS_THEME.zoomGridColor),
+    zoomBoundaryCellColor: readCssColorVariable(
+      styles,
+      "--canvas-zoom-boundary-color",
+      DEFAULT_CANVAS_THEME.zoomBoundaryCellColor,
+    ),
     aliveCellColor: readCssColorVariable(styles, "--canvas-cell-alive-color", DEFAULT_CANVAS_THEME.aliveCellColor),
     deadCellColor: readCssColorVariable(styles, "--canvas-cell-dead-color", DEFAULT_CANVAS_THEME.deadCellColor),
     borderCellColor: readCssColorVariable(styles, "--canvas-cell-border-color", DEFAULT_CANVAS_THEME.borderCellColor),
@@ -74,6 +81,15 @@ export function getCanvasCellColors(theme: CanvasTheme): readonly string[] {
   return [theme.deadCellColor, theme.aliveCellColor, theme.borderCellColor, theme.outsideCellColor] as const;
 }
 
+export function getZoomCanvasCellColors(theme: CanvasTheme): readonly string[] {
+  return [
+    theme.deadCellColor,
+    theme.aliveCellColor,
+    theme.zoomBoundaryCellColor,
+    theme.zoomBoundaryCellColor,
+  ] as const;
+}
+
 export function getCanvasPreviewCellColors(theme: CanvasTheme): readonly string[] {
   return [
     theme.previewEraseCellColor,
@@ -102,14 +118,18 @@ export const INITIAL_DENSITY = 0.18;
 /** Pixel magnification factor applied inside the zoom canvas. */
 export const ZOOM_LEVEL = 4;
 
-/** Radius (in cells) of the neighbourhood shown around the cursor. */
-export const ZOOM_RADIUS = 3;
-
-/** Side length of the zoom area in cells (2*radius + 1 = 7). */
-export const ZOOM_SIZE = ZOOM_RADIUS * 2 + 1;
+/** Side length of the zoom area in cells. */
+export const ZOOM_SIZE = 14;
 
 /** Pixel dimension of the zoom canvas. */
-export const ZOOM_CANVAS_PX = 140;
+export const ZOOM_CANVAS_PX = CELL_SIZE * ZOOM_LEVEL * ZOOM_SIZE;
 
-/** Grid coordinates of the center cell inside the zoom area. */
-export const ZOOM_CENTER = { x: ZOOM_RADIUS, y: ZOOM_RADIUS };
+/**
+ * Grid coordinates of the hovered cell inside the zoom area.
+ * With an even-sized viewport, the focus cell occupies the upper-left slot
+ * of the central 2×2 block so we can still highlight one exact cell.
+ */
+export const ZOOM_FOCUS = {
+  x: Math.floor((ZOOM_SIZE - 1) / 2),
+  y: Math.floor((ZOOM_SIZE - 1) / 2),
+} as const;
