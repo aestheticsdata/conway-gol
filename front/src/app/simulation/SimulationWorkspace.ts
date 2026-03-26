@@ -332,6 +332,7 @@ export class SimulationWorkspace {
       return;
     }
 
+    this._clearDrawingRestoreSnapshot();
     this._resetSimulationPlaybackState();
     this._grid.clearCanvas();
   };
@@ -695,7 +696,7 @@ export class SimulationWorkspace {
   }
 
   private _captureDrawingRestoreSnapshot(): void {
-    if (this._selectedMode !== "drawing" || !this._grid || this._drawingInitialGridSnapshot !== null) {
+    if (this._selectedMode !== "drawing" || !this._grid) {
       return;
     }
 
