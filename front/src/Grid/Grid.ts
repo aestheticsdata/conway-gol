@@ -184,6 +184,14 @@ class Grid {
     this._emitStateChange();
   }
 
+  public clearCanvas(): void {
+    this._baseGrid = null;
+    this._simulation.seedDead();
+    this._render();
+    this._drawGrid();
+    this._emitStateChange();
+  }
+
   /** Snapshot current simulation state as a full grid. */
   public toGrid(): number[][] {
     return this._simulation.toGrid();

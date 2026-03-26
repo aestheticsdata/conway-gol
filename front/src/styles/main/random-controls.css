@@ -23,14 +23,11 @@
   color: var(--text-muted);
 }
 
-.random-generate-wrapper .ui-button {
-  flex: 1 1 0;
-  min-width: 0;
-}
-
 .random-generate-wrapper {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-start;
+  align-items: center;
   gap: 8px;
   margin-top: 14px;
   padding-top: 14px;

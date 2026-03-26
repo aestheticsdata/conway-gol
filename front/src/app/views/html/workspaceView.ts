@@ -262,7 +262,7 @@ function createRandomControls(): string {
   return `
     <div class="random-preset-selector" style="display: none">
       <div class="random-pane-randomizer">
-        ${createButton({ className: "random-pane-randomize", width: "block" })}
+        ${createButton({ className: "random-pane-randomize" })}
       </div>
       <label for="random-preset-trigger"></label>
       <div class="custom-select random-preset-custom-select">
@@ -348,9 +348,9 @@ function createRandomControls(): string {
         })}
       </div>
       <div class="random-generate-wrapper">
-        ${createButton({ className: "random-generate", width: "block" })}
-        ${createButton({ className: "random-save", width: "block" })}
-        ${createButton({ className: "random-reset", width: "block" })}
+        ${createButton({ className: "random-generate" })}
+        ${createButton({ className: "random-save" })}
+        ${createButton({ className: "random-reset" })}
       </div>
     </div>
   `;
@@ -391,6 +391,17 @@ function createDrawingSaveAction(): string {
   return `
     <div class="drawing-save-action">
       ${createButton({ className: "save" })}
+    </div>
+  `;
+}
+
+function createDrawingClearAction(): string {
+  return `
+    <div class="drawing-clear-action">
+      ${createButton({
+        className: "drawing-clear",
+        label: CONTROL_TEXTS.drawing.clearCanvasButton,
+      })}
     </div>
   `;
 }
@@ -493,7 +504,7 @@ function createImageImport(): string {
   return `
     <div class="image-import" style="display: none">
       <input type="file" id="image-import-input" accept="image/jpeg,image/png,image/webp,image/gif,image/bmp,image/avif" style="display: none">
-      ${createButton({ className: "image-import-btn", width: "auto" })}
+      ${createButton({ className: "image-import-btn" })}
       <span class="image-import-formats"></span>
       ${createSliderField({
         className: "random-param random-param--separated image-import-threshold",
@@ -518,6 +529,7 @@ function createWorkspaceInspector(): string {
       <div class="drawing-pane" style="display: none">
         ${createDrawingFiles()}
         <div class="zoombox-container"></div>
+        ${createDrawingClearAction()}
         ${createDrawingToolbox()}
       </div>
       ${createCustomCursor()}

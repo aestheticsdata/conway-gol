@@ -154,7 +154,7 @@ class SavePresetModal {
       return;
     }
     this._setError("");
-    this._close(trimmedName);
+    this._close(trimmedName, { restoreFocus: false });
   };
 
   private _setError(message: string): void {

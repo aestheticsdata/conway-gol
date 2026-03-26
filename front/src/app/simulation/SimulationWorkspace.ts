@@ -48,6 +48,7 @@ export class SimulationWorkspace {
   private readonly _savePresetModal = new SavePresetModal();
   private readonly _pauseBtn: HTMLButtonElement;
   private readonly _pauseBtnLabel: HTMLElement;
+  private readonly _drawingClearButton: HTMLButtonElement;
   private readonly _speedSlider: HTMLInputElement;
   private readonly _speedValue: HTMLElement;
   private readonly _commentsDOMSelector: HTMLElement;
@@ -105,6 +106,7 @@ export class SimulationWorkspace {
     this._aliveCountChart = new AliveCountChart(queryRequired<HTMLCanvasElement>(".alive-count-chart", this._root));
     this._pauseBtn = queryRequired<HTMLButtonElement>("button.pause", this._root);
     this._pauseBtnLabel = queryRequired<HTMLElement>(".ui-button__label", this._pauseBtn);
+    this._drawingClearButton = queryRequired<HTMLButtonElement>(".drawing-clear", this._root);
     this._speedSlider = queryRequired<HTMLInputElement>("#speed-slider", this._root);
     this._speedValue = queryRequired<HTMLElement>(".speed-value", this._root);
     this._commentsDOMSelector = queryRequired<HTMLElement>(".critter-comments", this._root);
@@ -131,6 +133,7 @@ export class SimulationWorkspace {
 
     this._applyStaticTexts();
     this._pauseBtn.addEventListener("click", this._togglePause);
+    this._drawingClearButton.addEventListener("click", this._onClearCanvas);
     this._setFPS();
     this._setPlaybackButtonState(false);
     this._resetIterationCounter();
@@ -182,7 +185,7 @@ export class SimulationWorkspace {
     queryRequired<HTMLButtonElement>(".drawing-save-action .save", this._root).textContent =
       CONTROL_TEXTS.drawing.saveButton;
     queryRequired<HTMLLabelElement>('label[for="custom-file-trigger"]', this._root).textContent =
-      CONTROL_TEXTS.drawing.customDrawingLabel;
+      CONTROL_TEXTS.drawing.savedPatternsLabel;
     queryRequired<HTMLLabelElement>('label[for="zoo-species-trigger"]', this._root).textContent = APP_TEXTS.zoo.species;
 
     queryRequired<HTMLElement>('.drawing-toolbox .item[data-tool="pencil"]', this._root).setAttribute(
@@ -282,6 +285,14 @@ export class SimulationWorkspace {
       this._randomPresetVariation,
       this._currentRandomParams(),
     );
+  };
+
+  private _onClearCanvas = (): void => {
+    if (this._selectedMode !== "drawing" || !this._grid) {
+      return;
+    }
+
+    this._grid.clearCanvas();
   };
 
   private _resetIterationCounter(): void {

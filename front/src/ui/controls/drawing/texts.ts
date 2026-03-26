@@ -1,7 +1,8 @@
 export const CONTROL_TEXTS = {
   drawing: {
     saveButton: "Save Drawing",
-    customDrawingLabel: "Custom Drawing",
+    clearCanvasButton: "Clear canvas",
+    savedPatternsLabel: "Saved patterns",
     brushSizeLabel: "Brush Size",
     brushShapeLabel: "Brush Shape",
     tools: {

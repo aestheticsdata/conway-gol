@@ -11,56 +11,40 @@
   border-radius: var(--radius);
   box-shadow: 0 14px 28px rgba(9, 198, 255, 0.16);
   cursor: pointer;
-  width: 132px;
+  width: fit-content;
+  min-width: 0;
   height: 44px;
   margin-top: 12px;
   line-height: 1.3;
   color: #04111d;
   font-weight: 700;
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease,
+    color 180ms ease,
+    background-color 180ms ease,
+    opacity 180ms ease;
+}
+
+.ui-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 :where(.ui-button--compact) {
-  width: fit-content;
-  min-width: 0;
   height: 36px;
   margin-top: 0;
   padding: 0 16px;
   line-height: 1;
-  white-space: nowrap;
 }
 
-:where(.ui-button--auto) {
-  width: fit-content;
-  min-width: 0;
-}
-
-:where(.ui-button--block) {
-  width: 100%;
-  min-width: 0;
-}
-
-:where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)):hover {
-  box-shadow: 0 0 28px rgba(37, 219, 255, 0.24);
-}
-
-:where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)):active {
-  background: linear-gradient(135deg, rgba(9, 198, 255, 0.72), rgba(67, 243, 255, 0.78));
-}
-
-.auth-screen .auth-card .auth-form .auth-submit,
-.ui-button {
-  position: relative;
-  overflow: hidden;
-  transition:
-    border-color 160ms ease,
-    box-shadow 160ms ease,
-    transform 160ms ease,
-    color 160ms ease,
-    background 160ms ease;
-}
-
-.auth-screen .auth-card .auth-form .auth-submit::before,
-.ui-button::before {
+:where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option))::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -74,45 +58,54 @@
   mask-composite: exclude;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 160ms ease;
+  transition: opacity 180ms ease;
 }
 
-.auth-screen .auth-card .auth-form .auth-submit:hover,
-.auth-screen .auth-card .auth-form .auth-submit:focus-visible,
-.ui-button:hover,
-.ui-button:focus-visible {
+:where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option))::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  border-radius: inherit;
+  background:
+    linear-gradient(180deg, rgba(5, 13, 24, 0.94), rgba(4, 17, 29, 0.9)),
+    radial-gradient(circle at top left, rgba(37, 219, 255, 0.16), transparent 58%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+}
+
+:where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)):hover,
+:where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)):focus-visible {
   border-color: rgba(67, 243, 255, 0.65);
-  background: linear-gradient(135deg, rgba(9, 198, 255, 0.9), rgba(67, 243, 255, 0.95));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
+  color: rgba(67, 243, 255, 0.95);
   box-shadow:
-    0 0 28px rgba(37, 219, 255, 0.12),
+    0 0 28px rgba(37, 219, 255, 0.14),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
-.auth-screen .auth-card .auth-form .auth-submit:hover::before,
-.auth-screen .auth-card .auth-form .auth-submit:focus-visible::before,
-.ui-button:hover::before,
-.ui-button:focus-visible::before {
+:where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)):hover::before,
+:where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)):focus-visible::before {
   opacity: 1;
 }
 
-.auth-screen .auth-card .auth-form .auth-submit:active,
-.ui-button:active {
+:where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)):hover::after,
+:where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)):focus-visible::after {
+  opacity: 1;
+}
+
+:where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)):active {
   border-color: rgba(67, 243, 255, 0.65);
-  background: linear-gradient(135deg, rgba(9, 198, 255, 0.9), rgba(67, 243, 255, 0.95));
-  -webkit-background-clip: border-box;
-  background-clip: border-box;
-  -webkit-text-fill-color: #04111d;
   color: #04111d;
   box-shadow:
     0 10px 22px rgba(9, 198, 255, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
-.auth-screen .auth-card .auth-form .auth-submit:active::before,
-.ui-button:active::before {
+:where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)):active::before {
   opacity: 0;
+}
+
+:where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)):active::after {
+  opacity: 0.08;
 }

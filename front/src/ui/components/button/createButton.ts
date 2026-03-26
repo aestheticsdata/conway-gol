@@ -1,5 +1,4 @@
 type UiButtonSize = "compact";
-type UiButtonWidth = "auto" | "block";
 type UiButtonType = "button" | "submit" | "reset";
 type UiButtonIcon = "pause" | "play";
 
@@ -11,7 +10,6 @@ export type UiButtonOptions = {
   size?: UiButtonSize;
   title?: string;
   type?: UiButtonType;
-  width?: UiButtonWidth;
 };
 
 function escapeHtml(value: string): string {
@@ -19,10 +17,9 @@ function escapeHtml(value: string): string {
 }
 
 export function createButton(options: UiButtonOptions): string {
-  const { ariaLabel, className = "", icon, label = "", size = "compact", title, type = "button", width = "auto" } =
-    options;
+  const { ariaLabel, className = "", icon, label = "", size = "compact", title, type = "button" } = options;
 
-  const classes = ["ui-button", `ui-button--${size}`, `ui-button--${width}`, icon ? "ui-button--with-icon" : "", className]
+  const classes = ["ui-button", `ui-button--${size}`, icon ? "ui-button--with-icon" : "", className]
     .filter(Boolean)
     .join(" ");
   const titleAttribute = title ? ` title="${escapeHtml(title)}"` : "";

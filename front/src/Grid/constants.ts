@@ -28,7 +28,7 @@ export const DEFAULT_CANVAS_THEME: CanvasTheme = {
   borderCellColor: "rgb(204, 204, 204)",
   outsideCellColor: "transparent",
   previewAliveCellColor: "rgba(37, 219, 255, 0.84)",
-  previewEraseCellColor: "rgba(37, 219, 255, 0.84)",
+  previewEraseCellColor: "rgba(243, 177, 101, 0.78)",
   zoomHighlightStrokeColor: "rgba(37, 219, 255, 0.96)",
 };
 

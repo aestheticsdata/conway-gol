@@ -156,7 +156,6 @@
   margin-right: 6px;
   margin-bottom: 8px;
   color: rgba(143, 169, 194, 0.82);
-  text-transform: uppercase;
   letter-spacing: 0.08em;
   font-weight: 700;
 }
@@ -193,6 +192,17 @@
 .drawing-pane .drawing-save-action {
   padding-top: var(--separator-gap);
   border-top: 1px solid rgba(117, 161, 205, 0.18);
+}
+
+.drawing-clear-action {
+  display: flex;
+  padding-top: var(--separator-gap);
+  padding-bottom: var(--separator-gap);
+  border-top: 1px solid rgba(117, 161, 205, 0.18);
+}
+
+.drawing-clear-action .drawing-clear {
+  align-self: flex-start;
 }
 
 .drawing-toolbox {
