@@ -17,7 +17,7 @@ import { createButton } from "@ui/components/button/createButton";
 import { createSliderField } from "@ui/components/slider/createSlider";
 import { DEFAULT_BRUSH_SIZE, MAX_BRUSH_SIZE, MIN_BRUSH_SIZE } from "@ui/controls/drawing/constants";
 import { CONTROL_TEXTS } from "@ui/controls/drawing/texts";
-import { createWorkspaceBrand } from "@views/html/appHeader";
+import { createConnectedHeader } from "@views/html/appHeader";
 import { createTileSelectorButton } from "@views/html/tileSelector";
 
 import type { WorkspaceRoute } from "@app/routes";
@@ -130,23 +130,17 @@ function createModeSelector(route: WorkspaceRoute): string {
   ).join("");
 }
 
-function createWorkspaceHeader(route: WorkspaceRoute): string {
-  return `
-    <header class="workspace-header">
-      ${createWorkspaceBrand()}
-      <div class="workspace-header__nav">
-        <div class="workspace-mode-selector mode-selector tile-selector" aria-label="${APP_TEXTS.modes.label}">
-          ${createModeSelector(route)}
-        </div>
+function createWorkspaceHeader(route: WorkspaceRoute, username: string, avatarId: string): string {
+  return createConnectedHeader({
+    avatarId,
+    currentPath: route,
+    username,
+    navContent: `
+      <div class="workspace-mode-selector mode-selector tile-selector" aria-label="${APP_TEXTS.modes.label}">
+        ${createModeSelector(route)}
       </div>
-      ${createButton({
-        className: "workspace-login-link",
-        icon: "arrow-right",
-        iconPosition: "trailing",
-        label: APP_TEXTS.workspace.exitStudio,
-      })}
-    </header>
-  `;
+    `,
+  });
 }
 
 function createIterationSection(): string {
@@ -581,11 +575,11 @@ function createWorkspaceInspector(): string {
   `;
 }
 
-export function createWorkspaceView(route: WorkspaceRoute): string {
+export function createWorkspaceView(route: WorkspaceRoute, username: string, avatarId: string): string {
   return `
     <section class="workspace-screen">
       <div class="workspace-shell">
-        ${createWorkspaceHeader(route)}
+        ${createWorkspaceHeader(route, username, avatarId)}
         <div class="container">
           ${createWorkspaceSidebar(route)}
           ${createCanvasArea()}

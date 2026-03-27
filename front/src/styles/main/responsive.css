@@ -30,8 +30,20 @@
     justify-content: flex-start;
   }
 
+  .workspace-user-menu {
+    justify-self: start;
+  }
+
   .container {
     grid-template-columns: 1fr;
+  }
+
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-avatar-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 
   .workspace-stage {
@@ -92,6 +104,16 @@
     gap: 14px;
   }
 
+  .workspace-user-menu__trigger {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .workspace-user-menu__panel {
+    left: 0;
+    right: auto;
+  }
+
   .workspace-brand__title {
     font-size: 19px;
   }
@@ -99,6 +121,29 @@
   .container {
     width: min(calc(100% - 28px), var(--workspace-shell-max-width));
     gap: 18px;
+  }
+
+  .settings-layout {
+    width: min(calc(100% - 28px), 960px);
+  }
+
+  .settings-panel {
+    padding: 22px;
+  }
+
+  .settings-panel__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .settings-panel__footer {
+    width: 100%;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .settings-avatar-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .left-pane {

@@ -55,30 +55,70 @@
 }
 
 .ui-save-modal__input {
-  width: 100%;
   margin-top: 10px;
-  border: 1px solid var(--field-border);
-  border-radius: var(--radius);
-  background: linear-gradient(180deg, var(--field-highlight), rgba(255, 255, 255, 0)), var(--field-bg);
-  color: var(--text-main);
-  min-height: 36px;
-  padding: 0 12px;
-  font-family: "Space Grotesk", sans-serif;
-  font-size: 15px;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    var(--field-shadow);
 }
 
-.ui-save-modal__input:focus-visible {
-  outline: 2px solid rgba(37, 219, 255, 0.3);
-  outline-offset: 1px;
+.ui-credential-modal__description {
+  margin: 10px 0 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.ui-credential-modal__description[hidden] {
+  display: none;
+}
+
+.ui-credential-modal__fields {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.ui-credential-modal__field {
+  display: grid;
+  gap: 6px;
+}
+
+.ui-credential-modal__field--current {
+  gap: 3px;
+}
+
+.ui-credential-modal__field[hidden] {
+  display: none;
+}
+
+.ui-credential-modal__label {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.ui-credential-modal__input {
+  margin-top: 0;
+}
+
+.ui-credential-modal__errors {
+  display: grid;
+  gap: 0;
+  margin-top: 4px;
+}
+
+.ui-credential-modal__error {
+  height: 20px;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.ui-credential-modal__error[aria-hidden="true"] {
+  visibility: hidden;
 }
 
 .ui-save-modal__error {
   min-height: 0;
   margin: 10px 0 0;
-  color: #ff7e96;
+  color: var(--field-error);
   font-size: 13px;
 }
 
@@ -87,11 +127,19 @@
   visibility: hidden;
 }
 
+.ui-credential-modal__errors .ui-credential-modal__error {
+  margin: 0;
+}
+
+.ui-credential-modal__field .ui-credential-modal__error {
+  margin: 0;
+}
+
 .ui-save-modal__actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  margin-top: 0;
+  margin-top: 14px;
 }
 
 .ui-save-modal__actions button {

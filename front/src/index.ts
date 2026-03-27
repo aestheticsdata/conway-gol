@@ -4,6 +4,7 @@ import {
   DRAWING_ROUTE,
   LOGIN_ROUTE,
   REGISTER_ROUTE,
+  SETTINGS_ROUTE,
   SIMULATION_ROUTE,
   ZOO_ROUTE,
 } from "@app/routes";
@@ -14,6 +15,7 @@ import { normalizeBasePath } from "@router/paths";
 import { AboutView } from "@views/AboutView";
 import { LoginView } from "@views/LoginView";
 import { RegisterView } from "@views/RegisterView";
+import { SettingsView } from "@views/SettingsView";
 import { SimulationView } from "@views/SimulationView";
 
 import type { AppPath } from "@navigation/NavigationAdapter";
@@ -52,6 +54,10 @@ router = new AppRouter(
     {
       path: DRAWING_ROUTE,
       create: () => new SimulationView(DRAWING_ROUTE, navigate),
+    },
+    {
+      path: SETTINGS_ROUTE,
+      create: () => new SettingsView(navigate),
     },
   ],
   DEFAULT_APP_ROUTE,

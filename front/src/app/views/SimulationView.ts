@@ -1,6 +1,8 @@
 import { LOGIN_ROUTE } from "@app/routes";
+import SessionService from "@services/SessionService";
 import { SimulationWorkspace } from "@simulation/SimulationWorkspace";
 import { APP_TEXTS } from "@texts";
+import WorkspaceUserMenu from "@ui/lib/WorkspaceUserMenu";
 import { createWorkspaceView } from "./html";
 
 import type { WorkspaceRoute } from "@app/routes";
@@ -10,7 +12,8 @@ import type { RouteContext, Screen } from "@router/Screen";
 export class SimulationView implements Screen {
   private _root?: HTMLElement;
   private _workspace?: SimulationWorkspace;
-  private _backToLoginButton?: HTMLButtonElement;
+  private readonly _session = new SessionService();
+  private _userMenu?: WorkspaceUserMenu;
 
   constructor(
     private readonly _route: WorkspaceRoute,
@@ -19,15 +22,22 @@ export class SimulationView implements Screen {
 
   public mount(container: HTMLElement): void {
     const htmlHost = document.createElement("div");
-    htmlHost.innerHTML = createWorkspaceView(this._route);
+    htmlHost.innerHTML = createWorkspaceView(
+      this._route,
+      this._session.getUsernameOrFallback(),
+      this._session.getAvatarIdOrFallback(),
+    );
     this._root = htmlHost.firstElementChild as HTMLElement;
     container.replaceChildren(this._root);
-    this._backToLoginButton = this._root.querySelector<HTMLButtonElement>(".workspace-login-link") ?? undefined;
+
+    this._userMenu = new WorkspaceUserMenu({
+      root: this._root,
+      onLogout: this._onLogout,
+    });
   }
 
   public async enter(context: RouteContext): Promise<void> {
     document.title = `${APP_TEXTS.document.title} | ${this._route.slice(1)}`;
-    this._backToLoginButton?.addEventListener("click", this._onBackToLogin);
 
     if (!this._root) {
       return;
@@ -45,17 +55,18 @@ export class SimulationView implements Screen {
   }
 
   public leave(): void {
-    this._backToLoginButton?.removeEventListener("click", this._onBackToLogin);
     this._workspace?.destroy();
   }
 
   public destroy(): void {
+    this._userMenu?.destroy();
     this._workspace = undefined;
-    this._backToLoginButton = undefined;
+    this._userMenu = undefined;
     this._root = undefined;
   }
 
-  private _onBackToLogin = (): void => {
+  private _onLogout = (): void => {
+    this._session.clear();
     void this._navigate(LOGIN_ROUTE);
   };
 }

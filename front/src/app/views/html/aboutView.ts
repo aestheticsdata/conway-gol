@@ -6,7 +6,7 @@ export function createAboutView(): string {
     activeRoute: ABOUT_ROUTE,
     content: `
       <p class="auth-card__copy">
-        Site hébergé chez OVH SAS<br>Siège social : 2 rue Kellermann - 59100 Roubaix - France<br>Code APE 2620Z<br>N° TVA : FR 22 424 761 419
+        Website hosted by OVHcloud SAS<br>Registered office: 2 rue Kellermann - 59100 Roubaix - France<br>Code APE 2620Z<br>N° TVA : FR 22 424 761 419
       </p>
     `,
   });

@@ -86,3 +86,118 @@ select option {
   color: var(--text-main);
 }
 
+:where(.ui-input) {
+  width: 100%;
+  height: var(--field-control-height);
+  padding: 0 var(--field-control-padding-x);
+  border: 1px solid var(--field-border);
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, var(--field-highlight), rgba(255, 255, 255, 0)), var(--field-bg);
+  color: var(--text-main);
+  font-family: "Space Grotesk", sans-serif;
+  font-size: var(--field-control-font-size);
+  line-height: 1.2;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    var(--field-shadow);
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    background-color 140ms ease;
+}
+
+:where(.ui-input)::placeholder {
+  color: var(--field-placeholder);
+}
+
+:where(.ui-input:hover) {
+  border-color: var(--field-border-strong);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    var(--field-shadow),
+    var(--field-hover-glow);
+}
+
+:where(.ui-input:focus-visible) {
+  border-color: rgba(37, 219, 255, 0.32);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    var(--field-shadow),
+    0 0 0 1px rgba(37, 219, 255, 0.18);
+}
+
+:where(.ui-input[aria-invalid="true"]) {
+  border-color: var(--field-invalid-border);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    var(--field-shadow),
+    0 0 0 1px var(--field-invalid-ring);
+}
+
+:where(.ui-input-shell) {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
+:where(.ui-input-shell > .ui-input) {
+  padding-right: calc(var(--field-control-height) + 6px);
+}
+
+:where(.ui-input-shell__button) {
+  position: absolute;
+  top: 1px;
+  right: 1px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(var(--field-control-height) - 2px);
+  height: calc(var(--field-control-height) - 2px);
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-radius: calc(var(--radius) - 1px);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    color 140ms ease,
+    background-color 140ms ease;
+}
+
+:where(.ui-input-shell__button:hover) {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+:where(.ui-input-shell__button:focus-visible) {
+  color: var(--text-main);
+  background: rgba(37, 219, 255, 0.08);
+  outline: 1px solid rgba(37, 219, 255, 0.18);
+  outline-offset: -1px;
+}
+
+:where(.ui-input-shell__icon) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+}
+
+:where(.ui-input-shell__icon svg) {
+  width: 100%;
+  height: 100%;
+}
+
+:where(.ui-input-shell__icon--hidden) {
+  display: none;
+}
+
+:where(.ui-input-shell__button[data-password-visible="true"] .ui-input-shell__icon--visible) {
+  display: none;
+}
+
+:where(.ui-input-shell__button[data-password-visible="true"] .ui-input-shell__icon--hidden) {
+  display: inline-flex;
+}

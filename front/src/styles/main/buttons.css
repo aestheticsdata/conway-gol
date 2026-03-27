@@ -1,4 +1,8 @@
-:where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)) {
+:where(
+    button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option):not(
+        .ui-input-shell__button
+      ):not(.workspace-user-menu__trigger):not(.workspace-user-menu__item):not(.settings-avatar-option)
+  ) {
   font-family: "Space Grotesk", sans-serif;
   font-size: 15px;
   display: inline-flex;
@@ -83,7 +87,11 @@
   line-height: 1;
 }
 
-:where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option))::before {
+:where(
+    button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option):not(
+        .ui-input-shell__button
+      ):not(.workspace-user-menu__trigger):not(.workspace-user-menu__item):not(.settings-avatar-option)
+  )::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -100,7 +108,11 @@
   transition: opacity 180ms ease;
 }
 
-:where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option))::after {
+:where(
+    button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option):not(
+        .ui-input-shell__button
+      ):not(.workspace-user-menu__trigger):not(.workspace-user-menu__item):not(.settings-avatar-option)
+  )::after {
   content: "";
   position: absolute;
   inset: 1px;
@@ -114,8 +126,16 @@
   transition: opacity 180ms ease;
 }
 
-:where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)):hover,
-:where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)):focus-visible {
+:where(
+    button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option):not(
+        .ui-input-shell__button
+      ):not(.workspace-user-menu__trigger):not(.workspace-user-menu__item):not(.settings-avatar-option)
+  ):hover,
+:where(
+    button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option):not(
+        .ui-input-shell__button
+      ):not(.workspace-user-menu__trigger):not(.workspace-user-menu__item):not(.settings-avatar-option)
+  ):focus-visible {
   border-color: rgba(67, 243, 255, 0.65);
   color: rgba(67, 243, 255, 0.95);
   box-shadow:
@@ -123,21 +143,37 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
-:where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)):hover::before,
 :where(
-    button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)
+    button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option):not(
+        .ui-input-shell__button
+      ):not(.workspace-user-menu__trigger):not(.workspace-user-menu__item):not(.settings-avatar-option)
+  ):hover::before,
+:where(
+    button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option):not(
+        .ui-input-shell__button
+      ):not(.workspace-user-menu__trigger):not(.workspace-user-menu__item):not(.settings-avatar-option)
   ):focus-visible::before {
   opacity: 1;
 }
 
-:where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)):hover::after,
 :where(
-    button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)
+    button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option):not(
+        .ui-input-shell__button
+      ):not(.workspace-user-menu__trigger):not(.workspace-user-menu__item):not(.settings-avatar-option)
+  ):hover::after,
+:where(
+    button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option):not(
+        .ui-input-shell__button
+      ):not(.workspace-user-menu__trigger):not(.workspace-user-menu__item):not(.settings-avatar-option)
   ):focus-visible::after {
   opacity: 1;
 }
 
-:where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)):active {
+:where(
+    button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option):not(
+        .ui-input-shell__button
+      ):not(.workspace-user-menu__trigger):not(.workspace-user-menu__item):not(.settings-avatar-option)
+  ):active {
   border-color: rgba(67, 243, 255, 0.65);
   color: #04111d;
   box-shadow:
@@ -145,23 +181,52 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
-:where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)):active::before {
+:where(
+    button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option):not(
+        .ui-input-shell__button
+      ):not(.workspace-user-menu__trigger):not(.workspace-user-menu__item):not(.settings-avatar-option)
+  ):active::before {
   opacity: 0;
 }
 
-:where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)):active::after {
+:where(
+    button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option):not(
+        .ui-input-shell__button
+      ):not(.workspace-user-menu__trigger):not(.workspace-user-menu__item):not(.settings-avatar-option)
+  ):active::after {
   opacity: 0.08;
 }
 
-:where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)):disabled {
+:where(
+    button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option):not(
+        .ui-input-shell__button
+      ):not(.workspace-user-menu__trigger):not(.workspace-user-menu__item):not(.settings-avatar-option)
+  ):disabled {
   cursor: not-allowed;
-  opacity: 0.48;
-  color: rgba(196, 210, 228, 0.62);
-  border-color: rgba(117, 161, 205, 0.18);
-  box-shadow: none;
+  opacity: 1;
+  color: rgba(155, 159, 164, 0.637);
+  background: linear-gradient(135deg, rgba(112, 122, 134, 0.9), rgba(82, 92, 104, 0.94));
+  border-color: rgba(168, 178, 189, 0.28);
+  box-shadow:
+    0 10px 20px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
-:where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)):disabled::before,
-:where(button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option)):disabled::after {
+:where(
+    button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option):not(
+        .ui-input-shell__button
+      ):not(.workspace-user-menu__trigger):not(.workspace-user-menu__item):not(.settings-avatar-option)
+  ):disabled::before {
   opacity: 0;
+}
+
+:where(
+    button:not(.tile-selector__button):not(.custom-select__trigger):not(.custom-select__option):not(
+        .ui-input-shell__button
+      ):not(.workspace-user-menu__trigger):not(.workspace-user-menu__item):not(.settings-avatar-option)
+  ):disabled::after {
+  opacity: 1;
+  background:
+    linear-gradient(180deg, rgba(34, 40, 49, 0.34), rgba(20, 24, 31, 0.3)),
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.05), transparent 58%);
 }

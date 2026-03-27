@@ -10,6 +10,11 @@ type SavePresetModalTexts = {
   closeLabel: string;
 };
 
+type SavePresetModalOptions = {
+  autocomplete?: HTMLInputElement["autocomplete"];
+  inputType?: "password" | "text";
+};
+
 const DEFAULT_TEXTS: SavePresetModalTexts = {
   title: "Save preset",
   inputPlaceholder: "Preset name",
@@ -47,15 +52,15 @@ class SavePresetModal {
         </div>
         <input
           type="text"
-          class="ui-save-modal__input"
+          class="ui-input ui-save-modal__input"
           maxlength="64"
           autocomplete="off"
           placeholder="${DEFAULT_TEXTS.inputPlaceholder}"
         >
         <p class="ui-save-modal__error" hidden></p>
         <div class="ui-save-modal__actions">
-          ${createButton({ className: "ui-save-modal__save", label: DEFAULT_TEXTS.saveLabel, size: "compact" })}
           ${createButton({ className: "ui-save-modal__cancel", label: DEFAULT_TEXTS.cancelLabel, size: "compact" })}
+          ${createButton({ className: "ui-save-modal__save", label: DEFAULT_TEXTS.saveLabel, size: "compact" })}
         </div>
       </section>
     `;
@@ -76,7 +81,7 @@ class SavePresetModal {
     root.append(this._overlay);
   }
 
-  public open(texts: Partial<SavePresetModalTexts> = {}): Promise<string | null> {
+  public open(texts: Partial<SavePresetModalTexts> = {}, options: SavePresetModalOptions = {}): Promise<string | null> {
     if (this._resolver) {
       this._resolver(null);
       this._resolver = null;
@@ -96,6 +101,8 @@ class SavePresetModal {
 
     this._title.textContent = this._texts.title;
     this._input.placeholder = this._texts.inputPlaceholder;
+    this._input.type = options.inputType ?? "text";
+    this._input.autocomplete = options.autocomplete ?? "off";
     this._saveBtn.textContent = this._texts.saveLabel;
     this._cancelBtn.textContent = this._texts.cancelLabel;
     this._closeBtn.setAttribute("aria-label", this._texts.closeLabel);

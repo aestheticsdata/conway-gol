@@ -40,4 +40,8 @@
   --field-border: rgba(117, 161, 205, 0.24);
   --field-border-strong: rgba(117, 161, 205, 0.38);
   --field-highlight: rgba(255, 255, 255, 0.06);
+  --field-placeholder: rgba(143, 169, 194, 0.72);
+  --field-error: #ff7e96;
+  --field-invalid-border: rgba(255, 115, 115, 0.85);
+  --field-invalid-ring: rgba(255, 115, 115, 0.18);
 }

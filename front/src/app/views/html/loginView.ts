@@ -1,8 +1,9 @@
 import { LOGIN_ROUTE } from "@app/routes";
 import { createButton } from "@ui/components/button/createButton";
+import { createAuthSecretField, createAuthTextField } from "@views/html/authFields";
 import { createAuthLayout } from "@views/html/authLayout";
 
-export function createLoginView(): string {
+export function createLoginView(username: string): string {
   return createAuthLayout({
     activeRoute: LOGIN_ROUTE,
     content: `
@@ -10,28 +11,21 @@ export function createLoginView(): string {
         Conway's Game of Life is a cellular automaton where simple rules govern the birth and death of cells on a grid, creating complex, evolving patterns from chaos.
       </p>
       <form class="auth-form">
-        <label class="auth-field">
-          <span>Email</span>
-          <input
-            type="email"
-            name="email"
-            placeholder="you@example.com"
-            value="demo@conway.local"
-            autocomplete="email"
-            required
-          >
-        </label>
-        <label class="auth-field">
-          <span>Password</span>
-          <input
-            type="password"
-            name="password"
-            placeholder="••••••••"
-            value="demo-password"
-            autocomplete="current-password"
-            required
-          >
-        </label>
+        ${createAuthTextField({
+          label: "Username",
+          name: "username",
+          placeholder: "your-username",
+          value: username,
+          autocomplete: "username",
+        })}
+        ${createAuthSecretField({
+          label: "Password",
+          name: "password",
+          placeholder: "••••••••",
+          value: "demo-password",
+          autocomplete: "current-password",
+          toggleSubject: "password",
+        })}
         ${createButton({
           type: "submit",
           className: "auth-submit",

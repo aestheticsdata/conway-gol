@@ -7,4 +7,8 @@
   --workspace-canvas-size: 781px;
   --workspace-top-offset: 0px;
   --left-pane-compact-block-width: 220px;
+  --field-control-height: 36px;
+  --field-control-padding-x: 12px;
+  --field-control-font-size: 15px;
+  --field-message-height: 18px;
 }

@@ -1,5 +1,6 @@
 export { createAboutView } from "@views/html/aboutView";
-export { createAuthHeader, createWorkspaceBrand } from "@views/html/appHeader";
+export { createAuthHeader, createConnectedHeader, createWorkspaceBrand } from "@views/html/appHeader";
 export { createLoginView } from "@views/html/loginView";
 export { createRegisterView } from "@views/html/registerView";
+export { createSettingsView } from "@views/html/settingsView";
 export { createWorkspaceView } from "@views/html/workspaceView";
