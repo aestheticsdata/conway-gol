@@ -32,7 +32,7 @@ export class SettingsView implements Screen {
   private _saveStatus?: HTMLElement;
   private _menuUsername?: HTMLElement;
   private _menuMetaUsername?: HTMLElement;
-  private _menuAvatar?: HTMLElement;
+  private _menuAvatars: HTMLElement[] = [];
   private _avatarButtons: HTMLButtonElement[] = [];
   private _userMenu?: WorkspaceUserMenu;
   private readonly _credentials = new LocalCredentialService();
@@ -63,7 +63,7 @@ export class SettingsView implements Screen {
     this._saveStatus = this._root.querySelector<HTMLElement>(".settings-panel__status") ?? undefined;
     this._menuUsername = this._root.querySelector<HTMLElement>(".workspace-user-menu__name") ?? undefined;
     this._menuMetaUsername = this._root.querySelector<HTMLElement>(".workspace-user-menu__meta-value") ?? undefined;
-    this._menuAvatar = this._root.querySelector<HTMLElement>(".workspace-user-menu__avatar") ?? undefined;
+    this._menuAvatars = queryAll<HTMLElement>(".workspace-user-menu__avatar", this._root);
     this._avatarButtons = queryAll<HTMLButtonElement>("[data-avatar-id]", this._root);
     this._userMenu = new WorkspaceUserMenu({
       root: this._root,
@@ -113,7 +113,7 @@ export class SettingsView implements Screen {
     this._saveStatus = undefined;
     this._menuUsername = undefined;
     this._menuMetaUsername = undefined;
-    this._menuAvatar = undefined;
+    this._menuAvatars = [];
     this._avatarButtons = [];
     this._userMenu = undefined;
     this._root = undefined;
@@ -325,13 +325,15 @@ export class SettingsView implements Screen {
   }
 
   private _syncHeaderAvatar(avatarId: string): void {
-    if (!this._menuAvatar) {
+    if (this._menuAvatars.length === 0) {
       return;
     }
 
     const avatar = getUserAvatarOption(avatarId);
-    this._menuAvatar.innerHTML = avatar.svg;
-    this._menuAvatar.setAttribute("data-session-avatar-id", avatar.id);
+    for (const menuAvatar of this._menuAvatars) {
+      menuAvatar.innerHTML = avatar.svg;
+      menuAvatar.setAttribute("data-session-avatar-id", avatar.id);
+    }
   }
 
   private _setMessage(target: HTMLElement | undefined, message: string): void {

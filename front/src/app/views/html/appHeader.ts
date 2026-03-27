@@ -1,4 +1,5 @@
-import { ABOUT_ROUTE, LOGIN_ROUTE, REGISTER_ROUTE, SETTINGS_ROUTE } from "@app/routes";
+import { ABOUT_ROUTE, DOCUMENTATION_ROUTE, LOGIN_ROUTE, REGISTER_ROUTE, SETTINGS_ROUTE } from "@app/routes";
+import { DOCUMENTATION_ICON } from "@assets/icons/documentationIcon";
 import { LOG_OUT_ICON } from "@assets/icons/logOutIcon";
 import { SETTINGS_ICON } from "@assets/icons/settingsIcon";
 import { getUserAvatarOption } from "@assets/icons/userAvatars";
@@ -44,6 +45,7 @@ function createAuthNavLink(activeRoute: AppPath, route: AppPath, label: string):
 function createConnectedUserMenu(currentPath: AppPath, username: string, avatarId: string): string {
   const normalizedUsername = username.trim().replace(/^@+/, "") || "demo-user";
   const settingsCurrentAttribute = currentPath === SETTINGS_ROUTE ? ' aria-current="page"' : "";
+  const documentationCurrentAttribute = currentPath === DOCUMENTATION_ROUTE ? ' aria-current="page"' : "";
   const avatar = getUserAvatarOption(avatarId);
 
   return `
@@ -64,7 +66,16 @@ function createConnectedUserMenu(currentPath: AppPath, username: string, avatarI
       <div class="workspace-user-menu__panel" data-workspace-user-menu-panel role="menu" hidden>
         <div class="workspace-user-menu__meta">
           <span class="workspace-user-menu__meta-label">${APP_TEXTS.workspace.userMenu.signedInAs}</span>
-          <strong class="workspace-user-menu__meta-value">${escapeHtml(normalizedUsername)}</strong>
+          <div class="workspace-user-menu__meta-account">
+            <span
+              class="workspace-user-menu__avatar workspace-user-menu__meta-avatar"
+              data-session-avatar-id="${escapeHtml(avatar.id)}"
+              aria-hidden="true"
+            >
+              ${avatar.svg}
+            </span>
+            <strong class="workspace-user-menu__meta-value">${escapeHtml(normalizedUsername)}</strong>
+          </div>
         </div>
         <a
           class="workspace-user-menu__item workspace-user-menu__item--link"
@@ -73,6 +84,14 @@ function createConnectedUserMenu(currentPath: AppPath, username: string, avatarI
         >
           <span class="workspace-user-menu__item-icon" aria-hidden="true">${SETTINGS_ICON}</span>
           <span class="workspace-user-menu__item-label">${APP_TEXTS.workspace.userMenu.settings}</span>
+        </a>
+        <a
+          class="workspace-user-menu__item workspace-user-menu__item--link"
+          href="${toDocumentPath(DOCUMENTATION_ROUTE, basePath)}"
+          role="menuitem"${documentationCurrentAttribute}
+        >
+          <span class="workspace-user-menu__item-icon" aria-hidden="true">${DOCUMENTATION_ICON}</span>
+          <span class="workspace-user-menu__item-label">${APP_TEXTS.workspace.userMenu.documentation}</span>
         </a>
         <button type="button" class="workspace-user-menu__item" data-workspace-logout role="menuitem">
           <span class="workspace-user-menu__item-icon" aria-hidden="true">${LOG_OUT_ICON}</span>

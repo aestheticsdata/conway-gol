@@ -1,6 +1,7 @@
 import {
   ABOUT_ROUTE,
   DEFAULT_APP_ROUTE,
+  DOCUMENTATION_ROUTE,
   DRAWING_ROUTE,
   LOGIN_ROUTE,
   REGISTER_ROUTE,
@@ -13,6 +14,7 @@ import { NavigationApiAdapter } from "@navigation/NavigationApiAdapter";
 import { AppRouter } from "@router/AppRouter";
 import { normalizeBasePath } from "@router/paths";
 import { AboutView } from "@views/AboutView";
+import { DocumentationView } from "@views/DocumentationView";
 import { LoginView } from "@views/LoginView";
 import { RegisterView } from "@views/RegisterView";
 import { SettingsView } from "@views/SettingsView";
@@ -58,6 +60,10 @@ router = new AppRouter(
     {
       path: SETTINGS_ROUTE,
       create: () => new SettingsView(navigate),
+    },
+    {
+      path: DOCUMENTATION_ROUTE,
+      create: () => new DocumentationView(navigate),
     },
   ],
   DEFAULT_APP_ROUTE,

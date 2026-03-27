@@ -13,7 +13,7 @@
   background: linear-gradient(135deg, rgba(9, 198, 255, 0.9), rgba(67, 243, 255, 0.95));
   border: 1px solid rgba(67, 243, 255, 0.65);
   border-radius: var(--radius);
-  box-shadow: 0 14px 28px rgba(9, 198, 255, 0.16);
+  box-shadow: 0 4px 10px rgba(9, 198, 255, 0.08);
   cursor: pointer;
   width: fit-content;
   min-width: 0;
@@ -139,7 +139,7 @@
   border-color: rgba(67, 243, 255, 0.65);
   color: rgba(67, 243, 255, 0.95);
   box-shadow:
-    0 0 28px rgba(37, 219, 255, 0.14),
+    0 0 12px rgba(37, 219, 255, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
@@ -177,7 +177,7 @@
   border-color: rgba(67, 243, 255, 0.65);
   color: #04111d;
   box-shadow:
-    0 10px 22px rgba(9, 198, 255, 0.12),
+    0 2px 6px rgba(9, 198, 255, 0.06),
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
@@ -207,9 +207,7 @@
   color: rgba(155, 159, 164, 0.637);
   background: linear-gradient(135deg, rgba(112, 122, 134, 0.9), rgba(82, 92, 104, 0.94));
   border-color: rgba(168, 178, 189, 0.28);
-  box-shadow:
-    0 10px 20px rgba(0, 0, 0, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  box-shadow: none;
 }
 
 :where(

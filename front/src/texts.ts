@@ -37,8 +37,13 @@ export const APP_TEXTS = {
     logOut: "Log out",
     userMenu: {
       settings: "Settings",
+      documentation: "Documentation",
       signedInAs: "Signed in as",
     },
+  },
+  documentation: {
+    title: "Documentation",
+    backToSimulation: "Back to Simulation",
   },
   settings: {
     title: "Settings",
