@@ -14,7 +14,43 @@ type DocumentationGroup = {
   title: string;
 };
 
+type RuleGridCell = "alive" | "empty" | "outcome-alive" | "outcome-dead" | "subject-alive" | "subject-dead";
+
+type CoreRuleCard = {
+  after: readonly RuleGridCell[];
+  before: readonly RuleGridCell[];
+  description: string;
+  title: string;
+};
+
 const basePath = normalizeBasePath(import.meta.env.BASE_URL);
+
+const CORE_RULE_CARDS: readonly CoreRuleCard[] = [
+  {
+    title: "Isolation",
+    description: "A live cell with fewer than two live neighbors dies. Sparse fragments cannot sustain themselves.",
+    before: ["empty", "alive", "empty", "empty", "subject-alive", "empty", "empty", "empty", "empty"],
+    after: ["empty", "empty", "empty", "empty", "outcome-dead", "empty", "empty", "empty", "empty"],
+  },
+  {
+    title: "Overcrowding",
+    description: "A live cell with more than three live neighbors dies when the local cluster becomes too dense.",
+    before: ["empty", "alive", "empty", "alive", "subject-alive", "alive", "empty", "alive", "empty"],
+    after: ["empty", "empty", "empty", "empty", "outcome-dead", "empty", "empty", "empty", "empty"],
+  },
+  {
+    title: "Survival",
+    description: "A live cell with two or three live neighbors survives and carries the current structure forward.",
+    before: ["empty", "alive", "empty", "alive", "subject-alive", "alive", "empty", "empty", "empty"],
+    after: ["empty", "empty", "empty", "empty", "outcome-alive", "empty", "empty", "empty", "empty"],
+  },
+  {
+    title: "Birth",
+    description: "A dead cell with exactly three live neighbors becomes alive, which is how new structure appears.",
+    before: ["empty", "alive", "empty", "alive", "subject-dead", "alive", "empty", "empty", "empty"],
+    after: ["empty", "empty", "empty", "empty", "outcome-alive", "empty", "empty", "empty", "empty"],
+  },
+] as const;
 
 const MODE_CARDS: readonly DocumentationCard[] = [
   {
@@ -133,6 +169,44 @@ function renderBulletList(items: readonly string[]): string {
   return items.map((item) => `<li>${item}</li>`).join("");
 }
 
+function renderRuleGridCells(cells: readonly RuleGridCell[]): string {
+  return cells
+    .map((cell) => `<span class="documentation-rule-grid__cell documentation-rule-grid__cell--${cell}"></span>`)
+    .join("");
+}
+
+function renderRuleBoard(label: string, cells: readonly RuleGridCell[]): string {
+  return `
+    <div class="documentation-rule-visual__stage">
+      <span class="documentation-rule-visual__label">${label}</span>
+      <div class="documentation-rule-grid" aria-hidden="true">
+        ${renderRuleGridCells(cells)}
+      </div>
+    </div>
+  `;
+}
+
+function renderCoreRuleCards(cards: readonly CoreRuleCard[]): string {
+  return cards
+    .map(
+      (card) => `
+        <article class="documentation-rule-card">
+          <div class="documentation-rule-card__copy">
+            <h3>${card.title}</h3>
+            <p>${card.description}</p>
+          </div>
+          <div class="documentation-rule-card__divider" aria-hidden="true"></div>
+          <div class="documentation-rule-visual" aria-hidden="true">
+            ${renderRuleBoard("Before", card.before)}
+            <div class="documentation-rule-arrow"></div>
+            ${renderRuleBoard("After", card.after)}
+          </div>
+        </article>
+      `,
+    )
+    .join("");
+}
+
 function renderPresetGroups(groups: readonly DocumentationGroup[]): string {
   return groups
     .map(
@@ -196,22 +270,29 @@ export function createDocumentationView(username: string, avatarId: string): str
             </div>
           </section>
 
-          <section class="documentation-section documentation-section--split">
-            <article class="documentation-panel">
-              <span class="documentation-panel__eyebrow">Core rule</span>
-              <h2>Small local rule, large global behavior.</h2>
-              <p>
-                Every generation inspects the 8-cell Moore neighborhood around each cell. That tiny rule is enough
-                to produce still lifes, oscillators, gliders and long-lived debris fields. The board wraps at the
-                edges, so there are no hard borders to kill motion.
-              </p>
-              <pre class="documentation-ascii"><code>dead  + exactly 3 live neighbors -> birth
-alive + 2 or 3 live neighbors   -> survival
-else                            -> death
-
-neighbors are counted in the 3x3 block around a cell</code></pre>
+          <section class="documentation-section">
+            <article class="documentation-panel documentation-panel--rules">
+              <span class="documentation-panel__eyebrow">Core rules</span>
+              <div class="documentation-rules-header">
+                <div class="documentation-rules-header__titlebar">
+                  <span class="documentation-rules-header__icon" aria-hidden="true">${DOCUMENTATION_ICON}</span>
+                  <div class="documentation-rules-header__copy">
+                    <h2>The core rules of life</h2>
+                    <p>
+                      Every generation inspects the 8-cell Moore neighborhood around one center cell. That compact
+                      B3 / S23 rule is enough to produce still lifes, oscillators, gliders and longer debris fields.
+                      In CGL Studio, the board wraps at the edges, so the same local logic applies everywhere.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div class="documentation-rules-grid">
+                ${renderCoreRuleCards(CORE_RULE_CARDS)}
+              </div>
             </article>
+          </section>
 
+          <section class="documentation-section">
             <article class="documentation-panel documentation-panel--accent">
               <span class="documentation-panel__eyebrow">Studio map</span>
               <h2>Three ways to enter the automaton.</h2>
