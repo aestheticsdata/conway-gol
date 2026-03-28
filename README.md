@@ -59,6 +59,7 @@ conway-gol/
 │   ├── src/
 │   │   ├── app.module.ts
 │   │   ├── config/
+│   │   ├── core/
 │   │   ├── health/
 │   │   ├── main.ts
 │   │   ├── patterns/
@@ -84,12 +85,23 @@ conway-gol/
 │   │   │   │   ├── PlaybackTelemetryTracker.ts
 │   │   │   │   └── SimulationWorkspace.ts
 │   │   │   ├── views/
-│   │   │   │   └── html/
+│   │   │   │   ├── html/
+│   │   │   │   ├── AboutView.ts
+│   │   │   │   ├── AuthPageView.ts
+│   │   │   │   ├── DocumentationView.ts
+│   │   │   │   ├── LexiconView.ts
+│   │   │   │   ├── LoginView.ts
+│   │   │   │   ├── RegisterView.ts
+│   │   │   │   ├── SettingsView.ts
+│   │   │   │   ├── SimulationView.ts
+│   │   │   │   └── authValidation.ts
 │   │   │   └── routes.ts
 │   │   ├── assets/
 │   │   │   ├── icons/
 │   │   │   ├── eraser/
 │   │   │   └── pencil/
+│   │   ├── api/
+│   │   │   └── core/
 │   │   ├── Cell/
 │   │   ├── Grid/
 │   │   │   ├── Grid.ts
@@ -118,17 +130,23 @@ conway-gol/
 │   │   │       └── ImageSeeder.ts
 │   │   ├── data/
 │   │   │   ├── Data.ts
+│   │   │   ├── lexicon/
+│   │   │   │   ├── lexicon.txt
+│   │   │   │   ├── lexiconParser.test.ts
+│   │   │   │   └── lexiconParser.ts
+│   │   │   ├── patterns/
+│   │   │   │   └── patternCardMeta.ts
 │   │   │   └── species/
 │   │   │       └── species.ts
+│   │   ├── infra/
+│   │   │   └── http/
+│   │   │       └── HttpClient.ts
 │   │   ├── helpers/
 │   │   │   ├── Helpers.ts
 │   │   │   ├── api.ts
 │   │   │   ├── canvas.ts
 │   │   │   ├── constants.ts
 │   │   │   └── dom.ts
-│   │   ├── infra/
-│   │   │   └── http/
-│   │   │       └── HttpClient.ts
 │   │   ├── services/
 │   │   │   ├── CritterService.ts
 │   │   │   ├── LocalCredentialService.ts
@@ -153,6 +171,9 @@ conway-gol/
 │   │   │   │   ├── simulation/
 │   │   │   │   └── telemetry/
 │   │   │   └── lib/
+│   │   │       ├── WorkspaceUserMenu.ts
+│   │   │       ├── ZooPatternModal.ts
+│   │   │       └── patternPreview.ts
 │   │   ├── index.html
 │   │   ├── index.ts
 │   │   ├── texts.ts
