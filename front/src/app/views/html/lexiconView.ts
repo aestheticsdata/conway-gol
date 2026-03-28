@@ -5,12 +5,13 @@ import { PERSON_ICON } from "@assets/icons/personIcon";
 import { LIFE_LEXICON } from "@data/lexicon/lexiconParser";
 import { normalizeBasePath, toDocumentPath } from "@router/paths";
 import { APP_TEXTS } from "@texts";
-import { ARROW_RIGHT_BUTTON_ICON_MARKUP } from "@ui/components/button/createButton";
+import { ARROW_RIGHT_BUTTON_ICON_MARKUP, createLinkButton } from "@ui/components/button/createButton";
 import { createConnectedHeader } from "@views/html/appHeader";
 
 import type { LexiconBlock, LexiconInlineToken, LexiconSection } from "@data/lexicon/lexiconParser";
 
 const basePath = normalizeBasePath(import.meta.env.BASE_URL);
+const LEXICON_HOME_PAGE_URL = "http://conwaylife.com/ref/lexicon/";
 
 function escapeHtml(value: string): string {
   return value.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
@@ -175,6 +176,22 @@ export function createLexiconView(username: string, avatarId: string): string {
                   Bell.
                 </p>
               </header>
+
+              <section class="lexicon-section lexicon-home-page-note">
+                <p class="lexicon-home-page-note__copy">
+                  The latest versions of this lexicon (both HTML and ASCII) can be found at the Life Lexicon Home
+                  Page,
+                </p>
+                <div class="lexicon-home-page-note__link-row">
+                  ${createLinkButton({
+                    className: "lexicon-home-page-note__link",
+                    href: LEXICON_HOME_PAGE_URL,
+                    label: LEXICON_HOME_PAGE_URL,
+                    target: "_blank",
+                    title: "Open the Life Lexicon Home Page"
+                  })}
+                </div>
+              </section>
 
               <section class="lexicon-section">
                 <article class="documentation-panel lexicon-license-card">

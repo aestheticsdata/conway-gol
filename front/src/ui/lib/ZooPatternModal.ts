@@ -5,8 +5,10 @@ import { extractHxfPatternCardMeta } from "@data/patterns/patternCardMeta";
 import PatternFavoriteService from "@services/PatternFavoriteService";
 import PatternService, { type RemotePattern } from "@services/PatternService";
 import { APP_TEXTS } from "@texts";
-import { ARROW_RIGHT_BUTTON_ICON_MARKUP } from "@ui/components/button/createButton";
+import { createLinkButtonElement } from "@ui/components/button/createButton";
 import { drawPatternPreview } from "@ui/lib/patternPreview";
+
+import type { PatternCardLink } from "@data/patterns/patternCardMeta";
 
 type ZooPatternModalOptions = {
   onSelect: (patternName: string) => void;
@@ -20,12 +22,6 @@ type PatternCardMeta = {
   displayName: string;
   links: PatternCardLink[];
   pattern: number[][];
-};
-
-type PatternCardLink = {
-  href: string;
-  label: string;
-  title: string;
 };
 
 type PatternCardRecord = {
@@ -800,22 +796,13 @@ class ZooPatternModal {
 
     const fragment = document.createDocumentFragment();
     for (const link of links) {
-      const anchor = document.createElement("a");
-      anchor.className = "zoo-pattern-card__link";
-      anchor.href = link.href;
-      anchor.target = "_blank";
-      anchor.rel = "noopener noreferrer";
-      anchor.title = link.title;
-      const label = document.createElement("span");
-      label.className = "zoo-pattern-card__link-label";
-      label.textContent = link.label;
-
-      const icon = document.createElement("span");
-      icon.className = "zoo-pattern-card__link-icon";
-      icon.setAttribute("aria-hidden", "true");
-      icon.innerHTML = ARROW_RIGHT_BUTTON_ICON_MARKUP;
-
-      anchor.append(label, icon);
+      const anchor = createLinkButtonElement({
+        className: "zoo-pattern-card__link",
+        href: link.href,
+        label: link.label,
+        target: "_blank",
+        title: link.title,
+      });
       fragment.append(anchor);
     }
 

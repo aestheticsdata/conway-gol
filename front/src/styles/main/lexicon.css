@@ -93,6 +93,41 @@
   margin-bottom: 18px;
 }
 
+.lexicon-home-page-note {
+  display: grid;
+  gap: 12px;
+  margin-top: -2px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(117, 161, 205, 0.14);
+}
+
+.lexicon-home-page-note__copy {
+  margin: 0;
+  max-width: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.68;
+}
+
+.lexicon-home-page-note__link-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+}
+
+.lexicon-home-page-note__link {
+  width: fit-content;
+  max-width: 100%;
+}
+
+.lexicon-home-page-note__punctuation {
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1;
+}
+
 .lexicon-license-card {
   position: relative;
   overflow: hidden;
@@ -566,6 +601,15 @@
 
   .lexicon-page-header h1 {
     font-size: clamp(1.8rem, 10vw, 2.4rem);
+  }
+
+  .lexicon-home-page-note__link-row {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .lexicon-home-page-note__link {
+    width: 100%;
   }
 
   .lexicon-stats,
