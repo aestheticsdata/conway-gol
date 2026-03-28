@@ -221,7 +221,6 @@ function createDrawingActionsSidebar(route: WorkspaceRoute): string {
 
   return `
     <aside class="drawing-actions-pane${fadeInClass}" style="display: none">
-      ${createDrawingSaveAction()}
       ${createImageImport()}
     </aside>
   `;
@@ -419,6 +418,7 @@ function createDrawingClearAction(): string {
         })}
         <span class="drawing-restore-tooltip-target" aria-hidden="true"></span>
       </div>
+      ${createDrawingSaveAction()}
     </div>
   `;
 }

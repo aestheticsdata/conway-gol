@@ -16,8 +16,8 @@
 
 .image-import {
   margin-top: 0;
-  padding-top: var(--separator-gap);
-  border-top: 1px solid rgba(117, 161, 205, 0.18);
+  padding-top: 0;
+  border-top: 0;
 }
 
 .image-import-formats {
@@ -106,12 +106,15 @@
 
 .drawing-save-action {
   display: flex;
+}
+
+.drawing-actions-pane .drawing-save-action {
   padding-bottom: var(--separator-gap);
 }
 
 .drawing-pane .drawing-save-action {
-  padding-top: var(--separator-gap);
-  border-top: 1px solid rgba(117, 161, 205, 0.18);
+  padding: 0;
+  border-top: 0;
 }
 
 .drawing-clear-action {
@@ -130,7 +133,8 @@
 
 .drawing-clear-action .drawing-clear,
 .drawing-clear-action .drawing-restore,
-.drawing-clear-action .drawing-restore-wrapper {
+.drawing-clear-action .drawing-restore-wrapper,
+.drawing-clear-action .drawing-save-action {
   align-self: flex-start;
 }
 
