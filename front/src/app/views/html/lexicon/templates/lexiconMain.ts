@@ -1,164 +1,16 @@
-import { LEXICON_ROUTE, SIMULATION_ROUTE } from "@app/routes";
 import { LEXICON_ICON } from "@assets/icons/lexiconIcon";
 import { LICENSE_ICON } from "@assets/icons/licenseIcon";
-import { PERSON_ICON } from "@assets/icons/personIcon";
 import { LIFE_LEXICON } from "@data/lexicon/lexiconParser";
-import { normalizeBasePath, toDocumentPath } from "@router/paths";
 import { APP_TEXTS } from "@texts";
 import { ARROW_RIGHT_BUTTON_ICON_MARKUP, createLinkButton } from "@ui/components/button/createButton";
-import { createConnectedHeader } from "@views/html/appHeader";
 
-import type { LexiconBlock, LexiconInlineToken, LexiconSection } from "@data/lexicon/lexiconParser";
+import { escapeHtml } from "../escapeHtml";
+import { ENTRIES_MARKUP, INDEX_MARKUP, PREFACE_MARKUP } from "../markups";
 
-const basePath = normalizeBasePath(import.meta.env.BASE_URL);
 const LEXICON_HOME_PAGE_URL = "http://conwaylife.com/ref/lexicon/";
 
-function escapeHtml(value: string): string {
-  return value.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
-}
-
-function renderInlineTokens(tokens: readonly LexiconInlineToken[]): string {
-  return tokens
-    .map((token) => {
-      if (token.type === "text") {
-        return escapeHtml(token.value);
-      }
-
-      const anchorId = LIFE_LEXICON.entryAnchorByNormalizedTerm.get(token.normalizedTarget);
-      if (!anchorId) {
-        return `<span class="lexicon-reference lexicon-reference--missing">${escapeHtml(token.label)}</span>`;
-      }
-
-      return `<a class="lexicon-reference" href="#${escapeHtml(anchorId)}">${escapeHtml(token.label)}</a>`;
-    })
-    .join("");
-}
-
-function renderBlocks(blocks: readonly LexiconBlock[]): string {
-  return blocks
-    .map((block) => {
-      if (block.type === "paragraph") {
-        return `<p>${renderInlineTokens(block.inline)}</p>`;
-      }
-
-      const className =
-        block.kind === "pattern" ? "lexicon-code-block lexicon-code-block--pattern" : "lexicon-code-block";
-      return `<pre class="${className}"><code>${escapeHtml(block.code)}</code></pre>`;
-    })
-    .join("");
-}
-
-function renderPatternCardMarkup(entry: (typeof LIFE_LEXICON.entries)[number]): string {
-  if (!entry.patternCard) {
-    return "";
-  }
-
+export function renderLexiconMainMarkup(): string {
   return `
-    <section class="lexicon-pattern-preview" aria-label="${escapeHtml(`Pattern preview for ${entry.patternCard.displayName}`)}">
-      <div class="lexicon-pattern-preview__center">
-        <div class="zoo-pattern-card__preview lexicon-pattern-preview__frame">
-          <canvas
-            class="zoo-pattern-card__preview-canvas lexicon-pattern-preview__canvas"
-            width="320"
-            height="188"
-            data-lexicon-pattern-anchor="${escapeHtml(entry.anchorId)}"
-            aria-hidden="true"
-          ></canvas>
-        </div>
-      </div>
-      <p class="lexicon-pattern-preview__description">${escapeHtml(entry.patternCard.description)}</p>
-    </section>
-  `;
-}
-
-function renderSection(section: LexiconSection): string {
-  return `
-    <article id="${escapeHtml(section.anchorId)}" class="documentation-panel lexicon-preface-card">
-      <span class="documentation-panel__eyebrow">${escapeHtml(section.title)}</span>
-      <div class="lexicon-rich-text">
-        ${renderBlocks(section.blocks)}
-      </div>
-    </article>
-  `;
-}
-
-function renderPrefaceMarkup(): string {
-  const visibleSections = LIFE_LEXICON.prefaceSections.filter(
-    (section) =>
-      ![
-        "COPYING",
-        "CREDITS",
-        "DEDICATION",
-        "ERRORS AND OMISSIONS",
-        "FORMAT",
-        "INTRODUCTION",
-        "LEXICOGRAPHIC ORDER",
-        "NAMES",
-        "QUOTE",
-        "SCOPE",
-      ].includes(section.title),
-  );
-
-  if (visibleSections.length === 0) {
-    return "";
-  }
-
-  return `
-    <section class="documentation-section lexicon-section">
-      <div class="lexicon-preface-grid">
-        ${visibleSections.map(renderSection).join("")}
-      </div>
-    </section>
-  `;
-}
-
-function renderEntryMarkup(entry: (typeof LIFE_LEXICON.entries)[number]): string {
-  return `
-    <article id="${escapeHtml(entry.anchorId)}" class="lexicon-entry">
-      <header class="lexicon-entry__header">
-        <div class="lexicon-entry__heading">
-          <span class="lexicon-entry__index">${escapeHtml(entry.firstIndexLabel)}</span>
-          <div>
-            <h2>${escapeHtml(entry.term)}</h2>
-            <p class="lexicon-entry__summary">${escapeHtml(entry.summary)}</p>
-          </div>
-        </div>
-        <div class="lexicon-entry__meta">
-          ${entry.modifiers ? `<span class="lexicon-entry__badge">${escapeHtml(entry.modifiers)}</span>` : ""}
-          ${
-            entry.author
-              ? `<span class="lexicon-entry__author"><span aria-hidden="true">${PERSON_ICON}</span>${escapeHtml(entry.author)}</span>`
-              : ""
-          }
-        </div>
-      </header>
-      ${renderPatternCardMarkup(entry)}
-      <div class="lexicon-entry__content lexicon-rich-text">
-        ${renderBlocks(entry.blocks)}
-      </div>
-    </article>
-  `;
-}
-
-const PREFACE_MARKUP = renderPrefaceMarkup();
-const ENTRIES_MARKUP = LIFE_LEXICON.entries.map(renderEntryMarkup).join("");
-const INDEX_MARKUP = LIFE_LEXICON.index
-  .map(
-    (item) =>
-      `<a class="documentation-chip lexicon-index__chip" href="#${escapeHtml(item.anchorId)}">${escapeHtml(item.label)}</a>`,
-  )
-  .join("");
-
-export function createLexiconView(username: string, avatarId: string): string {
-  return `
-    <section class="workspace-screen workspace-screen--lexicon">
-      <div class="workspace-shell workspace-shell--lexicon">
-        ${createConnectedHeader({
-          avatarId,
-          currentPath: LEXICON_ROUTE,
-          navContent: `<a class="workspace-header__context-link" href="${toDocumentPath(SIMULATION_ROUTE, basePath)}">${APP_TEXTS.lexicon.backToSimulation}</a>`,
-          username,
-        })}
         <main id="lexicon-top" class="lexicon-page route-pane-fade-in">
           <div class="lexicon-layout">
             <div class="lexicon-main">
@@ -188,7 +40,7 @@ export function createLexiconView(username: string, avatarId: string): string {
                     href: LEXICON_HOME_PAGE_URL,
                     label: LEXICON_HOME_PAGE_URL,
                     target: "_blank",
-                    title: "Open the Life Lexicon Home Page"
+                    title: "Open the Life Lexicon Home Page",
                   })}
                 </div>
               </section>
@@ -260,7 +112,5 @@ export function createLexiconView(username: string, avatarId: string): string {
             </aside>
           </div>
         </main>
-      </div>
-    </section>
   `;
 }

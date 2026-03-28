@@ -4,7 +4,7 @@ import SessionService from "@services/SessionService";
 import { APP_TEXTS } from "@texts";
 import { drawPatternPreview, normalizePatternPreviewSource } from "@ui/lib/patternPreview";
 import WorkspaceUserMenu from "@ui/lib/WorkspaceUserMenu";
-import { createLexiconView } from "./html/lexiconView";
+import { createLexiconView } from "./html/lexicon/lexiconView";
 
 import type { AppPath } from "@navigation/NavigationAdapter";
 import type { RouteContext, Screen } from "@router/Screen";

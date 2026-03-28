@@ -27,7 +27,7 @@ const basePath = normalizeBasePath(import.meta.env.BASE_URL);
 
 const CORE_RULE_CARDS: readonly CoreRuleCard[] = [
   {
-    title: "Isolation",
+    title: "Death",
     description: "A live cell with fewer than two live neighbors dies. Sparse fragments cannot sustain themselves.",
     before: ["empty", "alive", "empty", "empty", "subject-alive", "empty", "empty", "empty", "empty"],
     after: ["empty", "empty", "empty", "empty", "outcome-dead", "empty", "empty", "empty", "empty"],

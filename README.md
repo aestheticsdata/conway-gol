@@ -86,6 +86,26 @@ conway-gol/
 │   │   │   │   └── SimulationWorkspace.ts
 │   │   │   ├── views/
 │   │   │   │   ├── html/
+│   │   │   │   │   ├── lexicon/
+│   │   │   │   │   │   ├── escapeHtml.ts
+│   │   │   │   │   │   ├── lexiconView.ts
+│   │   │   │   │   │   ├── markups.ts
+│   │   │   │   │   │   ├── renderBlocks.ts
+│   │   │   │   │   │   ├── renderEntry.ts
+│   │   │   │   │   │   ├── renderPreface.ts
+│   │   │   │   │   │   └── templates/
+│   │   │   │   │   │       └── lexiconMain.ts
+│   │   │   │   │   ├── aboutView.ts
+│   │   │   │   │   ├── appHeader.ts
+│   │   │   │   │   ├── authFields.ts
+│   │   │   │   │   ├── authLayout.ts
+│   │   │   │   │   ├── documentationView.ts
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   ├── loginView.ts
+│   │   │   │   │   ├── registerView.ts
+│   │   │   │   │   ├── settingsView.ts
+│   │   │   │   │   ├── tileSelector.ts
+│   │   │   │   │   └── workspaceView.ts
 │   │   │   │   ├── AboutView.ts
 │   │   │   │   ├── AuthPageView.ts
 │   │   │   │   ├── DocumentationView.ts
