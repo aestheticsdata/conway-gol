@@ -21,7 +21,6 @@ const SETTINGS_SAVE_STATUS_DURATION_MS = 2500;
 
 export class SettingsView implements Screen {
   private _root?: HTMLElement;
-  private _logoutButton?: HTMLButtonElement;
   private _changePassphraseButton?: HTMLButtonElement;
   private _changePasswordButton?: HTMLButtonElement;
   private _saveChangesButton?: HTMLButtonElement;
@@ -51,7 +50,6 @@ export class SettingsView implements Screen {
     htmlHost.innerHTML = createSettingsView(this._savedUsername, this._draftAvatarId, this._createAvatarGridMarkup());
     this._root = htmlHost.firstElementChild as HTMLElement;
     container.replaceChildren(this._root);
-    this._logoutButton = this._root.querySelector<HTMLButtonElement>(".settings-logout") ?? undefined;
     this._changePassphraseButton =
       this._root.querySelector<HTMLButtonElement>(".settings-change-passphrase") ?? undefined;
     this._changePasswordButton = this._root.querySelector<HTMLButtonElement>(".settings-change-password") ?? undefined;
@@ -74,7 +72,6 @@ export class SettingsView implements Screen {
 
   public enter(_context: RouteContext): void {
     document.title = `${APP_TEXTS.document.title} | ${APP_TEXTS.settings.title}`;
-    this._logoutButton?.addEventListener("click", this._onLogout);
     this._changePassphraseButton?.addEventListener("click", this._onChangePassphrase);
     this._changePasswordButton?.addEventListener("click", this._onChangePassword);
     this._saveChangesButton?.addEventListener("click", this._onSaveChanges);
@@ -86,7 +83,6 @@ export class SettingsView implements Screen {
   }
 
   public leave(): void {
-    this._logoutButton?.removeEventListener("click", this._onLogout);
     this._changePassphraseButton?.removeEventListener("click", this._onChangePassphrase);
     this._changePasswordButton?.removeEventListener("click", this._onChangePassword);
     this._saveChangesButton?.removeEventListener("click", this._onSaveChanges);
@@ -102,7 +98,6 @@ export class SettingsView implements Screen {
     this._userMenu?.destroy();
     this._passphraseModal.destroy();
     this._passwordModal.destroy();
-    this._logoutButton = undefined;
     this._changePassphraseButton = undefined;
     this._changePasswordButton = undefined;
     this._saveChangesButton = undefined;

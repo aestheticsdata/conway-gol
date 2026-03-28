@@ -84,16 +84,6 @@ export function createSettingsView(username: string, avatarId: string, avatarGri
                 })}
                 <span class="settings-field__message settings-password-message" aria-live="polite"></span>
               </article>
-              <article class="settings-card">
-                <span class="settings-card__eyebrow">${APP_TEXTS.settings.session.eyebrow}</span>
-                <p class="settings-card__copy">${APP_TEXTS.settings.session.copy}</p>
-                ${createButton({
-                  type: "button",
-                  className: "settings-card__action settings-logout",
-                  label: APP_TEXTS.workspace.logOut,
-                  size: "compact",
-                })}
-              </article>
             </div>
             <div class="settings-panel__footer">
               <span class="settings-panel__status" aria-live="polite"></span>
