@@ -144,11 +144,16 @@ class ZooPatternModal {
 
   constructor(root: HTMLElement = document.body) {
     this._overlay = document.createElement("div");
-    this._overlay.className = "zoo-pattern-modal";
+    this._overlay.className = "ui-save-modal zoo-pattern-modal";
     this._overlay.hidden = true;
     this._overlay.innerHTML = `
-      <div class="zoo-pattern-modal__backdrop"></div>
-      <section class="zoo-pattern-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="zoo-pattern-modal-title">
+      <div class="ui-save-modal__backdrop zoo-pattern-modal__backdrop"></div>
+      <section
+        class="ui-save-modal__dialog zoo-pattern-modal__dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="zoo-pattern-modal-title"
+      >
         <div class="zoo-pattern-modal__header">
           <div class="zoo-pattern-modal__heading">
             <h2 id="zoo-pattern-modal-title" class="zoo-pattern-modal__title">${APP_TEXTS.zoo.patternListsTitle}</h2>
@@ -291,7 +296,7 @@ class ZooPatternModal {
     const target = event.target;
     if (
       target === this._overlay ||
-      (target instanceof HTMLElement && target.classList.contains("zoo-pattern-modal__backdrop"))
+      (target instanceof HTMLElement && target.classList.contains("ui-save-modal__backdrop"))
     ) {
       this.close();
     }
