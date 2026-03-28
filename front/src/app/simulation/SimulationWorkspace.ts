@@ -202,6 +202,10 @@ export class SimulationWorkspace {
 
     await this._setup();
 
+    if (this._selectedMode === "zoo" && this._selectedSpecies && !query.get("pattern")) {
+      this._syncZooSearchParam(this._selectedSpecies);
+    }
+
     if (query.get("autostart") === "1") {
       this._togglePause();
     }
