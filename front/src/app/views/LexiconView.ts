@@ -2,7 +2,7 @@ import { LOGIN_ROUTE } from "@app/routes";
 import { LIFE_LEXICON } from "@data/lexicon/lexiconParser";
 import SessionService from "@services/SessionService";
 import { APP_TEXTS } from "@texts";
-import { drawPatternPreview, parseAsciiPattern } from "@ui/lib/patternPreview";
+import { drawPatternPreview, normalizePatternPreviewSource } from "@ui/lib/patternPreview";
 import WorkspaceUserMenu from "@ui/lib/WorkspaceUserMenu";
 import { createLexiconView } from "./html/lexiconView";
 
@@ -79,7 +79,13 @@ export class LexiconView implements Screen {
         continue;
       }
 
-      drawPatternPreview(canvas, parseAsciiPattern(entry.patternCard.previewAscii));
+      drawPatternPreview(
+        canvas,
+        normalizePatternPreviewSource({
+          kind: "ascii",
+          ascii: entry.patternCard.previewAscii,
+        }),
+      );
     }
   }
 

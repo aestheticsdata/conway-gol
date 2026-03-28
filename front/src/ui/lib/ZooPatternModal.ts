@@ -6,7 +6,7 @@ import PatternFavoriteService from "@services/PatternFavoriteService";
 import PatternService, { type RemotePattern } from "@services/PatternService";
 import { APP_TEXTS } from "@texts";
 import { createLinkButtonElement } from "@ui/components/button/createButton";
-import { drawPatternPreview } from "@ui/lib/patternPreview";
+import { drawPatternPreview, normalizePatternPreviewSource } from "@ui/lib/patternPreview";
 
 import type { PatternCardLink } from "@data/patterns/patternCardMeta";
 
@@ -770,7 +770,13 @@ class ZooPatternModal {
         record.author.textContent = meta.author;
         this._renderLinks(record.links, meta.links);
         record.previewPlaceholder.hidden = true;
-        drawPatternPreview(record.preview, meta.pattern);
+        drawPatternPreview(
+          record.preview,
+          normalizePatternPreviewSource({
+            kind: "grid",
+            pattern: meta.pattern,
+          }),
+        );
       })
       .catch(() => {
         record.loaded = true;

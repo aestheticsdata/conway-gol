@@ -474,8 +474,7 @@
 }
 
 .lexicon-pattern-preview__frame {
-  width: min(100%, 236px);
-  min-height: 188px;
+  width: min(100%, 320px);
 }
 
 .lexicon-pattern-preview__center {

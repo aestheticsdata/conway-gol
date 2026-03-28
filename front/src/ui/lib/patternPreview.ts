@@ -1,5 +1,15 @@
 import { getRequiredContext2D } from "@helpers/dom";
 
+export type PatternPreviewSource =
+  | {
+      kind: "ascii";
+      ascii: string;
+    }
+  | {
+      kind: "grid";
+      pattern: number[][];
+    };
+
 export function parseAsciiPattern(ascii: string): number[][] {
   const lines = ascii
     .split("\n")
@@ -9,6 +19,14 @@ export function parseAsciiPattern(ascii: string): number[][] {
   return lines.map((line) =>
     Array.from(line).map((character) => (character === "*" || character === "O" || character === "o" ? 1 : 0)),
   );
+}
+
+export function normalizePatternPreviewSource(source: PatternPreviewSource): number[][] {
+  if (source.kind === "ascii") {
+    return parseAsciiPattern(source.ascii);
+  }
+
+  return source.pattern;
 }
 
 export function drawPatternPreview(canvas: HTMLCanvasElement, pattern: number[][]): void {
