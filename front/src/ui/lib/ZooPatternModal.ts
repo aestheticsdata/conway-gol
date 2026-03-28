@@ -43,6 +43,15 @@ type PatternCardRecord = {
 
 type CardEntranceSource = "initial" | "scroll";
 
+type CardMotionOptions = {
+  baseDelayMs?: number;
+  delayScale?: number;
+  fadeScale?: number;
+  moveScale?: number;
+  shiftScale?: number;
+  waveScale?: number;
+};
+
 const PREVIEW_WIDTH = 320;
 const PREVIEW_HEIGHT = 188;
 const CARD_STAGGER_STEP_MS = 34;
@@ -54,6 +63,14 @@ const CARD_MOVE_DURATION_MS = 430;
 const CARD_MOVE_DURATION_VARIATION_MS = 24;
 const CARD_SHIFT_PX = 20;
 const CARD_SHIFT_VARIATION_PX = 4;
+const CARD_INITIAL_REVEAL_DELAY_MS = 96;
+const CARD_INITIAL_FADE_SCALE = 1.75;
+const CARD_SCROLL_FADE_SLOW_SCALE = 1.56;
+const CARD_SCROLL_FADE_FAST_SCALE = 1.28;
+const CARD_SCROLL_MOVE_SLOW_SCALE = 0.92;
+const CARD_SCROLL_MOVE_FAST_SCALE = 0.72;
+const CARD_SCROLL_SHIFT_SLOW_SCALE = 0.98;
+const CARD_SCROLL_SHIFT_FAST_SCALE = 0.82;
 const CARD_LOAD_AHEAD_ROOT_MARGIN = "180px 0px 220px 0px";
 const CARD_REVEAL_ROOT_MARGIN = "0px 0px -18% 0px";
 const CARD_REVEAL_MIN_VISIBLE_RATIO = 0.38;
@@ -67,22 +84,17 @@ const SCROLL_VELOCITY_MAX_PX_PER_MS = 1.6;
 function applyCardMotion(
   card: HTMLElement,
   index: number,
-  options?: {
-    delayScale?: number;
-    fadeScale?: number;
-    moveScale?: number;
-    shiftScale?: number;
-    waveScale?: number;
-  },
-): { delay: number; moveDuration: number } {
+  options?: CardMotionOptions,
+): { delay: number; fadeDuration: number; moveDuration: number } {
   const cappedIndex = Math.min(index, CARD_STAGGER_MAX_INDEX);
+  const baseDelayMs = options?.baseDelayMs ?? 0;
   const delayScale = options?.delayScale ?? 1;
   const fadeScale = options?.fadeScale ?? 1;
   const moveScale = options?.moveScale ?? 1;
   const shiftScale = options?.shiftScale ?? 1;
   const waveScale = options?.waveScale ?? delayScale;
   const delay = Math.round(
-    cappedIndex * CARD_STAGGER_STEP_MS * delayScale + (cappedIndex % 3) * CARD_STAGGER_WAVE_MS * waveScale,
+    baseDelayMs + cappedIndex * CARD_STAGGER_STEP_MS * delayScale + (cappedIndex % 3) * CARD_STAGGER_WAVE_MS * waveScale,
   );
   const fadeDuration = Math.round(
     (CARD_FADE_DURATION_MS + (cappedIndex % 3) * CARD_FADE_DURATION_VARIATION_MS) * fadeScale,
@@ -96,7 +108,7 @@ function applyCardMotion(
   card.style.setProperty("--zoo-pattern-card-fade-duration", `${fadeDuration}ms`);
   card.style.setProperty("--zoo-pattern-card-move-duration", `${moveDuration}ms`);
   card.style.setProperty("--zoo-pattern-card-shift", `${shift}px`);
-  return { delay, moveDuration };
+  return { delay, fadeDuration, moveDuration };
 }
 
 function isUrlLine(line: string): boolean {
@@ -755,14 +767,20 @@ class ZooPatternModal {
     const age = performance.now() - this._lastBodyScrollAt;
     const velocity = age > 160 ? 0 : this._scrollVelocityPxPerMs;
     const normalizedVelocity = Math.min(1, velocity / SCROLL_VELOCITY_MAX_PX_PER_MS);
-    const slowScrollBoost = 1 - normalizedVelocity;
 
     return {
-      delayScale: 0.22 + normalizedVelocity * 0.26,
-      fadeScale: 0.46 + normalizedVelocity * 0.2 - slowScrollBoost * 0.12,
-      moveScale: 0.5 + normalizedVelocity * 0.22 - slowScrollBoost * 0.14,
-      shiftScale: 0.66 + normalizedVelocity * 0.16 - slowScrollBoost * 0.08,
+      delayScale: 0.2 + normalizedVelocity * 0.22,
+      fadeScale: CARD_SCROLL_FADE_SLOW_SCALE + normalizedVelocity * (CARD_SCROLL_FADE_FAST_SCALE - CARD_SCROLL_FADE_SLOW_SCALE),
+      moveScale: CARD_SCROLL_MOVE_SLOW_SCALE + normalizedVelocity * (CARD_SCROLL_MOVE_FAST_SCALE - CARD_SCROLL_MOVE_SLOW_SCALE),
+      shiftScale: CARD_SCROLL_SHIFT_SLOW_SCALE + normalizedVelocity * (CARD_SCROLL_SHIFT_FAST_SCALE - CARD_SCROLL_SHIFT_SLOW_SCALE),
       waveScale: 0.24 + normalizedVelocity * 0.18,
+    };
+  }
+
+  private _getInitialMotionProfile(): CardMotionOptions {
+    return {
+      baseDelayMs: CARD_INITIAL_REVEAL_DELAY_MS,
+      fadeScale: CARD_INITIAL_FADE_SCALE,
     };
   }
 
@@ -772,8 +790,8 @@ class ZooPatternModal {
       window.clearTimeout(existingTimeoutId);
     }
 
-    const motionOptions = source === "scroll" ? this._getScrollMotionProfile() : undefined;
-    const { delay, moveDuration } = applyCardMotion(card, index, motionOptions);
+    const motionOptions = source === "scroll" ? this._getScrollMotionProfile() : this._getInitialMotionProfile();
+    const { delay, fadeDuration, moveDuration } = applyCardMotion(card, index, motionOptions);
     card.classList.add("is-entered", "is-animating");
 
     const timeoutId = window.setTimeout(
@@ -781,7 +799,7 @@ class ZooPatternModal {
         card.classList.remove("is-animating");
         delete card.dataset.animationTimeoutId;
       },
-      delay + moveDuration + 32,
+      delay + Math.max(fadeDuration, moveDuration) + 32,
     );
 
     card.dataset.animationTimeoutId = String(timeoutId);
