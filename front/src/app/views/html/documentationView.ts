@@ -27,28 +27,28 @@ const basePath = normalizeBasePath(import.meta.env.BASE_URL);
 
 const CORE_RULE_CARDS: readonly CoreRuleCard[] = [
   {
-    title: "Death",
-    description: "A live cell with fewer than two live neighbors dies. Sparse fragments cannot sustain themselves.",
-    before: ["empty", "alive", "empty", "empty", "subject-alive", "empty", "empty", "empty", "empty"],
-    after: ["empty", "empty", "empty", "empty", "outcome-dead", "empty", "empty", "empty", "empty"],
+    title: "Birth",
+    description: "A dead cell with exactly three live neighbors becomes alive, which is how new structure appears.",
+    before: ["alive", "empty", "empty", "alive", "subject-dead", "empty", "empty", "empty", "alive"],
+    after: ["empty", "empty", "empty", "empty", "outcome-alive", "empty", "empty", "empty", "empty"],
   },
   {
     title: "Overcrowding",
     description: "A live cell with more than three live neighbors dies when the local cluster becomes too dense.",
-    before: ["empty", "alive", "empty", "alive", "subject-alive", "alive", "empty", "alive", "empty"],
-    after: ["empty", "empty", "empty", "empty", "outcome-dead", "empty", "empty", "empty", "empty"],
+    before: ["alive", "empty", "alive", "alive", "subject-alive", "empty", "empty", "alive", "alive"],
+    after: ["alive", "empty", "empty", "alive", "outcome-dead", "empty", "alive", "alive", "alive"],
   },
   {
     title: "Survival",
     description: "A live cell with two or three live neighbors survives and carries the current structure forward.",
-    before: ["empty", "alive", "empty", "alive", "subject-alive", "alive", "empty", "empty", "empty"],
-    after: ["empty", "empty", "empty", "empty", "outcome-alive", "empty", "empty", "empty", "empty"],
+    before: ["alive", "empty", "empty", "empty", "subject-alive", "empty", "empty", "alive", "empty"],
+    after: ["empty", "empty", "empty", "alive", "outcome-alive", "empty", "empty", "empty", "empty"],
   },
   {
-    title: "Birth",
-    description: "A dead cell with exactly three live neighbors becomes alive, which is how new structure appears.",
-    before: ["empty", "alive", "empty", "alive", "subject-dead", "alive", "empty", "empty", "empty"],
-    after: ["empty", "empty", "empty", "empty", "outcome-alive", "empty", "empty", "empty", "empty"],
+    title: "Death",
+    description: "A live cell with fewer than two live neighbors dies. Sparse fragments cannot sustain themselves.",
+    before: ["alive", "empty", "empty", "empty", "subject-alive", "empty", "empty", "empty", "empty"],
+    after: ["empty", "empty", "empty", "empty", "outcome-dead", "empty", "empty", "empty", "empty"],
   },
 ] as const;
 

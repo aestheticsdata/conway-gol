@@ -378,6 +378,7 @@
 .documentation-rule-grid__cell--subject-alive,
 .documentation-rule-grid__cell--outcome-alive {
   box-shadow:
+    inset 0 0 0 2px rgba(214, 244, 255, 0.16),
     inset 0 1px 0 rgba(255, 255, 255, 0.28),
     0 0 20px rgba(37, 219, 255, 0.34);
 }
@@ -392,13 +393,13 @@
 
 .documentation-rule-grid__cell--subject-dead {
   box-shadow:
-    inset 0 0 0 1px rgba(120, 239, 255, 0.12),
+    inset 0 0 0 2px rgba(120, 239, 255, 0.12),
     0 0 14px rgba(37, 219, 255, 0.16);
 }
 
 .documentation-rule-grid__cell--outcome-dead {
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.03),
+    inset 0 0 0 2px rgba(214, 228, 244, 0.06),
     0 0 12px rgba(255, 255, 255, 0.04);
 }
 
