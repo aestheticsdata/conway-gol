@@ -17,8 +17,10 @@ import RandomControlsPanel from "@ui/controls/simulation/RandomControlsPanel";
 import ZooSelector from "@ui/controls/simulation/ZooSelector";
 import AliveCountChart from "@ui/controls/telemetry/AliveCountChart";
 import AliveVariationChart from "@ui/controls/telemetry/AliveVariationChart";
+import HxfImportSavingOverlay from "@ui/lib/HxfImportSavingOverlay";
 import SavePresetModal from "@ui/lib/SavePresetModal";
 import Tooltip from "@ui/lib/Tooltip";
+import Swal from "sweetalert2";
 
 import type { WorkspaceRoute } from "@app/routes";
 import type { DrawingCursorPosition, GridStateChangeStats } from "@grid/Grid";
@@ -34,6 +36,11 @@ type SimulationWorkspaceOptions = {
 type SeenStateEntry = {
   iteration: number;
   state: Uint32Array;
+};
+
+type HxfPatternPayload = {
+  comments: string[];
+  automata: number[][];
 };
 
 export class SimulationWorkspace {
@@ -56,10 +63,14 @@ export class SimulationWorkspace {
   private readonly _critterService = new CritterService();
   private readonly _userCustomService = new UserCustomService();
   private readonly _savePresetModal = new SavePresetModal();
+  private readonly _hxfImportSavingOverlay = new HxfImportSavingOverlay();
   private readonly _pauseBtn: HTMLButtonElement;
   private readonly _pauseBtnLabel: HTMLElement;
   private readonly _drawingClearButton: HTMLButtonElement;
   private readonly _drawingRestoreButton: HTMLButtonElement;
+  private readonly _drawingHxfExportButton: HTMLButtonElement;
+  private readonly _drawingHxfImportButton: HTMLButtonElement;
+  private readonly _drawingHxfImportInput: HTMLInputElement;
   private readonly _drawingRestoreTooltipTarget: HTMLElement;
   private readonly _drawingRestoreTooltip: Tooltip;
   private readonly _drawingCursorXValue: HTMLElement;
@@ -97,6 +108,7 @@ export class SimulationWorkspace {
   private _drawingToolBox?: DrawingToolBox;
   private _drawingInitialGridSnapshot: number[][] | null = null;
   private _drawingInitialStateSnapshot: Uint8Array | null = null;
+  private _currentPatternComments: string[] = [];
   private _zoomBox?: ZoomBox;
   private _userCustomSelector?: UserCustomSelector;
   private _imageImporter?: ImageImporter;
@@ -135,6 +147,9 @@ export class SimulationWorkspace {
     this._pauseBtnLabel = queryRequired<HTMLElement>(".ui-button__label", this._pauseBtn);
     this._drawingClearButton = queryRequired<HTMLButtonElement>(".drawing-clear", this._root);
     this._drawingRestoreButton = queryRequired<HTMLButtonElement>(".drawing-restore", this._root);
+    this._drawingHxfExportButton = queryRequired<HTMLButtonElement>(".drawing-hxf-export", this._root);
+    this._drawingHxfImportButton = queryRequired<HTMLButtonElement>(".drawing-hxf-import", this._root);
+    this._drawingHxfImportInput = queryRequired<HTMLInputElement>("#drawing-hxf-import-input", this._root);
     this._drawingRestoreTooltipTarget = queryRequired<HTMLElement>(".drawing-restore-tooltip-target", this._root);
     this._drawingRestoreTooltip = new Tooltip();
     this._drawingCursorXValue = queryRequired<HTMLElement>(".drawing-cursor-x-value", this._root);
@@ -168,6 +183,9 @@ export class SimulationWorkspace {
     this._pauseBtn.addEventListener("click", this._togglePause);
     this._drawingClearButton.addEventListener("click", this._onClearCanvas);
     this._drawingRestoreButton.addEventListener("click", this._onRestoreDrawing);
+    this._drawingHxfExportButton.addEventListener("click", this._onDrawingHxfExportClick);
+    this._drawingHxfImportButton.addEventListener("click", this._onDrawingHxfImportButtonClick);
+    this._drawingHxfImportInput.addEventListener("change", this._onDrawingHxfImportFileChange);
     this._drawingRestoreTooltipTarget.addEventListener("pointerenter", this._handleRestoreTooltipPointerEnter);
     this._drawingRestoreTooltipTarget.addEventListener("pointermove", this._handleRestoreTooltipPointerMove);
     this._drawingRestoreTooltipTarget.addEventListener("pointerleave", this._hideRestoreTooltip);
@@ -199,11 +217,15 @@ export class SimulationWorkspace {
     this._userCustomSelector?.destroy();
     this._drawingToolBox?.destroy();
     this._savePresetModal.destroy();
+    this._hxfImportSavingOverlay.destroy();
     this._imageImporter?.destroy();
     this._drawingRestoreTooltip.destroy();
     this._pauseBtn.removeEventListener("click", this._togglePause);
     this._drawingClearButton.removeEventListener("click", this._onClearCanvas);
     this._drawingRestoreButton.removeEventListener("click", this._onRestoreDrawing);
+    this._drawingHxfExportButton.removeEventListener("click", this._onDrawingHxfExportClick);
+    this._drawingHxfImportButton.removeEventListener("click", this._onDrawingHxfImportButtonClick);
+    this._drawingHxfImportInput.removeEventListener("change", this._onDrawingHxfImportFileChange);
     this._drawingRestoreTooltipTarget.removeEventListener("pointerenter", this._handleRestoreTooltipPointerEnter);
     this._drawingRestoreTooltipTarget.removeEventListener("pointermove", this._handleRestoreTooltipPointerMove);
     this._drawingRestoreTooltipTarget.removeEventListener("pointerleave", this._hideRestoreTooltip);
@@ -365,6 +387,158 @@ export class SimulationWorkspace {
     this._resetSimulationPlaybackState();
     this._grid.seedFromGrid(this._drawingInitialGridSnapshot);
   };
+
+  private _onDrawingHxfExportClick = async (): Promise<void> => {
+    if (this._selectedMode !== "drawing" || !this._grid) {
+      return;
+    }
+
+    const defaultBasename = this._getDrawingExportFilename().replace(/\.hxf$/iu, "");
+    const rawName = await this._savePresetModal.open(
+      {
+        title: CONTROL_TEXTS.drawing.exportModalTitle,
+        inputPlaceholder: CONTROL_TEXTS.drawing.exportModalPlaceholder,
+        saveLabel: CONTROL_TEXTS.drawing.exportModalConfirm,
+        cancelLabel: CONTROL_TEXTS.drawing.exportModalCancel,
+        nameRequired: CONTROL_TEXTS.userCustomSelector.prompt.filenameRequired,
+        closeLabel: CONTROL_TEXTS.drawing.exportModalClose,
+      },
+      { initialValue: defaultBasename },
+    );
+
+    if (!rawName) {
+      return;
+    }
+
+    const downloadName = this._sanitizeHxfBasename(rawName);
+    const payload: HxfPatternPayload = {
+      comments: this._currentPatternComments.length > 0 ? [...this._currentPatternComments] : [""],
+      automata: this._grid.toGrid(),
+    };
+
+    this._triggerHxfDownload(payload, `${downloadName}.hxf`);
+  };
+
+  private _onDrawingHxfImportButtonClick = (): void => {
+    if (this._selectedMode !== "drawing") {
+      return;
+    }
+
+    this._drawingHxfImportInput.click();
+  };
+
+  private _onDrawingHxfImportFileChange = async (event: Event): Promise<void> => {
+    const input = event.currentTarget as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = "";
+
+    if (!file || this._selectedMode !== "drawing" || !this._grid) {
+      return;
+    }
+
+    let text: string;
+    try {
+      text = await file.text();
+    } catch {
+      void Swal.fire({
+        icon: "error",
+        title: CONTROL_TEXTS.drawing.hxfImportErrorTitle,
+        text: CONTROL_TEXTS.drawing.hxfImportParseError,
+      });
+      return;
+    }
+
+    let automata: number[][];
+    try {
+      automata = this._parseHxfImportAutomata(text);
+    } catch (err) {
+      const isGridError = err instanceof Error && err.message === "grid";
+      void Swal.fire({
+        icon: "error",
+        title: CONTROL_TEXTS.drawing.hxfImportErrorTitle,
+        text: isGridError ? CONTROL_TEXTS.drawing.hxfImportGridError : CONTROL_TEXTS.drawing.hxfImportParseError,
+      });
+      return;
+    }
+
+    this._clearDrawingRestoreSnapshot();
+    this._grid.seedFromGrid(automata);
+
+    const patternName = this._patternNameFromImportFile(file);
+
+    this._hxfImportSavingOverlay.showLoading();
+    try {
+      await this._userCustomService.postCustomDrawing(automata, patternName);
+      this._userCustomSelector?.setCurrentValue(patternName);
+      await this._userCustomSelector?.getCustomList();
+      this._hxfImportSavingOverlay.showImportComplete();
+    } catch (err) {
+      console.error(err);
+      this._hxfImportSavingOverlay.showImportFailed(
+        err instanceof Error ? err.message : CONTROL_TEXTS.drawing.hxfImportParseError,
+      );
+    }
+  };
+
+  private _patternNameFromImportFile(file: File): string {
+    const stripped = file.name.replace(/\.(hxf|json)$/iu, "").trim();
+    return this._sanitizeHxfBasename(stripped);
+  }
+
+  private _parseHxfImportAutomata(text: string): number[][] {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      throw new Error("parse");
+    }
+
+    if (!parsed || typeof parsed !== "object" || !("automata" in parsed)) {
+      throw new Error("parse");
+    }
+
+    const automata = (parsed as { automata: unknown }).automata;
+    if (!Array.isArray(automata) || automata.length !== GRID_ROWS) {
+      throw new Error("grid");
+    }
+
+    for (let row = 0; row < GRID_ROWS; row++) {
+      const line = automata[row];
+      if (!Array.isArray(line) || line.length !== GRID_COLS) {
+        throw new Error("grid");
+      }
+
+      for (let col = 0; col < GRID_COLS; col++) {
+        const cell = line[col];
+        if (cell !== 0 && cell !== 1) {
+          throw new Error("grid");
+        }
+      }
+    }
+
+    return automata as number[][];
+  }
+
+  private _triggerHxfDownload(payload: HxfPatternPayload, filename: string): void {
+    const blob = new Blob([JSON.stringify(payload)], {
+      type: "application/json;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.style.display = "none";
+    document.body.append(link);
+    link.click();
+    link.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 0);
+  }
+
+  private _sanitizeHxfBasename(raw: string): string {
+    const baseName = raw.replace(/\.hxf$/iu, "").trim();
+    const sanitizedName = baseName.replace(/[\\/:*?"<>|]/gu, "-").replace(/\s+/gu, " ").trim();
+    return sanitizedName || "drawing";
+  }
 
   private _resetIterationCounter(): void {
     this._iterationCounterValue = 0;
@@ -796,6 +970,11 @@ export class SimulationWorkspace {
     this._drawingCursorYValue.textContent = position ? String(position.y) : "--";
   }
 
+  private _getDrawingExportFilename(): string {
+    const rawName = (this._userCustomSelector?.currentValue() || this._selectedSpecies || "drawing").trim();
+    return `${this._sanitizeHxfBasename(rawName)}.hxf`;
+  }
+
   private async _loadCritterList(): Promise<string[] | undefined> {
     if (this._critterList) {
       return this._critterList;
@@ -817,6 +996,7 @@ export class SimulationWorkspace {
 
     this._grid?.destroyListener();
     this._clearDrawingRestoreSnapshot();
+    this._currentPatternComments = [];
     this._updateDrawingCursorCoordinates(null);
     this._updateCellStats({
       alive: 0,
@@ -933,6 +1113,7 @@ export class SimulationWorkspace {
   }
 
   private _renderComments(comments: string[]): void {
+    this._currentPatternComments = [...comments];
     const nodes = comments
       .map((line) => this._createCommentNode(line.trim()))
       .filter((node): node is HTMLElement => node !== null);

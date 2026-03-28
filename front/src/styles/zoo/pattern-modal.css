@@ -15,8 +15,9 @@
 .zoo-pattern-modal__backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(4, 10, 18, 0.78);
-  backdrop-filter: blur(10px);
+  background: var(--modal-overlay-backdrop);
+  -webkit-backdrop-filter: blur(var(--modal-overlay-blur));
+  backdrop-filter: blur(var(--modal-overlay-blur));
 }
 
 .zoo-pattern-modal__dialog {

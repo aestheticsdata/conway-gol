@@ -108,6 +108,24 @@
   display: flex;
 }
 
+.drawing-hxf-actions__row {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.drawing-hxf-actions__row .ui-button {
+  flex: 1;
+  min-width: 0;
+}
+
+.drawing-actions-pane__hxf-image-delimiter {
+  margin-top: var(--separator-gap);
+  padding-top: var(--separator-gap);
+  border-top: 1px solid rgba(117, 161, 205, 0.18);
+}
+
 .drawing-actions-pane .drawing-save-action {
   padding-bottom: var(--separator-gap);
 }

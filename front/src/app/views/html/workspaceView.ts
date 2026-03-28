@@ -216,11 +216,35 @@ function createPlaybackControls(): string {
   `;
 }
 
+function createDrawingHxfActions(): string {
+  return `
+    <div class="drawing-hxf-actions">
+      <div class="drawing-hxf-actions__row">
+        ${createButton({
+          className: "drawing-hxf-export",
+          label: CONTROL_TEXTS.drawing.exportButton,
+        })}
+        ${createButton({
+          className: "drawing-hxf-import",
+          label: CONTROL_TEXTS.drawing.importHxfButton,
+        })}
+      </div>
+      <input type="file" id="drawing-hxf-import-input" class="drawing-hxf-import-input" accept=".hxf,application/json" hidden>
+    </div>
+  `;
+}
+
+function createDrawingHxfImageDelimiter(): string {
+  return `<div class="drawing-actions-pane__hxf-image-delimiter" aria-hidden="true"></div>`;
+}
+
 function createDrawingActionsSidebar(route: WorkspaceRoute): string {
   const fadeInClass = route === DRAWING_ROUTE ? " route-pane-fade-in" : "";
 
   return `
     <aside class="drawing-actions-pane${fadeInClass}" style="display: none">
+      ${createDrawingHxfActions()}
+      ${createDrawingHxfImageDelimiter()}
       ${createImageImport()}
     </aside>
   `;
@@ -557,8 +581,8 @@ function createWorkspaceInspector(): string {
       <div class="drawing-pane" style="display: none">
         ${createDrawingFiles()}
         <div class="zoombox-container"></div>
-        ${createDrawingClearAction()}
         ${createDrawingToolbox()}
+        ${createDrawingClearAction()}
         ${createDrawingCursorCoordinates()}
       </div>
       ${createCustomCursor()}

@@ -13,6 +13,8 @@ type SavePresetModalTexts = {
 type SavePresetModalOptions = {
   autocomplete?: HTMLInputElement["autocomplete"];
   inputType?: "password" | "text";
+  /** Prefills the name field (export filename, etc.). */
+  initialValue?: string;
 };
 
 const DEFAULT_TEXTS: SavePresetModalTexts = {
@@ -106,7 +108,7 @@ class SavePresetModal {
     this._saveBtn.textContent = this._texts.saveLabel;
     this._cancelBtn.textContent = this._texts.cancelLabel;
     this._closeBtn.setAttribute("aria-label", this._texts.closeLabel);
-    this._input.value = "";
+    this._input.value = options.initialValue ?? "";
     this._setError("");
     this._input.focus();
     document.addEventListener("keydown", this._handleDocumentKeyDown);
