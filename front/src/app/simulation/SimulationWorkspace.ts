@@ -21,6 +21,7 @@ import HxfImportSavingOverlay from "@ui/lib/HxfImportSavingOverlay";
 import SavePresetModal from "@ui/lib/SavePresetModal";
 import Tooltip from "@ui/lib/Tooltip";
 import Swal from "sweetalert2";
+import PlaybackTelemetryTracker from "./PlaybackTelemetryTracker";
 
 import type { WorkspaceRoute } from "@app/routes";
 import type { DrawingCursorPosition, GridStateChangeStats } from "@grid/Grid";
@@ -31,11 +32,6 @@ type SimulationWorkspaceOptions = {
   root: HTMLElement;
   route: WorkspaceRoute;
   onRouteModeChange: (route: WorkspaceRoute) => void;
-};
-
-type SeenStateEntry = {
-  iteration: number;
-  state: Uint32Array;
 };
 
 type HxfPatternPayload = {
@@ -89,11 +85,8 @@ export class SimulationWorkspace {
   private _isPlaying = false;
   private _grid: Grid | null = null;
   private _iterationCounterValue = 0;
-  private _stabilizationIterationValue: number | null = null;
-  private _cycleDetectedPeriodValue: number | null = null;
+  private readonly _playbackTelemetryTracker = new PlaybackTelemetryTracker();
   private _legendLastAliveCount: number | null = null;
-  private readonly _seenStates = new Map<string, SeenStateEntry[]>();
-  private _previousPackedState: Uint32Array | null = null;
   private _selectedMode: Mode;
   private _zooSelector?: ZooSelector;
   private _fps = 12;
@@ -549,20 +542,17 @@ export class SimulationWorkspace {
   }
 
   private _resetStabilizationCounter(): void {
-    this._stabilizationIterationValue = null;
     this._stabilizationCounter.textContent = "-";
   }
 
   private _resetCycleDetectedCounter(): void {
-    this._cycleDetectedPeriodValue = null;
     this._cycleDetectedCounter.textContent = "-";
   }
 
   private _resetStabilizationTracking(): void {
     this._resetStabilizationCounter();
     this._resetCycleDetectedCounter();
-    this._seenStates.clear();
-    this._previousPackedState = null;
+    this._playbackTelemetryTracker.reset();
   }
 
   private _resetTelemetryLegendValues(): void {
@@ -632,107 +622,25 @@ export class SimulationWorkspace {
       return;
     }
 
-    const packedState = this._packState(currentSnapshot);
+    const telemetrySnapshot = this._playbackTelemetryTracker.observe(
+      this._iterationCounterValue,
+      currentSnapshot,
+      stats.changedCells,
+    );
 
-    if (stats.changedCells === null) {
-      this._resetStabilizationTracking();
-      this._rememberState(this._iterationCounterValue, packedState);
-      this._previousPackedState = packedState;
-      return;
+    if (telemetrySnapshot.stableAfter !== null) {
+      this._stabilizationCounter.textContent = String(telemetrySnapshot.stableAfter);
     }
 
-    if (
-      this._stabilizationIterationValue === null &&
-      this._previousPackedState !== null &&
-      this._packedStatesEqual(this._previousPackedState, packedState)
-    ) {
-      this._stabilizationIterationValue = Math.max(0, this._iterationCounterValue - 1);
-      this._stabilizationCounter.textContent = String(this._stabilizationIterationValue);
-      this._previousPackedState = packedState;
-      return;
+    if (telemetrySnapshot.cyclePeriod !== null) {
+      this._cycleDetectedCounter.textContent = String(telemetrySnapshot.cyclePeriod);
     }
-
-    if (this._cycleDetectedPeriodValue === null) {
-      const cycleDetectedAtIteration = this._findSeenStateIteration(packedState, this._iterationCounterValue - 1);
-      if (cycleDetectedAtIteration !== null) {
-        const cyclePeriod = this._iterationCounterValue - cycleDetectedAtIteration;
-        this._cycleDetectedPeriodValue = cyclePeriod;
-        this._cycleDetectedCounter.textContent = String(cyclePeriod);
-        this._previousPackedState = packedState;
-        return;
-      }
-    }
-
-    this._rememberState(this._iterationCounterValue, packedState);
-    this._previousPackedState = packedState;
-  }
-
-  private _findSeenStateIteration(state: Uint32Array, maxIteration: number): number | null {
-    const bucket = this._seenStates.get(this._hashPackedState(state));
-    if (!bucket) {
-      return null;
-    }
-
-    for (const entry of bucket) {
-      if (entry.iteration <= maxIteration && this._packedStatesEqual(entry.state, state)) {
-        return entry.iteration;
-      }
-    }
-
-    return null;
-  }
-
-  private _rememberState(iteration: number, state: Uint32Array): void {
-    const hash = this._hashPackedState(state);
-    const bucket = this._seenStates.get(hash);
-    if (bucket) {
-      bucket.push({ iteration, state });
-      return;
-    }
-
-    this._seenStates.set(hash, [{ iteration, state }]);
-  }
-
-  private _packState(state: Uint8Array): Uint32Array {
-    const packed = new Uint32Array(Math.ceil(state.length / 32));
-    for (let index = 0; index < state.length; index++) {
-      if (state[index] === 0) {
-        continue;
-      }
-
-      packed[index >>> 5] |= 1 << (index & 31);
-    }
-    return packed;
-  }
-
-  private _hashPackedState(state: Uint32Array): string {
-    let hash = 2166136261;
-    for (let index = 0; index < state.length; index++) {
-      hash ^= state[index] >>> 0;
-      hash = Math.imul(hash, 16777619) >>> 0;
-    }
-
-    return hash.toString(16);
-  }
-
-  private _packedStatesEqual(left: Uint32Array, right: Uint32Array): boolean {
-    if (left.length !== right.length) {
-      return false;
-    }
-
-    for (let index = 0; index < left.length; index++) {
-      if (left[index] !== right[index]) {
-        return false;
-      }
-    }
-
-    return true;
   }
 
   private _handleStateChange = (stats: GridStateChangeStats): void => {
     this._updateCellStats(stats);
     this._syncDrawingRestoreButton();
-    if (this._cycleDetectedPeriodValue === null) {
+    if (this._playbackTelemetryTracker.cyclePeriod === null) {
       this._updateTelemetryLegendValues(stats);
       this._aliveVariationChart.push(stats.alive);
       this._aliveCountChart.push(stats.alive);

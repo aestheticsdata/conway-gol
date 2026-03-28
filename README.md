@@ -13,6 +13,7 @@ A full-stack implementation of [Conway's Game of Life](https://en.wikipedia.org/
 - [Frontend Design System](#frontend-design-system)
 - [Frontend Code Map](#frontend-code-map)
 - [Running Locally](#running-locally)
+- [Testing](#testing)
 - [Deployment](#deployment)
 - [API Endpoints](#api-endpoints)
 - [Pattern File Format (.hxf)](#pattern-file-format-hxf)
@@ -28,7 +29,7 @@ A full-stack implementation of [Conway's Game of Life](https://en.wikipedia.org/
 - Drawing mode with save/load for custom patterns plus a `Restore` action that re-seeds the grid from the snapshot captured on the first `Play` press for the current drawing
 - Image import in drawing mode: upload any common image format, automatically converted to a cell pattern via grayscale + Floyd-Steinberg dithering, with a live threshold slider for post-import tuning that is disabled while playback is running
 - Zoom view around the cursor
-- Left-side playback telemetry with iteration count, fixed-state and cycle-detection counters, live/dead cell counts, a real-time alive-cell variation graph, and a real-time absolute alive-cell graph
+- Left-side playback telemetry with iteration count, `stable after` and `cycle period` counters, live/dead cell counts, a real-time alive-cell variation graph, and a real-time absolute alive-cell graph
 - Tokens-based visual system for colors, radius, spacing, form fields, telemetry, and canvas rendering
 - Custom-styled random-preset dropdown consistent with the app visual language
 - Reusable tile-style buttons used for workspace mode selection and random noise type selection
@@ -45,6 +46,7 @@ A full-stack implementation of [Conway's Game of Life](https://en.wikipedia.org/
 | HTTP client | Axios |
 | UI | SweetAlert2 |
 | Backend | NestJS 11, Prisma, MariaDB/MySQL |
+| Tests | Vitest (frontend), Jest (API) |
 | Build | Vite, Nest CLI, Prisma |
 | Process manager | PM2 |
 | Deploy | Bash deploy scripts with releases and rollback |
@@ -55,32 +57,40 @@ A full-stack implementation of [Conway's Game of Life](https://en.wikipedia.org/
 conway-gol/
 ├── api-nest/
 │   ├── src/
-│   │   ├── main.ts
 │   │   ├── app.module.ts
 │   │   ├── config/
 │   │   ├── health/
+│   │   ├── main.ts
 │   │   ├── patterns/
 │   │   └── prisma/
-│   ├── data/patterns/
-│   ├── prisma/schema.prisma
+│   ├── data/
+│   │   ├── legacy-custom-patterns/
+│   │   └── patterns/
+│   ├── generated/prisma/
+│   ├── prisma/
+│   │   ├── migrations/
+│   │   └── schema.prisma
+│   ├── scripts/
+│   ├── test/
 │   ├── ecosystem.config.js
 │   └── package.json
 ├── front/
 │   ├── src/
-│   │   ├── index.ts
-│   │   ├── index.html
 │   │   ├── app/
 │   │   │   ├── navigation/
 │   │   │   ├── router/
 │   │   │   ├── simulation/
+│   │   │   │   ├── PlaybackTelemetryTracker.test.ts
+│   │   │   │   ├── PlaybackTelemetryTracker.ts
+│   │   │   │   └── SimulationWorkspace.ts
 │   │   │   ├── views/
+│   │   │   │   └── html/
 │   │   │   └── routes.ts
 │   │   ├── assets/
 │   │   │   ├── icons/
-│   │   │   ├── pencil/
-│   │   │   └── eraser/
+│   │   │   ├── eraser/
+│   │   │   └── pencil/
 │   │   ├── Cell/
-│   │   │   └── constants.ts
 │   │   ├── Grid/
 │   │   │   ├── Grid.ts
 │   │   │   ├── GridDrawingHandler.ts
@@ -97,10 +107,10 @@ conway-gol/
 │   │   │   │   ├── randomPresetTypes.ts
 │   │   │   │   ├── randomPresetUtils.ts
 │   │   │   │   └── shapes/
-│   │   │   │       ├── index.ts
-│   │   │   │       ├── stamp.ts
+│   │   │   │       ├── conway.ts
 │   │   │   │       ├── field.ts
-│   │   │   │       └── conway.ts
+│   │   │   │       ├── index.ts
+│   │   │   │       └── stamp.ts
 │   │   │   └── zoom/
 │   │   │       └── ZoomBox.ts
 │   │   ├── lib/
@@ -112,8 +122,8 @@ conway-gol/
 │   │   │       └── species.ts
 │   │   ├── helpers/
 │   │   │   ├── Helpers.ts
-│   │   │   ├── canvas.ts
 │   │   │   ├── api.ts
+│   │   │   ├── canvas.ts
 │   │   │   ├── constants.ts
 │   │   │   └── dom.ts
 │   │   ├── infra/
@@ -121,42 +131,35 @@ conway-gol/
 │   │   │       └── HttpClient.ts
 │   │   ├── services/
 │   │   │   ├── CritterService.ts
+│   │   │   ├── LocalCredentialService.ts
+│   │   │   ├── PatternFavoriteService.ts
 │   │   │   ├── PatternService.ts
+│   │   │   ├── SessionService.ts
 │   │   │   └── UserCustomService.ts
 │   │   ├── styles/
+│   │   │   ├── main/
+│   │   │   ├── tokens/
+│   │   │   ├── zoo/
 │   │   │   ├── main.css
 │   │   │   ├── reset.css
-│   │   │   ├── tokens.css
-│   │   │   └── tokens/
-│   │   │       ├── colors.css
-│   │   │       ├── effects.css
-│   │   │       ├── layout.css
-│   │   │       └── radius.css
+│   │   │   └── tokens.css
 │   │   ├── ui/
+│   │   │   ├── components/
+│   │   │   │   ├── button/
+│   │   │   │   └── slider/
 │   │   │   ├── controls/
 │   │   │   │   ├── drawing/
-│   │   │   │   │   ├── DrawingToolBox.ts
-│   │   │   │   │   ├── ImageImporter.ts
-│   │   │   │   │   ├── UserCustomSelector.ts
-│   │   │   │   │   └── texts.ts
 │   │   │   │   ├── shared/
-│   │   │   │   │   └── TileButtonGroup.ts
 │   │   │   │   ├── simulation/
-│   │   │   │   │   ├── ModeSelector.ts
-│   │   │   │   │   ├── NoiseTypeSelector.ts
-│   │   │   │   │   ├── RandomControlsPanel.ts
-│   │   │   │   │   └── ZooSelector.ts
 │   │   │   │   └── telemetry/
-│   │   │   │       ├── AliveCountChart.ts
-│   │   │   │       ├── AliveVariationChart.ts
-│   │   │   │       ├── PositiveSeriesChart.ts
-│   │   │   │       ├── SignedSeriesChart.ts
-│   │   │   │       └── telemetryTheme.ts
 │   │   │   └── lib/
-│   │   │       └── Tooltip.ts
-│   │   └── texts.ts
+│   │   ├── index.html
+│   │   ├── index.ts
+│   │   ├── texts.ts
+│   │   └── vite-env.d.ts
 │   ├── tsconfig.json
 │   ├── vite.config.ts
+│   ├── vitest.config.ts
 │   └── package.json
 ├── deploy-api.sh
 ├── deploy-front.sh
@@ -413,6 +416,7 @@ This keeps Conway logic out of the renderer, DOM event handling out of `Simulati
 - the shell DOM for left pane, canvas area, and right pane
 - mode-specific UI visibility
 - telemetry counters and charts
+- playback telemetry tracking for fixed points (`stable after`) and repeating loops (`cycle period`)
 - drawing-mode restore snapshot lifecycle: the first `Play` captures the current grid, `Restore` re-seeds from that saved state, and loading/importing/mode changes clear the snapshot
 - random preset controls and the custom dropdown, including rotation, zoom, and reset
 - reusable tile-button groups for route mode selection and random noise type selection
@@ -776,6 +780,7 @@ Useful frontend scripts:
 - `pnpm lint` runs Biome checks from `front/biome.json`
 - `pnpm lint:fix` applies Biome fixes (`--write --unsafe`)
 - `pnpm format` reformats the frontend and re-runs Biome writes
+- `pnpm test` runs the frontend unit tests with Vitest
 - `pnpm typecheck` runs TypeScript only
 - `pnpm build` verifies the production bundle locally
 
@@ -784,6 +789,41 @@ Additional frontend tooling notes:
 - Vite now uses `lightningcss` for CSS transforms and production CSS minification.
 - Google Fonts loading is declared in `front/src/index.html` with `preconnect` hints instead of being imported from `main.css`.
 - `.vscode/settings.json` points the editor to `front/biome.json` so local formatting and linting stay aligned with the repo config.
+
+## Testing
+
+### Frontend
+
+The frontend unit tests use `Vitest`, configured in `front/vitest.config.ts`.
+
+Run them locally:
+
+```bash
+cd front
+pnpm test
+```
+
+Current frontend tests are intentionally small and focused on pure simulation-adjacent logic. The first suite lives in `front/src/app/simulation/PlaybackTelemetryTracker.test.ts` and covers:
+
+- `stable after` for still lifes
+- `stable after` after extinction settles
+- oscillator detection via `cycle period`
+- a regression case for the zoo pattern `dinnertable` (period 12)
+
+Because these tests target a pure tracker module instead of the DOM workspace shell, they run in a plain Node environment and stay fast.
+
+### API
+
+The Nest API test runner remains `Jest`.
+
+Useful commands:
+
+```bash
+cd api-nest
+pnpm test
+pnpm test:e2e
+pnpm test:cov
+```
 
 ## Deployment
 
@@ -1118,7 +1158,7 @@ The left control column was reorganized into separated visual sections so that p
 
 - mode buttons
 - iteration counter
-- fixed-state and cycle-detection counters
+- `stable after` and `cycle period` counters
 - a telemetry block with alive cells, dead cells, and a live variation graph
 - an FPS slider with inline numeric readout
 - the start / pause button
@@ -1126,7 +1166,7 @@ The left control column was reorganized into separated visual sections so that p
 The playback status block now distinguishes two different long-term outcomes:
 
 - `Stable after` is used only for fixed points, where one generation is exactly identical to the previous one and the grid will therefore remain unchanged forever.
-- `Cycle detected at` is used for repeating loops, where a previously seen full-grid state reappears after one or more different generations, covering oscillators such as blinkers as well as longer periods.
+- `Cycle period` is used for repeating loops, where a previously seen full-grid state reappears after one or more different generations, covering oscillators such as blinkers as well as longer periods.
 
 The new `AliveVariationChart` control does not plot the total number of living cells. Instead, it plots the signed delta between two successive states:
 

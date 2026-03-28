@@ -9,6 +9,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "test": "vitest run",
     "check": "pnpm run lint && pnpm run typecheck",
     "lint": "biome check .",
     "lint:fix": "biome check . --write --unsafe",
@@ -25,6 +26,7 @@
     "@types/node": "^25.5.0",
     "lightningcss": "^1.32.0",
     "typescript": "^5.7.0",
-    "vite": "^7.2.7"
+    "vite": "^7.2.7",
+    "vitest": "^4.1.2"
   }
 }
