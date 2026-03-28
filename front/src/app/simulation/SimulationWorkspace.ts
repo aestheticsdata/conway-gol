@@ -68,6 +68,7 @@ export class SimulationWorkspace {
   private readonly _speedValue: HTMLElement;
   private readonly _commentsDOMSelector: HTMLElement;
   private readonly _zooPrimitivesDOMSelector: HTMLElement;
+  private readonly _zooPatternListsAction: HTMLElement;
   private readonly _drawingInspectorDOMSelector: HTMLElement;
   private readonly _drawingActionsSidebar: HTMLElement;
   private readonly _randomControls: RandomControlsPanel;
@@ -142,6 +143,7 @@ export class SimulationWorkspace {
     this._speedValue = queryRequired<HTMLElement>(".speed-value", this._root);
     this._commentsDOMSelector = queryRequired<HTMLElement>(".critter-comments", this._root);
     this._zooPrimitivesDOMSelector = queryRequired<HTMLElement>(".zoo-selector", this._root);
+    this._zooPatternListsAction = queryRequired<HTMLElement>(".zoo-pattern-lists-action", this._root);
     this._drawingInspectorDOMSelector = queryRequired<HTMLElement>(".drawing-pane", this._root);
     this._drawingActionsSidebar = queryRequired<HTMLElement>(".drawing-actions-pane", this._root);
     this._randomControls = new RandomControlsPanel({
@@ -825,7 +827,9 @@ export class SimulationWorkspace {
     switch (this._selectedMode) {
       case "random":
         this._drawingToolBox?.hide();
+        this._zooSelector?.hide();
         this._setDisplay(this._zooPrimitivesDOMSelector, false);
+        this._setDisplay(this._zooPatternListsAction, false);
         this._drawingInspectorDOMSelector.style.display = "none";
         this._setDisplay(this._drawingActionsSidebar, false);
         this._randomControls.show();
@@ -848,6 +852,9 @@ export class SimulationWorkspace {
 
       case "zoo": {
         const critterList = await this._loadCritterList();
+        const defaultSpecies = critterList?.includes("canadagoose") ? "canadagoose" : (critterList?.[0] ?? "canadagoose");
+        const activeSpecies = this._selectedSpecies ?? defaultSpecies;
+        this._selectedSpecies = activeSpecies;
         this._drawingToolBox?.hide();
         this._randomControls.hide();
         this._zooSelector ??= new ZooSelector();
@@ -857,9 +864,10 @@ export class SimulationWorkspace {
           this._zooPrimitivesDOMSelector,
           this._changeZoo,
           critterList,
-          this._selectedSpecies ?? undefined,
+          activeSpecies,
         );
         this._setDisplay(this._zooPrimitivesDOMSelector, true);
+        this._setDisplay(this._zooPatternListsAction, true);
         this._setDisplay(this._drawingCanvas, false);
         this._zoomBox?.hide();
         this._userCustomSelector?.hide();
@@ -879,7 +887,9 @@ export class SimulationWorkspace {
 
       case "drawing": {
         this._randomControls.hide();
+        this._zooSelector?.hide();
         this._setDisplay(this._zooPrimitivesDOMSelector, false);
+        this._setDisplay(this._zooPatternListsAction, false);
         this._drawingInspectorDOMSelector.style.display = "flex";
         this._setDisplay(this._drawingActionsSidebar, true);
         this._commentsDOMSelector.replaceChildren();

@@ -12,4 +12,7 @@
 @import url(main/custom-select.css);
 @import url(main/random-controls.css);
 @import url(main/side-panels.css);
+@import url(zoo/panel.css);
+@import url(zoo/pattern-modal.css);
+@import url(zoo/pattern-cards.css);
 @import url(main/responsive.css);

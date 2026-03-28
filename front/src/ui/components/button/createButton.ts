@@ -3,6 +3,14 @@ type UiButtonType = "button" | "submit" | "reset";
 type UiButtonIcon = "arrow-right" | "pause" | "play";
 type UiButtonIconPosition = "leading" | "trailing";
 
+export const ARROW_RIGHT_BUTTON_ICON_MARKUP = `
+  <span class="ui-button__icon ui-button__icon--arrow-right" aria-hidden="true">
+    <svg viewBox="0 0 16 12" focusable="false">
+      <path d="M1.5 6H10.5M7 2.5L10.5 6L7 9.5" />
+    </svg>
+  </span>
+`;
+
 export type UiButtonOptions = {
   ariaLabel?: string;
   className?: string;
@@ -21,13 +29,7 @@ function escapeHtml(value: string): string {
 
 function createIconMarkup(icon: UiButtonIcon): string {
   if (icon === "arrow-right") {
-    return `
-      <span class="ui-button__icon ui-button__icon--arrow-right" aria-hidden="true">
-        <svg viewBox="0 0 16 12" focusable="false">
-          <path d="M1.5 6H10.5M7 2.5L10.5 6L7 9.5" />
-        </svg>
-      </span>
-    `;
+    return ARROW_RIGHT_BUTTON_ICON_MARKUP;
   }
 
   return `<span class="ui-button__icon" aria-hidden="true"></span>`;

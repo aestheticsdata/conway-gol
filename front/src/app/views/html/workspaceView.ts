@@ -511,28 +511,18 @@ function createZooSelector(): string {
   return `
     <div class="zoo-selector" style="display: none">
       <label for="zoo-species-trigger"></label>
-      <div class="custom-select zoo-species-custom-select">
-        <button
-          type="button"
-          id="zoo-species-trigger"
-          class="custom-select__trigger"
-          aria-haspopup="listbox"
-          aria-expanded="false"
-          aria-controls="zoo-species-options"
-        >
-          <span class="custom-select__value"></span>
-        </button>
-        <div class="custom-select__menu" hidden>
-          <div
-            id="zoo-species-options"
-            class="custom-select__options"
-            role="listbox"
-            aria-labelledby="zoo-species-trigger"
-          ></div>
-        </div>
-        <select id="zoo-species-native" name="zoo-species" class="custom-select__native" tabindex="-1" aria-hidden="true"></select>
+      <div id="zoo-species-trigger" class="zoo-selected-pattern" aria-live="polite">
+        <span class="zoo-selected-pattern__value"></span>
       </div>
       <div class="critter-comments"></div>
+    </div>
+  `;
+}
+
+function createZooPatternListsAction(): string {
+  return `
+    <div class="zoo-pattern-lists-action" style="display: none">
+      ${createButton({ className: "zoo-pattern-lists", label: APP_TEXTS.zoo.patternListsButton, size: "compact" })}
     </div>
   `;
 }
@@ -563,6 +553,7 @@ function createWorkspaceInspector(): string {
     <aside class="right-pane route-pane-fade-in">
       ${createRandomControls()}
       ${createZooSelector()}
+      ${createZooPatternListsAction()}
       <div class="drawing-pane" style="display: none">
         ${createDrawingFiles()}
         <div class="zoombox-container"></div>

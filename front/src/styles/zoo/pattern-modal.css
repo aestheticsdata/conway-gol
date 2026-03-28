@@ -1,0 +1,307 @@
+.zoo-pattern-modal {
+  --zoo-pattern-modal-top: 20px;
+  position: fixed;
+  inset: var(--zoo-pattern-modal-top) 0 0;
+  z-index: 320;
+  display: grid;
+  place-items: start center;
+  padding: 18px 24px 24px;
+}
+
+.zoo-pattern-modal[hidden] {
+  display: none;
+}
+
+.zoo-pattern-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(4, 10, 18, 0.78);
+  backdrop-filter: blur(10px);
+}
+
+.zoo-pattern-modal__dialog {
+  position: relative;
+  z-index: 1;
+  isolation: isolate;
+  width: min(85vw, 1280px);
+  height: min(85vh, calc(100vh - var(--zoo-pattern-modal-top) - 28px));
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid rgba(210, 224, 242, 0.16);
+  border-radius: calc(var(--radius) + 3px);
+  background: linear-gradient(180deg, rgba(10, 20, 36, 0.97), rgba(5, 12, 24, 0.99));
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 30px 80px rgba(0, 0, 0, 0.56),
+    0 0 40px rgba(37, 219, 255, 0.08);
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.zoo-pattern-modal__dialog::before,
+.zoo-pattern-modal__dialog::after {
+  content: "";
+  position: absolute;
+  inset: -18% -10%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.zoo-pattern-modal__dialog::before {
+  background:
+    radial-gradient(34% 28% at 10% 12%, rgba(74, 229, 255, 0.08) 0 32%, transparent 68%),
+    radial-gradient(24% 22% at 28% 58%, rgba(37, 219, 255, 0.06) 0 28%, transparent 70%),
+    radial-gradient(26% 24% at 52% 24%, rgba(96, 236, 255, 0.04) 0 22%, transparent 66%),
+    radial-gradient(30% 26% at 74% 18%, rgba(25, 169, 231, 0.06) 0 30%, transparent 72%),
+    radial-gradient(22% 20% at 86% 70%, rgba(37, 219, 255, 0.05) 0 24%, transparent 68%),
+    radial-gradient(18% 18% at 58% 76%, rgba(115, 241, 255, 0.03) 0 20%, transparent 66%);
+  filter: blur(26px) saturate(128%);
+  opacity: 0.42;
+}
+
+.zoo-pattern-modal__dialog::after {
+  background:
+    radial-gradient(22% 18% at 18% 30%, rgba(3, 9, 18, 0.28) 0 34%, transparent 72%),
+    radial-gradient(18% 16% at 42% 18%, rgba(2, 8, 16, 0.2) 0 30%, transparent 70%),
+    radial-gradient(24% 22% at 47% 58%, rgba(4, 10, 18, 0.24) 0 32%, transparent 74%),
+    radial-gradient(18% 16% at 68% 42%, rgba(3, 8, 16, 0.2) 0 28%, transparent 68%),
+    radial-gradient(26% 20% at 86% 28%, rgba(2, 8, 16, 0.22) 0 32%, transparent 72%),
+    radial-gradient(20% 18% at 74% 84%, rgba(3, 9, 17, 0.18) 0 28%, transparent 70%);
+  filter: blur(24px);
+  opacity: 0.34;
+  mix-blend-mode: multiply;
+}
+
+.zoo-pattern-modal__dialog > * {
+  position: relative;
+  z-index: 1;
+}
+
+.zoo-pattern-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px;
+  border-bottom: 1px solid rgba(117, 161, 205, 0.16);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0)),
+    linear-gradient(180deg, rgba(10, 20, 36, 0.18), rgba(10, 20, 36, 0));
+}
+
+.zoo-pattern-modal__heading {
+  min-width: 0;
+}
+
+.zoo-pattern-modal__title {
+  margin: 0;
+  color: var(--text-main);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.zoo-pattern-modal__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: min(420px, 100%);
+}
+
+.zoo-pattern-modal__search {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.zoo-pattern-modal__close {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid rgba(117, 161, 205, 0.2);
+  border-radius: var(--radius);
+  background: rgba(10, 22, 38, 0.9);
+  box-shadow: none;
+  color: rgba(196, 210, 228, 0.9);
+}
+
+.zoo-pattern-modal__close::before,
+.zoo-pattern-modal__close::after {
+  content: none;
+}
+
+.zoo-pattern-modal__close:hover,
+.zoo-pattern-modal__close:focus-visible {
+  border-color: rgba(37, 219, 255, 0.32);
+  color: var(--accent);
+  box-shadow: 0 0 0 1px rgba(37, 219, 255, 0.16);
+  outline: 0;
+}
+
+.zoo-pattern-modal__close span {
+  display: inline-flex;
+  width: 16px;
+  height: 16px;
+}
+
+.zoo-pattern-modal__close svg {
+  width: 100%;
+  height: 100%;
+}
+
+.zoo-pattern-modal__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 20px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(37, 219, 255, 0.72) rgba(8, 17, 31, 0.9);
+}
+
+.zoo-pattern-modal__body::-webkit-scrollbar {
+  width: 10px;
+}
+
+.zoo-pattern-modal__body::-webkit-scrollbar-track {
+  background: rgba(8, 17, 31, 0.9);
+  border-radius: 999px;
+}
+
+.zoo-pattern-modal__body::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(120, 239, 255, 0.9), rgba(37, 219, 255, 0.7));
+  border: 2px solid rgba(8, 17, 31, 0.9);
+  border-radius: 999px;
+}
+
+.zoo-pattern-modal__body::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(120, 239, 255, 1), rgba(37, 219, 255, 0.82));
+}
+
+.zoo-pattern-modal__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(236px, 1fr));
+  gap: 18px;
+  align-items: stretch;
+}
+
+.zoo-pattern-modal__empty {
+  margin: 24px 0 0;
+  color: var(--text-muted);
+  font-size: 15px;
+}
+
+.zoo-pattern-modal.is-open {
+  animation: zoo-pattern-modal-fade-in 220ms ease-out forwards;
+}
+
+.zoo-pattern-modal.is-open .zoo-pattern-modal__dialog {
+  animation: zoo-pattern-modal-dialog-in 280ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.zoo-pattern-modal.is-closing {
+  animation: zoo-pattern-modal-fade-out 180ms ease-in forwards;
+}
+
+.zoo-pattern-modal.is-closing .zoo-pattern-modal__dialog {
+  animation: zoo-pattern-modal-dialog-out 220ms ease-in forwards;
+}
+
+@keyframes zoo-pattern-modal-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes zoo-pattern-modal-fade-out {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes zoo-pattern-modal-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes zoo-pattern-modal-dialog-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+@media (max-width: 980px) {
+  .zoo-pattern-modal {
+    padding-inline: 14px;
+  }
+
+  .zoo-pattern-modal__dialog {
+    width: min(100vw - 28px, 1280px);
+  }
+
+  .zoo-pattern-modal__header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .zoo-pattern-modal__header-actions {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .zoo-pattern-modal__grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .zoo-pattern-modal {
+    padding: 12px;
+  }
+
+  .zoo-pattern-modal__dialog {
+    width: calc(100vw - 24px);
+    height: min(85vh, calc(100vh - var(--zoo-pattern-modal-top) - 18px));
+  }
+
+  .zoo-pattern-modal__body {
+    padding: 14px;
+  }
+
+  .zoo-pattern-modal__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zoo-pattern-modal,
+  .zoo-pattern-modal__dialog {
+    animation: none;
+    transition: none;
+  }
+}

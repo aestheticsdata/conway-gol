@@ -138,7 +138,17 @@ export const APP_TEXTS = {
     reset: "Reset",
   },
   zoo: {
-    species: "Species:",
+    species: "Pattern",
+    patternListsButton: "Patterns list",
+    patternListsTitle: "Patterns list",
+    searchPlaceholder: "Search patterns...",
+    unknownAuthor: "Community archive",
+    loadingDescription: "Loading pattern details...",
+    fallbackDescription: "Catalog pattern from the Conway Life archive.",
+    emptySearch: "No patterns match this search.",
+    favoriteLabel: "Toggle favorite",
+    favoriteCountLabel: "Favorites",
+    closePatternLists: "Close patterns list",
   },
   comments: {
     itemPrefix: "- ",
