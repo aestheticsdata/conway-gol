@@ -194,6 +194,11 @@ export class SimulationWorkspace {
   }
 
   public async init(query: URLSearchParams): Promise<void> {
+    if (this._selectedMode === "zoo") {
+      const requestedPattern = query.get("pattern")?.trim();
+      this._selectedSpecies = requestedPattern || null;
+    }
+
     await this._setup();
 
     if (query.get("autostart") === "1") {
@@ -947,7 +952,10 @@ export class SimulationWorkspace {
         const defaultSpecies = critterList?.includes("canadagoose")
           ? "canadagoose"
           : (critterList?.[0] ?? "canadagoose");
-        const activeSpecies = this._selectedSpecies ?? defaultSpecies;
+        const activeSpecies =
+          this._selectedSpecies && critterList?.includes(this._selectedSpecies)
+            ? this._selectedSpecies
+            : defaultSpecies;
         this._selectedSpecies = activeSpecies;
         this._drawingToolBox?.hide();
         this._randomControls.hide();

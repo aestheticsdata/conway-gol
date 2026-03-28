@@ -1,5 +1,8 @@
-import { LOGIN_ROUTE } from "@app/routes";
+import { LOGIN_ROUTE, ZOO_ROUTE } from "@app/routes";
 import { LIFE_LEXICON } from "@data/lexicon/lexiconParser";
+import { resolveLexiconPatternCandidate, resolveLexiconPatternToZooPattern } from "@data/lexicon/zooPatternResolver";
+import { normalizeBasePath, toDocumentPath } from "@router/paths";
+import CritterService from "@services/CritterService";
 import SessionService from "@services/SessionService";
 import { APP_TEXTS } from "@texts";
 import { drawPatternPreview, normalizePatternPreviewSource } from "@ui/lib/patternPreview";
@@ -9,11 +12,16 @@ import { createLexiconView } from "./html/lexicon/lexiconView";
 import type { AppPath } from "@navigation/NavigationAdapter";
 import type { RouteContext, Screen } from "@router/Screen";
 
+const basePath = normalizeBasePath(import.meta.env.BASE_URL);
+
 export class LexiconView implements Screen {
   private _root?: HTMLElement;
   private _userMenu?: WorkspaceUserMenu;
   private readonly _session = new SessionService();
+  private readonly _critterService = new CritterService();
   private _scrollAnimationFrame = 0;
+  private _zooPatternLinkToken = 0;
+  private _zooPatternLinksHydration: Promise<void> | null = null;
 
   constructor(private readonly _navigate: (path: AppPath) => Promise<void>) {}
 
@@ -33,6 +41,8 @@ export class LexiconView implements Screen {
 
     this._root.addEventListener("click", this._onRootClick);
     this._renderPatternPreviews();
+    this._seedZooPatternLinks();
+    this._zooPatternLinksHydration = this._hydrateZooPatternLinks();
   }
 
   public enter(context: RouteContext): void {
@@ -59,6 +69,8 @@ export class LexiconView implements Screen {
     }
 
     this._root?.removeEventListener("click", this._onRootClick);
+    this._zooPatternLinkToken += 1;
+    this._zooPatternLinksHydration = null;
     this._userMenu?.destroy();
     this._userMenu = undefined;
     this._root = undefined;
@@ -146,6 +158,90 @@ export class LexiconView implements Screen {
     };
 
     this._scrollAnimationFrame = requestAnimationFrame(step);
+  }
+
+  private async _hydrateZooPatternLinks(): Promise<void> {
+    const root = this._root;
+    if (!root) {
+      return;
+    }
+
+    const token = ++this._zooPatternLinkToken;
+    let critterList: string[];
+    try {
+      critterList = await this._critterService.getCritterList();
+    } catch (error) {
+      console.error("Failed to load zoo pattern names for lexicon links", error);
+      return;
+    }
+
+    if (!this._root || token !== this._zooPatternLinkToken) {
+      return;
+    }
+
+    for (const entry of LIFE_LEXICON.entries) {
+      if (!entry.patternCard) {
+        continue;
+      }
+
+      const link = root.querySelector<HTMLAnchorElement>(`[data-lexicon-open-zoo="${entry.anchorId}"]`);
+      if (!link) {
+        continue;
+      }
+      const interactive = link.closest<HTMLElement>(".lexicon-pattern-preview__interactive");
+
+      const zooPattern = resolveLexiconPatternToZooPattern(entry.term, critterList);
+      if (!zooPattern) {
+        interactive?.classList.remove("is-linkable");
+        delete link.dataset.lexiconZooPattern;
+        link.removeAttribute("href");
+        link.setAttribute("aria-disabled", "true");
+        continue;
+      }
+
+      link.dataset.lexiconZooPattern = zooPattern;
+      link.href = this._buildZooPatternHref(zooPattern);
+      link.removeAttribute("aria-disabled");
+      interactive?.classList.add("is-linkable");
+    }
+  }
+
+  private _seedZooPatternLinks(): void {
+    const root = this._root;
+    if (!root) {
+      return;
+    }
+
+    for (const entry of LIFE_LEXICON.entries) {
+      if (!entry.patternCard) {
+        continue;
+      }
+
+      const link = root.querySelector<HTMLAnchorElement>(`[data-lexicon-open-zoo="${entry.anchorId}"]`);
+      if (!link) {
+        continue;
+      }
+
+      const interactive = link.closest<HTMLElement>(".lexicon-pattern-preview__interactive");
+      const candidate = resolveLexiconPatternCandidate(entry.term);
+      if (!candidate) {
+        interactive?.classList.remove("is-linkable");
+        delete link.dataset.lexiconZooPattern;
+        link.removeAttribute("href");
+        link.setAttribute("aria-disabled", "true");
+        continue;
+      }
+
+      link.dataset.lexiconZooPattern = candidate;
+      link.href = this._buildZooPatternHref(candidate);
+      link.removeAttribute("aria-disabled");
+      interactive?.classList.add("is-linkable");
+    }
+  }
+
+  private _buildZooPatternHref(zooPattern: string): string {
+    const query = new URLSearchParams({ pattern: zooPattern });
+    return `${toDocumentPath(ZOO_ROUTE, basePath)}?${query.toString()}`;
   }
 
   private _onLogout = (): void => {

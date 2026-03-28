@@ -1,5 +1,4 @@
 import { PERSON_ICON } from "@assets/icons/personIcon";
-
 import { escapeHtml } from "./escapeHtml";
 import { renderBlocks } from "./renderBlocks";
 
@@ -13,14 +12,23 @@ function renderPatternCardMarkup(entry: LexiconEntry): string {
   return `
     <section class="lexicon-pattern-preview" aria-label="${escapeHtml(`Pattern preview for ${entry.patternCard.displayName}`)}">
       <div class="lexicon-pattern-preview__center">
-        <div class="zoo-pattern-card__preview lexicon-pattern-preview__frame">
-          <canvas
-            class="zoo-pattern-card__preview-canvas lexicon-pattern-preview__canvas"
-            width="320"
-            height="188"
-            data-lexicon-pattern-anchor="${escapeHtml(entry.anchorId)}"
-            aria-hidden="true"
-          ></canvas>
+        <div class="lexicon-pattern-preview__interactive">
+          <a
+            class="lexicon-pattern-preview__action"
+            data-lexicon-open-zoo="${escapeHtml(entry.anchorId)}"
+            data-lexicon-pattern-term="${escapeHtml(entry.term)}"
+            aria-label="${escapeHtml(`Open ${entry.term} in zoo`)}"
+            aria-disabled="true"
+          ></a>
+          <div class="zoo-pattern-card__preview lexicon-pattern-preview__frame">
+            <canvas
+              class="zoo-pattern-card__preview-canvas lexicon-pattern-preview__canvas"
+              width="320"
+              height="188"
+              data-lexicon-pattern-anchor="${escapeHtml(entry.anchorId)}"
+              aria-hidden="true"
+            ></canvas>
+          </div>
         </div>
       </div>
       <p class="lexicon-pattern-preview__description">${escapeHtml(entry.patternCard.description)}</p>
