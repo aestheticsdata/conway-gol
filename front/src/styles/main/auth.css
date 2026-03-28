@@ -50,8 +50,9 @@
 
 .workspace-auth-nav {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: 28px;
+  min-height: var(--workspace-header-control-height);
 }
 
 .workspace-header.workspace-header--auth {
@@ -67,7 +68,7 @@
 .workspace-auth-nav__link {
   position: relative;
   display: inline-flex;
-  align-items: flex-end;
+  align-items: center;
   padding: 0 0 2px;
   font-size: 13px;
   line-height: 1;
