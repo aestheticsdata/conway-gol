@@ -1,6 +1,7 @@
 import { LOGIN_ROUTE, ZOO_ROUTE } from "@app/routes";
 import { LIFE_LEXICON } from "@data/lexicon/lexiconParser";
 import { resolveLexiconPatternCandidate, resolveLexiconPatternToZooPattern } from "@data/lexicon/zooPatternResolver";
+import { buildPathWithSearchParam } from "@lib/searchParamsHelper";
 import { normalizeBasePath, toDocumentPath } from "@router/paths";
 import CritterService from "@services/CritterService";
 import SessionService from "@services/SessionService";
@@ -240,8 +241,7 @@ export class LexiconView implements Screen {
   }
 
   private _buildZooPatternHref(zooPattern: string): string {
-    const query = new URLSearchParams({ pattern: zooPattern });
-    return `${toDocumentPath(ZOO_ROUTE, basePath)}?${query.toString()}`;
+    return buildPathWithSearchParam(toDocumentPath(ZOO_ROUTE, basePath), "pattern", zooPattern);
   }
 
   private _onLogout = (): void => {

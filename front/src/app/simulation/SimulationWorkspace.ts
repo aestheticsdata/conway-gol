@@ -4,6 +4,7 @@ import Grid from "@grid/Grid";
 import { DEFAULT_RANDOM_PRESET, isRandomPresetId } from "@grid/randomPresets";
 import ZoomBox from "@grid/zoom/ZoomBox";
 import { getRequiredContext2D, queryRequired } from "@helpers/dom";
+import { getTrimmedSearchParam, replaceCurrentSearchParam } from "@lib/searchParamsHelper";
 import CritterService from "@services/CritterService";
 import UserCustomService from "@services/UserCustomService";
 import { APP_TEXTS } from "@texts";
@@ -169,6 +170,7 @@ export class SimulationWorkspace {
 
     this._changeZoo = (species: string) => {
       this._selectedSpecies = species;
+      this._syncZooSearchParam(species);
       void this._setup();
     };
 
@@ -195,8 +197,7 @@ export class SimulationWorkspace {
 
   public async init(query: URLSearchParams): Promise<void> {
     if (this._selectedMode === "zoo") {
-      const requestedPattern = query.get("pattern")?.trim();
-      this._selectedSpecies = requestedPattern || null;
+      this._selectedSpecies = getTrimmedSearchParam(query, "pattern");
     }
 
     await this._setup();
@@ -236,6 +237,14 @@ export class SimulationWorkspace {
     this._selectedSpecies = null;
     this._onRouteModeChange(MODE_TO_WORKSPACE_ROUTE[mode]);
   };
+
+  private _syncZooSearchParam(species: string | null): void {
+    if (this._selectedMode !== "zoo") {
+      return;
+    }
+
+    replaceCurrentSearchParam("pattern", species);
+  }
 
   private _applyStaticTexts(): void {
     queryRequired<HTMLElement>('.tile-selector__text[data-mode="random"]', this._root).textContent =
