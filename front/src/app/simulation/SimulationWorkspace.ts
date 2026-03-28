@@ -948,6 +948,7 @@ export class SimulationWorkspace {
     if (line.startsWith("http://") || line.startsWith("https://")) {
       const { row, content } = this._createCommentRow("link");
       const anchor = document.createElement("a");
+      anchor.className = "critter-comment__link";
       anchor.href = line;
       anchor.target = "_blank";
       anchor.rel = "noopener noreferrer";

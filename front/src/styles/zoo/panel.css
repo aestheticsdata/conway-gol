@@ -111,6 +111,26 @@
   line-height: 1.65;
 }
 
+.zoo-selector .critter-comment--link .critter-comment__content {
+  padding-right: 28px;
+  box-sizing: border-box;
+}
+
+.zoo-selector .critter-comment__link {
+  display: block;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  color: inherit;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.zoo-selector .critter-comment__link:hover,
+.zoo-selector .critter-comment__link:focus-visible {
+  color: var(--accent);
+}
+
 .zoo-selector .critter-comment--body .critter-comment__value {
   color: var(--text-muted);
 }
