@@ -3,11 +3,11 @@ import { createAuthHeader } from "@views/html/appHeader";
 
 import type { AppPath } from "@navigation/NavigationAdapter";
 
-type AuthLayoutOptions = {
+interface AuthLayoutOptions {
   activeRoute: AppPath;
   cardClassName?: string;
   content: string;
-};
+}
 
 export function createAuthLayout({ activeRoute, cardClassName = "", content }: AuthLayoutOptions): string {
   const cardClasses = ["auth-card", cardClassName].filter(Boolean).join(" ");

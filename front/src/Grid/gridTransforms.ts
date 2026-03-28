@@ -21,8 +21,7 @@ export function transformGrid(baseGrid: number[][], angleDeg: number, zoomLevel:
   // with the neutral center at 0 → ×1.00.
   const minZoom = 0.05;
   const maxZoom = 16;
-  const scale =
-    zoomLevel >= 0 ? maxZoom ** (zoomLevel / 100) : minZoom ** (-zoomLevel / 100);
+  const scale = zoomLevel >= 0 ? maxZoom ** (zoomLevel / 100) : minZoom ** (-zoomLevel / 100);
   const angleRad = (angleDeg * Math.PI) / 180;
   const cosA = Math.cos(angleRad);
   const sinA = Math.sin(angleRad);

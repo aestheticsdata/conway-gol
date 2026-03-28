@@ -28,13 +28,13 @@ type ModeSelectorOption = Omit<TileSelectorButtonOptions, "dataAttributeName" | 
   route: WorkspaceRoute;
 };
 
-type RandomNoiseOption = {
+interface RandomNoiseOption {
   value: NoiseType;
   icon: string;
   selected?: boolean;
   title: string;
   ariaLabel: string;
-};
+}
 
 type DrawingTool = "pencil" | "eraser" | "hand";
 

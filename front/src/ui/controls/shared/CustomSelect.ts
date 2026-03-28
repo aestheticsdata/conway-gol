@@ -66,7 +66,9 @@ class CustomSelect {
     const fallbackValue = options[0]?.value ?? "";
     const nextValue =
       selectedValue !== undefined
-        ? (options.some((option) => option.value === selectedValue) ? selectedValue : "")
+        ? options.some((option) => option.value === selectedValue)
+          ? selectedValue
+          : ""
         : options.some((option) => option.value === this._nativeSelect.value)
           ? this._nativeSelect.value
           : fallbackValue;

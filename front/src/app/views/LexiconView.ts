@@ -22,7 +22,6 @@ export class LexiconView implements Screen {
   private readonly _critterService = new CritterService();
   private _scrollAnimationFrame = 0;
   private _zooPatternLinkToken = 0;
-  private _zooPatternLinksHydration: Promise<void> | null = null;
 
   constructor(private readonly _navigate: (path: AppPath) => Promise<void>) {}
 
@@ -43,7 +42,7 @@ export class LexiconView implements Screen {
     this._root.addEventListener("click", this._onRootClick);
     this._renderPatternPreviews();
     this._seedZooPatternLinks();
-    this._zooPatternLinksHydration = this._hydrateZooPatternLinks();
+    void this._hydrateZooPatternLinks();
   }
 
   public enter(context: RouteContext): void {
@@ -71,7 +70,6 @@ export class LexiconView implements Screen {
 
     this._root?.removeEventListener("click", this._onRootClick);
     this._zooPatternLinkToken += 1;
-    this._zooPatternLinksHydration = null;
     this._userMenu?.destroy();
     this._userMenu = undefined;
     this._root = undefined;

@@ -1,6 +1,6 @@
 import { EYE_ICON, EYE_OFF_ICON } from "@assets/icons/passwordVisibilityIcon";
 
-type AuthFieldOptions = {
+interface AuthFieldOptions {
   autocomplete?: string;
   errorId?: string;
   label: string;
@@ -8,15 +8,15 @@ type AuthFieldOptions = {
   placeholder: string;
   required?: boolean;
   value?: string;
-};
+}
 
-type AuthTextFieldOptions = AuthFieldOptions & {
+interface AuthTextFieldOptions extends AuthFieldOptions {
   type?: "text" | "email";
-};
+}
 
-type AuthSecretFieldOptions = AuthFieldOptions & {
+interface AuthSecretFieldOptions extends AuthFieldOptions {
   toggleSubject?: string;
-};
+}
 
 function escapeHtml(value: string): string {
   return value.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");

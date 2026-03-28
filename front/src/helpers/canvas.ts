@@ -7,12 +7,7 @@ type DrawGridParams = {
   color?: string;
 };
 
-export function drawGrid({
-  ctx,
-  canvas,
-  zoom = 1,
-  color = "transparent",
-}: DrawGridParams): void {
+export function drawGrid({ ctx, canvas, zoom = 1, color = "transparent" }: DrawGridParams): void {
   const step = CELL_SIZE * zoom;
   const columns = Math.floor(canvas.width / step);
   const rows = Math.floor(canvas.height / step);

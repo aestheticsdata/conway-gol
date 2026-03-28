@@ -3,28 +3,29 @@ import { HEART_ICON } from "@assets/icons/heartIcon";
 import { PERSON_ICON } from "@assets/icons/personIcon";
 import { extractHxfPatternCardMeta } from "@data/patterns/patternCardMeta";
 import PatternFavoriteService from "@services/PatternFavoriteService";
-import PatternService, { type RemotePattern } from "@services/PatternService";
-import { APP_TEXTS } from "@texts";
+import PatternService from "@services/PatternService";
+import { APP_TEXTS, formatZooPatternListsCountSuffix } from "@texts";
 import { createLinkButtonElement } from "@ui/components/button/createButton";
 import { drawPatternPreview, normalizePatternPreviewSource } from "@ui/lib/patternPreview";
 
 import type { PatternCardLink } from "@data/patterns/patternCardMeta";
+import type { RemotePattern } from "@services/PatternService";
 
-type ZooPatternModalOptions = {
+interface ZooPatternModalOptions {
   onSelect: (patternName: string) => void;
   patterns: string[];
   selectedPattern: string;
-};
+}
 
-type PatternCardMeta = {
+interface PatternCardMeta {
   author: string;
   description: string;
   displayName: string;
   links: PatternCardLink[];
   pattern: number[][];
-};
+}
 
-type PatternCardRecord = {
+interface PatternCardRecord {
   author: HTMLElement;
   card: HTMLElement;
   count: HTMLElement;
@@ -37,18 +38,18 @@ type PatternCardRecord = {
   loaded: boolean;
   meta: PatternCardMeta | null;
   loadingPromise: Promise<void> | null;
-};
+}
 
 type CardEntranceSource = "initial" | "scroll";
 
-type CardMotionOptions = {
+interface CardMotionOptions {
   baseDelayMs?: number;
   delayScale?: number;
   fadeScale?: number;
   moveScale?: number;
   shiftScale?: number;
   waveScale?: number;
-};
+}
 
 const PREVIEW_WIDTH = 320;
 const PREVIEW_HEIGHT = 188;
@@ -127,6 +128,7 @@ class ZooPatternModal {
   private readonly _searchInput: HTMLInputElement;
   private readonly _resultsGrid: HTMLElement;
   private readonly _emptyState: HTMLElement;
+  private readonly _titleCountEl: HTMLSpanElement;
   private readonly _favoriteService = new PatternFavoriteService();
   private readonly _patternService = new PatternService();
   private readonly _cardRecords = new Map<string, PatternCardRecord>();
@@ -158,7 +160,9 @@ class ZooPatternModal {
       >
         <div class="zoo-pattern-modal__header">
           <div class="zoo-pattern-modal__heading">
-            <h2 id="zoo-pattern-modal-title" class="zoo-pattern-modal__title">${APP_TEXTS.zoo.patternListsTitle}</h2>
+            <h2 id="zoo-pattern-modal-title" class="zoo-pattern-modal__title">
+              <span class="zoo-pattern-modal__title-label">${APP_TEXTS.zoo.patternListsTitle}</span><span class="zoo-pattern-modal__title-count"></span>
+            </h2>
           </div>
           <div class="zoo-pattern-modal__header-actions">
             <input
@@ -184,6 +188,7 @@ class ZooPatternModal {
     this._searchInput = this._query(".zoo-pattern-modal__search");
     this._resultsGrid = this._query(".zoo-pattern-modal__grid");
     this._emptyState = this._query(".zoo-pattern-modal__empty");
+    this._titleCountEl = this._query<HTMLSpanElement>(".zoo-pattern-modal__title-count");
 
     this._overlay.addEventListener("click", this._handleOverlayClick);
     this._closeButton.addEventListener("click", this._handleCloseButtonClick);
@@ -364,6 +369,7 @@ class ZooPatternModal {
     const query = this._searchInput.value.trim().toLowerCase();
     const matches = this._patternNames.filter((patternName) => this._matchesQuery(patternName, query));
 
+    this._titleCountEl.textContent = formatZooPatternListsCountSuffix(matches.length);
     this._emptyState.hidden = matches.length > 0;
 
     const fragment = document.createDocumentFragment();

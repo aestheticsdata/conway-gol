@@ -3,10 +3,10 @@ import { httpClient } from "@infra/http/HttpClient";
 
 import type HttpClient from "@infra/http/HttpClient";
 
-export type RemotePattern = {
+export interface RemotePattern {
   automata: number[][];
   comments: string[];
-};
+}
 
 class PatternService {
   private readonly _http: HttpClient;

@@ -1,5 +1,4 @@
 import { LIFE_LEXICON } from "@data/lexicon/lexiconParser";
-
 import { escapeHtml } from "./escapeHtml";
 
 import type { LexiconBlock, LexiconInlineToken } from "@data/lexicon/lexiconParser";

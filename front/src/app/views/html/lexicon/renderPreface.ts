@@ -1,5 +1,4 @@
 import { LIFE_LEXICON } from "@data/lexicon/lexiconParser";
-
 import { escapeHtml } from "./escapeHtml";
 import { renderBlocks } from "./renderBlocks";
 
@@ -30,7 +29,9 @@ function renderSection(section: LexiconSection): string {
 }
 
 export function renderPrefaceMarkup(): string {
-  const visibleSections = LIFE_LEXICON.prefaceSections.filter((section) => !HIDDEN_PREFACE_SECTION_TITLES.has(section.title));
+  const visibleSections = LIFE_LEXICON.prefaceSections.filter(
+    (section) => !HIDDEN_PREFACE_SECTION_TITLES.has(section.title),
+  );
 
   if (visibleSections.length === 0) {
     return "";

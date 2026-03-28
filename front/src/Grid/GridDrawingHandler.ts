@@ -426,10 +426,7 @@ class GridDrawingHandler {
 
   private _notifyPointerCellChange(pointer: GridPointerPosition | null): void {
     const nextPointer = this._toDrawablePointer(pointer);
-    if (
-      this._lastReportedPointer?.x === nextPointer?.x &&
-      this._lastReportedPointer?.y === nextPointer?.y
-    ) {
+    if (this._lastReportedPointer?.x === nextPointer?.x && this._lastReportedPointer?.y === nextPointer?.y) {
       return;
     }
 

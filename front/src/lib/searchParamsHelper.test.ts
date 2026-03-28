@@ -61,10 +61,6 @@ describe("replaceCurrentSearchParam", () => {
 
     replaceCurrentSearchParam("pattern", null);
 
-    expect(replaceState).toHaveBeenCalledWith(
-      null,
-      "",
-      new URL("https://example.test/conway-gol/zoo?autostart=1"),
-    );
+    expect(replaceState).toHaveBeenCalledWith(null, "", new URL("https://example.test/conway-gol/zoo?autostart=1"));
   });
 });

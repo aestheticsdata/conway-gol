@@ -4,24 +4,24 @@ import { normalizeBasePath, toDocumentPath } from "@router/paths";
 import { APP_TEXTS } from "@texts";
 import { createConnectedHeader } from "@views/html/appHeader";
 
-type DocumentationCard = {
+interface DocumentationCard {
   description: string;
   title: string;
-};
+}
 
-type DocumentationGroup = {
+interface DocumentationGroup {
   items: string[];
   title: string;
-};
+}
 
 type RuleGridCell = "alive" | "empty" | "outcome-alive" | "outcome-dead" | "subject-alive" | "subject-dead";
 
-type CoreRuleCard = {
+interface CoreRuleCard {
   after: readonly RuleGridCell[];
   before: readonly RuleGridCell[];
   description: string;
   title: string;
-};
+}
 
 const basePath = normalizeBasePath(import.meta.env.BASE_URL);
 

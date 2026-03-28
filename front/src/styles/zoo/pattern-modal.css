@@ -97,6 +97,11 @@
   line-height: 1.15;
 }
 
+.zoo-pattern-modal__title-count {
+  font-size: 0.68em;
+  font-weight: 600;
+}
+
 .zoo-pattern-modal__header-actions {
   display: flex;
   align-items: center;

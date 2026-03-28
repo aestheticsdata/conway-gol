@@ -1,36 +1,36 @@
 import type { RemotePattern } from "@services/PatternService";
 
-export type PatternCardLink = {
+export interface PatternCardLink {
   href: string;
   label: string;
   title: string;
-};
+}
 
-type PatternCardMetaBase = {
+interface PatternCardMetaBase {
   author: string;
   description: string;
   displayName: string;
   links: PatternCardLink[];
-};
+}
 
-export type HxfPatternCardMeta = PatternCardMetaBase & {
+export interface HxfPatternCardMeta extends PatternCardMetaBase {
   pattern: number[][];
-};
+}
 
-export type LexiconPatternCardMeta = PatternCardMetaBase & {
+export interface LexiconPatternCardMeta extends PatternCardMetaBase {
   anchorId: string;
   modifiers: string | null;
   previewAscii: string;
-};
+}
 
-export type ExtractHxfPatternCardMetaInput = {
+export interface ExtractHxfPatternCardMetaInput {
   patternName: string;
   remotePattern: RemotePattern;
   fallbackAuthor: string;
   fallbackDescription: string;
-};
+}
 
-type LexiconPatternCardMetaOptions = {
+interface LexiconPatternCardMetaOptions {
   anchorId: string;
   displayName: string;
   fallbackAuthor: string;
@@ -38,7 +38,7 @@ type LexiconPatternCardMetaOptions = {
   modifiers: string | null;
   narrative: string;
   previewAscii: string;
-};
+}
 
 const AUTHOR_PATTERNS = [
   /\b[Ff]ound by ([^.;]+?)(?= in\b| on\b| before\b| after\b| during\b|,|\.|;|$)/,

@@ -33,7 +33,8 @@ select.custom-select__native {
   justify-content: flex-start;
   width: 100%;
   min-width: 0;
-  padding: var(--custom-select-trigger-px) calc(var(--custom-select-trigger-px) * 2 + 14px) var(--custom-select-trigger-px) var(--custom-select-trigger-px);
+  padding: var(--custom-select-trigger-px) calc(var(--custom-select-trigger-px) * 2 + 14px)
+    var(--custom-select-trigger-px) var(--custom-select-trigger-px);
   border: 0;
   border-radius: var(--radius);
   background: rgba(12, 30, 46, 0.74);

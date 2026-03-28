@@ -9,7 +9,7 @@ export interface TileSelectorButtonOptions {
   dataAttributeValue: string;
   title?: string;
   ariaLabel?: string;
-};
+}
 
 function createTileSelectorLabel(icon: string, dataAttributeName: string, dataAttributeValue: string): string {
   return `

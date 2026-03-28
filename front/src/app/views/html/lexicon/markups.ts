@@ -1,5 +1,4 @@
 import { LIFE_LEXICON } from "@data/lexicon/lexiconParser";
-
 import { escapeHtml } from "./escapeHtml";
 import { renderEntryMarkup } from "./renderEntry";
 import { renderPrefaceMarkup } from "./renderPreface";

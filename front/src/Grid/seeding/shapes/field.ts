@@ -2,12 +2,7 @@ import { CELL_STATE } from "@cell/constants";
 
 import type { RandomPresetSeedContext } from "../randomPresetTypes";
 
-export function seedRings(
-  buffer: Uint8Array,
-  rows: number,
-  cols: number,
-  context: RandomPresetSeedContext,
-): void {
+export function seedRings(buffer: Uint8Array, rows: number, cols: number, context: RandomPresetSeedContext): void {
   const baseSpacing = context.randomizedLayout ? 3 + context.rng() * 3 : 4;
   const spacing = baseSpacing / Math.max(0.01, context.density);
   const phaseShift = context.randomizedLayout ? context.rng() * spacing : 0;
@@ -24,12 +19,7 @@ export function seedRings(
   }
 }
 
-export function seedStripes(
-  buffer: Uint8Array,
-  rows: number,
-  cols: number,
-  context: RandomPresetSeedContext,
-): void {
+export function seedStripes(buffer: Uint8Array, rows: number, cols: number, context: RandomPresetSeedContext): void {
   const base = context.randomizedLayout ? 3 + Math.floor(context.rng() * 3) : 4;
   const period = Math.max(base, Math.round(base / Math.max(0.01, context.density)));
   const vertical = context.randomizedLayout ? context.rng() < 0.5 : false;
@@ -43,12 +33,7 @@ export function seedStripes(
   }
 }
 
-export function seedChecker(
-  buffer: Uint8Array,
-  rows: number,
-  cols: number,
-  context: RandomPresetSeedContext,
-): void {
+export function seedChecker(buffer: Uint8Array, rows: number, cols: number, context: RandomPresetSeedContext): void {
   if (context.density <= 0) {
     buffer.fill(CELL_STATE.DEAD);
     return;
@@ -80,12 +65,7 @@ export function seedChecker(
   }
 }
 
-export function seedDiagonal(
-  buffer: Uint8Array,
-  rows: number,
-  cols: number,
-  context: RandomPresetSeedContext,
-): void {
+export function seedDiagonal(buffer: Uint8Array, rows: number, cols: number, context: RandomPresetSeedContext): void {
   const base = context.randomizedLayout ? 2 + Math.floor(context.rng() * 3) : 4;
   const period = Math.max(base, Math.round(base / Math.max(0.01, context.density)));
   const offset = context.randomizedLayout ? Math.floor(context.rng() * period) : 0;
@@ -99,12 +79,7 @@ export function seedDiagonal(
   }
 }
 
-export function seedCross(
-  buffer: Uint8Array,
-  rows: number,
-  cols: number,
-  context: RandomPresetSeedContext,
-): void {
+export function seedCross(buffer: Uint8Array, rows: number, cols: number, context: RandomPresetSeedContext): void {
   const halfSide = Math.min(rows, cols) / 2;
   const jitter = context.randomizedLayout ? 0.6 + context.rng() * 0.8 : 1;
   const thickness = Math.max(0, Math.round(halfSide * context.density * jitter));

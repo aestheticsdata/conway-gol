@@ -3,7 +3,6 @@ import { LICENSE_ICON } from "@assets/icons/licenseIcon";
 import { LIFE_LEXICON } from "@data/lexicon/lexiconParser";
 import { APP_TEXTS } from "@texts";
 import { ARROW_RIGHT_BUTTON_ICON_MARKUP, createLinkButton } from "@ui/components/button/createButton";
-
 import { escapeHtml } from "../escapeHtml";
 import { ENTRIES_MARKUP, INDEX_MARKUP, PREFACE_MARKUP } from "../markups";
 

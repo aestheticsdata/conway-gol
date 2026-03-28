@@ -4,7 +4,7 @@ export interface RouteContext {
   path: AppPath;
   url: URL;
   query: URLSearchParams;
-};
+}
 
 export interface Screen {
   mount(container: HTMLElement): void;

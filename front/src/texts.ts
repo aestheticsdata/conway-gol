@@ -156,8 +156,19 @@ export const APP_TEXTS = {
     favoriteLabel: "Toggle favorite",
     favoriteCountLabel: "Favorites",
     closePatternLists: "Close patterns list",
+    patternCountSingular: "pattern",
+    patternCountPlural: "patterns",
   },
   comments: {
     itemPrefix: "- ",
   },
 } as const;
+
+export function formatZooPatternListsCountSuffix(visibleCount: number): string {
+  const noun = visibleCount === 1 ? APP_TEXTS.zoo.patternCountSingular : APP_TEXTS.zoo.patternCountPlural;
+  return ` (${visibleCount} ${noun})`;
+}
+
+export function formatZooPatternListsTitle(visibleCount: number): string {
+  return `${APP_TEXTS.zoo.patternListsTitle}${formatZooPatternListsCountSuffix(visibleCount)}`;
+}

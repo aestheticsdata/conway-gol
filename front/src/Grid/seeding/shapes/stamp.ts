@@ -106,12 +106,7 @@ function stampStarMotif(
   }
 }
 
-export function seedStars(
-  buffer: Uint8Array,
-  rows: number,
-  cols: number,
-  context: RandomPresetSeedContext,
-): void {
+export function seedStars(buffer: Uint8Array, rows: number, cols: number, context: RandomPresetSeedContext): void {
   buffer.fill(CELL_STATE.DEAD);
 
   const baseCount = Math.round((rows * cols) / 4);
@@ -130,12 +125,7 @@ export function seedStars(
 // Circles
 // ---------------------------------------------------------------------------
 
-export function seedCircles(
-  buffer: Uint8Array,
-  rows: number,
-  cols: number,
-  context: RandomPresetSeedContext,
-): void {
+export function seedCircles(buffer: Uint8Array, rows: number, cols: number, context: RandomPresetSeedContext): void {
   buffer.fill(CELL_STATE.DEAD);
 
   const baseCount = Math.round((rows * cols) / 250);
@@ -172,19 +162,12 @@ export function seedCircles(
 // Sine waves
 // ---------------------------------------------------------------------------
 
-export function seedSinus(
-  buffer: Uint8Array,
-  rows: number,
-  cols: number,
-  context: RandomPresetSeedContext,
-): void {
+export function seedSinus(buffer: Uint8Array, rows: number, cols: number, context: RandomPresetSeedContext): void {
   const margin = rows * 0.06;
   const usableHeight = rows - 2 * margin;
   const baseWaves = context.randomizedLayout ? 15 + Math.floor(context.rng() * 25) : 40;
   const numWaves = Math.max(0, Math.round(baseWaves * context.density));
-  const frequency = context.randomizedLayout
-    ? 0.05 + context.rng() * 0.28
-    : (3 * 2 * Math.PI) / Math.max(cols, 1);
+  const frequency = context.randomizedLayout ? 0.05 + context.rng() * 0.28 : (3 * 2 * Math.PI) / Math.max(cols, 1);
   const amplitude = context.randomizedLayout ? 5 + context.rng() * 20 : 12;
   const band = context.randomizedLayout ? 1 + Math.floor(context.rng() * 2) : 2;
   const baseRows: number[] = [];
@@ -220,12 +203,7 @@ export function seedSinus(
 // Clusters
 // ---------------------------------------------------------------------------
 
-export function seedClusters(
-  buffer: Uint8Array,
-  rows: number,
-  cols: number,
-  context: RandomPresetSeedContext,
-): void {
+export function seedClusters(buffer: Uint8Array, rows: number, cols: number, context: RandomPresetSeedContext): void {
   if (context.density <= 0) {
     buffer.fill(CELL_STATE.DEAD);
     return;
@@ -286,8 +264,7 @@ export function seedClusters(
           falloff = Math.max(falloff, 1 - distance2 / radius2);
         }
       }
-      buffer[idx++] =
-        falloff > 0 && context.rng() < 0.22 + 0.72 * falloff ? CELL_STATE.ALIVE : CELL_STATE.DEAD;
+      buffer[idx++] = falloff > 0 && context.rng() < 0.22 + 0.72 * falloff ? CELL_STATE.ALIVE : CELL_STATE.DEAD;
     }
   }
 }

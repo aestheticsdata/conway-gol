@@ -77,10 +77,7 @@ export function getRecoveryPassphraseValidationError(passphrase: string): string
   return "";
 }
 
-export function getRecoveryPassphraseConfirmationValidationError(
-  passphrase: string,
-  confirmation: string,
-): string {
+export function getRecoveryPassphraseConfirmationValidationError(passphrase: string, confirmation: string): string {
   if (normalizeCredentialValue(confirmation).length === 0) {
     return AUTH_VALIDATION_TEXTS.recoveryPassphrase.confirmRequired;
   }

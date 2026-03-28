@@ -4,11 +4,11 @@ import type { RouteContext, Screen } from "@router/Screen";
 
 type AuthSubmitHandler = (form: HTMLFormElement) => void | Promise<void>;
 
-type AuthPageViewOptions = {
+interface AuthPageViewOptions {
   documentTitle: string;
   render: () => string;
   onSubmit?: AuthSubmitHandler;
-};
+}
 
 export class AuthPageView implements Screen {
   private _root?: HTMLElement;

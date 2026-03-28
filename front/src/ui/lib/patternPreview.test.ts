@@ -1,12 +1,9 @@
 import { describe, expect, it } from "vitest";
-
 import { normalizePatternPreviewSource, parseAsciiPattern } from "./patternPreview";
 
 describe("patternPreview adapters", () => {
   it("parses ASCII previews into a square-cell grid", () => {
-    expect(
-      parseAsciiPattern(".*.\n***"),
-    ).toEqual([
+    expect(parseAsciiPattern(".*.\n***")).toEqual([
       [0, 1, 0],
       [1, 1, 1],
     ]);

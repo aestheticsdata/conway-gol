@@ -24,34 +24,199 @@ interface ConwayMotif {
 
 const CONWAY_MOTIFS: readonly ConwayMotif[] = [
   // --- complexity 1: 3-cell patterns ---
-  { cells: [[0, 0], [0, 1], [0, 2]], complexity: 1 },           // blinker (h)
-  { cells: [[0, 0], [1, 0], [2, 0]], complexity: 1 },           // blinker (v)
-  { cells: [[0, 0], [0, 1], [1, 1]], complexity: 1 },           // L-corner
-  { cells: [[0, 1], [1, 0], [1, 1]], complexity: 1 },           // L-corner (flipped)
-  { cells: [[0, 0], [1, 1], [2, 0]], complexity: 1 },           // zigzag
+  {
+    cells: [
+      [0, 0],
+      [0, 1],
+      [0, 2],
+    ],
+    complexity: 1,
+  }, // blinker (h)
+  {
+    cells: [
+      [0, 0],
+      [1, 0],
+      [2, 0],
+    ],
+    complexity: 1,
+  }, // blinker (v)
+  {
+    cells: [
+      [0, 0],
+      [0, 1],
+      [1, 1],
+    ],
+    complexity: 1,
+  }, // L-corner
+  {
+    cells: [
+      [0, 1],
+      [1, 0],
+      [1, 1],
+    ],
+    complexity: 1,
+  }, // L-corner (flipped)
+  {
+    cells: [
+      [0, 0],
+      [1, 1],
+      [2, 0],
+    ],
+    complexity: 1,
+  }, // zigzag
 
   // --- complexity 2: 4–7 cell still lifes ---
-  { cells: [[0, 0], [0, 1], [1, 0], [1, 1]], complexity: 2 },                           // block
-  { cells: [[0, 1], [1, 0], [1, 2], [2, 1]], complexity: 2 },                           // tub
-  { cells: [[0, 0], [0, 1], [1, 0], [1, 2], [2, 1]], complexity: 2 },                  // boat
-  { cells: [[0, 1], [0, 2], [1, 0], [1, 3], [2, 1], [2, 2]], complexity: 2 },          // beehive
-  { cells: [[0, 1], [0, 2], [1, 0], [1, 3], [2, 1], [2, 3], [3, 2]], complexity: 2 }, // loaf
+  {
+    cells: [
+      [0, 0],
+      [0, 1],
+      [1, 0],
+      [1, 1],
+    ],
+    complexity: 2,
+  }, // block
+  {
+    cells: [
+      [0, 1],
+      [1, 0],
+      [1, 2],
+      [2, 1],
+    ],
+    complexity: 2,
+  }, // tub
+  {
+    cells: [
+      [0, 0],
+      [0, 1],
+      [1, 0],
+      [1, 2],
+      [2, 1],
+    ],
+    complexity: 2,
+  }, // boat
+  {
+    cells: [
+      [0, 1],
+      [0, 2],
+      [1, 0],
+      [1, 3],
+      [2, 1],
+      [2, 2],
+    ],
+    complexity: 2,
+  }, // beehive
+  {
+    cells: [
+      [0, 1],
+      [0, 2],
+      [1, 0],
+      [1, 3],
+      [2, 1],
+      [2, 3],
+      [3, 2],
+    ],
+    complexity: 2,
+  }, // loaf
 
   // --- complexity 3: oscillators and glider ---
-  { cells: [[0, 1], [1, 2], [2, 0], [2, 1], [2, 2]], complexity: 3 },                  // glider
-  { cells: [[0, 1], [0, 2], [1, 0], [1, 1], [2, 1]], complexity: 3 },                  // R-pentomino
-  { cells: [[0, 1], [0, 2], [0, 3], [1, 0], [1, 1], [1, 2]], complexity: 3 },          // toad
-  { cells: [[0, 0], [0, 1], [1, 0], [2, 3], [3, 2], [3, 3]], complexity: 3 },          // beacon
+  {
+    cells: [
+      [0, 1],
+      [1, 2],
+      [2, 0],
+      [2, 1],
+      [2, 2],
+    ],
+    complexity: 3,
+  }, // glider
+  {
+    cells: [
+      [0, 1],
+      [0, 2],
+      [1, 0],
+      [1, 1],
+      [2, 1],
+    ],
+    complexity: 3,
+  }, // R-pentomino
+  {
+    cells: [
+      [0, 1],
+      [0, 2],
+      [0, 3],
+      [1, 0],
+      [1, 1],
+      [1, 2],
+    ],
+    complexity: 3,
+  }, // toad
+  {
+    cells: [
+      [0, 0],
+      [0, 1],
+      [1, 0],
+      [2, 3],
+      [3, 2],
+      [3, 3],
+    ],
+    complexity: 3,
+  }, // beacon
 
   // --- complexity 4: spaceships and methuselahs ---
   // LWSS (lightweight spaceship)
-  { cells: [[0, 1], [0, 2], [0, 3], [0, 4], [1, 0], [1, 4], [2, 4], [3, 0], [3, 3]], complexity: 4 },
+  {
+    cells: [
+      [0, 1],
+      [0, 2],
+      [0, 3],
+      [0, 4],
+      [1, 0],
+      [1, 4],
+      [2, 4],
+      [3, 0],
+      [3, 3],
+    ],
+    complexity: 4,
+  },
   // acorn (methuselah)
-  { cells: [[0, 1], [1, 3], [2, 0], [2, 1], [2, 4], [2, 5], [2, 6]], complexity: 4 },
+  {
+    cells: [
+      [0, 1],
+      [1, 3],
+      [2, 0],
+      [2, 1],
+      [2, 4],
+      [2, 5],
+      [2, 6],
+    ],
+    complexity: 4,
+  },
   // B-heptomino
-  { cells: [[0, 1], [0, 2], [1, 0], [1, 1], [2, 1], [3, 1], [3, 2]], complexity: 4 },
+  {
+    cells: [
+      [0, 1],
+      [0, 2],
+      [1, 0],
+      [1, 1],
+      [2, 1],
+      [3, 1],
+      [3, 2],
+    ],
+    complexity: 4,
+  },
   // pi-heptomino (symmetric)
-  { cells: [[0, 0], [0, 2], [1, 0], [1, 1], [1, 2], [2, 0], [2, 2]], complexity: 4 },
+  {
+    cells: [
+      [0, 0],
+      [0, 2],
+      [1, 0],
+      [1, 1],
+      [1, 2],
+      [2, 0],
+      [2, 2],
+    ],
+    complexity: 4,
+  },
 ];
 
 function stampConwayMotif(
@@ -64,7 +229,10 @@ function stampConwayMotif(
   quarterTurns: number,
   flipH: boolean,
 ): void {
-  let minR = Infinity, maxR = -Infinity, minC = Infinity, maxC = -Infinity;
+  let minR = Infinity,
+    maxR = -Infinity,
+    minC = Infinity,
+    maxC = -Infinity;
   for (const [r, c] of cells) {
     if (r < minR) minR = r;
     if (r > maxR) maxR = r;
@@ -100,11 +268,7 @@ function stampConwayMotif(
  * Returns relative [dr, dc] offsets for N motifs arranged in concentric rings.
  * Ring unit scales with grid size so spacing feels consistent.
  */
-function getConstellationPositions(
-  count: number,
-  rng: () => number,
-  ringUnit: number,
-): [number, number][] {
+function getConstellationPositions(count: number, rng: () => number, ringUnit: number): [number, number][] {
   const positions: [number, number][] = [[0, 0]];
   if (count <= 1) return positions;
 
@@ -121,10 +285,7 @@ function getConstellationPositions(
     const angleOffset = rng() * Math.PI * 2; // randomise start angle
     for (let i = 0; i < n; i++) {
       const angle = angleOffset + (i / n) * Math.PI * 2;
-      positions.push([
-        Math.round(Math.sin(angle) * ring.radius),
-        Math.round(Math.cos(angle) * ring.radius),
-      ]);
+      positions.push([Math.round(Math.sin(angle) * ring.radius), Math.round(Math.cos(angle) * ring.radius)]);
     }
     remaining -= n;
   }
@@ -158,12 +319,7 @@ function placeWithMirror(
   }
 }
 
-export function seedConway(
-  buffer: Uint8Array,
-  rows: number,
-  cols: number,
-  context: RandomPresetSeedContext,
-): void {
+export function seedConway(buffer: Uint8Array, rows: number, cols: number, context: RandomPresetSeedContext): void {
   buffer.fill(CELL_STATE.DEAD);
   const { rng, density, randomizedLayout } = context;
 
@@ -182,13 +338,7 @@ export function seedConway(
 
   // Symmetry (h or v reflection, ~50% chance of none)
   type Symmetry = "none" | "h" | "v";
-  const symmetry: Symmetry = !randomizedLayout
-    ? "none"
-    : rng() < 0.5
-      ? "none"
-      : rng() < 0.5
-        ? "h"
-        : "v";
+  const symmetry: Symmetry = !randomizedLayout ? "none" : rng() < 0.5 ? "none" : rng() < 0.5 ? "h" : "v";
 
   // ── Mode selection ────────────────────────────────────────────────────────
   //
@@ -235,7 +385,20 @@ export function seedConway(
         const motif = pool[Math.floor(rng() * pool.length)];
         const rot = Math.floor(rng() * 4);
         const flip = rng() < 0.5;
-        placeWithMirror(buffer, rows, cols, cr, cc, dr, dc, motif, rot, flip, symmetry, randomizedLayout && rng() < 0.12);
+        placeWithMirror(
+          buffer,
+          rows,
+          cols,
+          cr,
+          cc,
+          dr,
+          dc,
+          motif,
+          rot,
+          flip,
+          symmetry,
+          randomizedLayout && rng() < 0.12,
+        );
       }
     }
   }
