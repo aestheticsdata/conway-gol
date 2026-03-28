@@ -1,5 +1,13 @@
-import { ABOUT_ROUTE, DOCUMENTATION_ROUTE, LOGIN_ROUTE, REGISTER_ROUTE, SETTINGS_ROUTE } from "@app/routes";
+import {
+  ABOUT_ROUTE,
+  DOCUMENTATION_ROUTE,
+  LEXICON_ROUTE,
+  LOGIN_ROUTE,
+  REGISTER_ROUTE,
+  SETTINGS_ROUTE,
+} from "@app/routes";
 import { DOCUMENTATION_ICON } from "@assets/icons/documentationIcon";
+import { LEXICON_ICON } from "@assets/icons/lexiconIcon";
 import { LOG_OUT_ICON } from "@assets/icons/logOutIcon";
 import { SETTINGS_ICON } from "@assets/icons/settingsIcon";
 import { getUserAvatarOption } from "@assets/icons/userAvatars";
@@ -46,6 +54,7 @@ function createConnectedUserMenu(currentPath: AppPath, username: string, avatarI
   const normalizedUsername = username.trim().replace(/^@+/, "") || "demo-user";
   const settingsCurrentAttribute = currentPath === SETTINGS_ROUTE ? ' aria-current="page"' : "";
   const documentationCurrentAttribute = currentPath === DOCUMENTATION_ROUTE ? ' aria-current="page"' : "";
+  const lexiconCurrentAttribute = currentPath === LEXICON_ROUTE ? ' aria-current="page"' : "";
   const avatar = getUserAvatarOption(avatarId);
 
   return `
@@ -92,6 +101,14 @@ function createConnectedUserMenu(currentPath: AppPath, username: string, avatarI
         >
           <span class="workspace-user-menu__item-icon" aria-hidden="true">${DOCUMENTATION_ICON}</span>
           <span class="workspace-user-menu__item-label">${APP_TEXTS.workspace.userMenu.documentation}</span>
+        </a>
+        <a
+          class="workspace-user-menu__item workspace-user-menu__item--link"
+          href="${toDocumentPath(LEXICON_ROUTE, basePath)}"
+          role="menuitem"${lexiconCurrentAttribute}
+        >
+          <span class="workspace-user-menu__item-icon" aria-hidden="true">${LEXICON_ICON}</span>
+          <span class="workspace-user-menu__item-label">${APP_TEXTS.workspace.userMenu.lexicon}</span>
         </a>
         <button type="button" class="workspace-user-menu__item" data-workspace-logout role="menuitem">
           <span class="workspace-user-menu__item-icon" aria-hidden="true">${LOG_OUT_ICON}</span>

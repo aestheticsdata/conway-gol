@@ -1,10 +1,12 @@
 import { CLOSE_ICON } from "@assets/icons/closeIcon";
 import { HEART_ICON } from "@assets/icons/heartIcon";
 import { PERSON_ICON } from "@assets/icons/personIcon";
+import { extractHxfPatternCardMeta } from "@data/patterns/patternCardMeta";
 import PatternFavoriteService from "@services/PatternFavoriteService";
 import PatternService, { type RemotePattern } from "@services/PatternService";
 import { APP_TEXTS } from "@texts";
 import { ARROW_RIGHT_BUTTON_ICON_MARKUP } from "@ui/components/button/createButton";
+import { drawPatternPreview } from "@ui/lib/patternPreview";
 
 type ZooPatternModalOptions = {
   onSelect: (patternName: string) => void;
@@ -94,7 +96,9 @@ function applyCardMotion(
   const shiftScale = options?.shiftScale ?? 1;
   const waveScale = options?.waveScale ?? delayScale;
   const delay = Math.round(
-    baseDelayMs + cappedIndex * CARD_STAGGER_STEP_MS * delayScale + (cappedIndex % 3) * CARD_STAGGER_WAVE_MS * waveScale,
+    baseDelayMs +
+      cappedIndex * CARD_STAGGER_STEP_MS * delayScale +
+      (cappedIndex % 3) * CARD_STAGGER_WAVE_MS * waveScale,
   );
   const fadeDuration = Math.round(
     (CARD_FADE_DURATION_MS + (cappedIndex % 3) * CARD_FADE_DURATION_VARIATION_MS) * fadeScale,
@@ -111,75 +115,11 @@ function applyCardMotion(
   return { delay, fadeDuration, moveDuration };
 }
 
-function isUrlLine(line: string): boolean {
-  return line.startsWith("http://") || line.startsWith("https://");
-}
-
-function parseCommentMeta(line: string): { label: string; value: string } | null {
-  const match = line.match(/^([^:]+):\s*(.+)$/);
-  if (!match) {
-    return null;
-  }
-
-  const label = match[1]?.trim();
-  const value = match[2]?.trim();
-  if (!label || !value) {
-    return null;
-  }
-
-  return { label, value };
-}
-
-function createPatternLink(href: string): PatternCardLink {
-  return {
-    href,
-    label: href,
-    title: href,
-  };
-}
-
 function extractPatternMeta(patternName: string, remotePattern: RemotePattern): PatternCardMeta {
-  let displayName = patternName;
-  let author: string = APP_TEXTS.zoo.unknownAuthor;
-  const descriptionCandidates: string[] = [];
-  const linkCandidates: string[] = [];
-
-  for (const rawLine of remotePattern.comments) {
-    const line = rawLine.trim();
-    if (!line) {
-      continue;
-    }
-
-    if (isUrlLine(line)) {
-      linkCandidates.push(line);
-      continue;
-    }
-
-    const meta = parseCommentMeta(line);
-    if (meta) {
-      const normalizedLabel = meta.label.toLowerCase();
-
-      if (normalizedLabel === "name") {
-        displayName = meta.value;
-        continue;
-      }
-
-      if (normalizedLabel === "author" || normalizedLabel === "discoverer" || normalizedLabel === "discovered by") {
-        author = meta.value;
-        continue;
-      }
-    }
-
-    descriptionCandidates.push(line);
-  }
-
-  return {
-    author,
-    description: descriptionCandidates[0] ?? APP_TEXTS.zoo.fallbackDescription,
-    displayName,
-    links: linkCandidates.map((href) => createPatternLink(href)),
-    pattern: remotePattern.automata,
-  };
+  return extractHxfPatternCardMeta(patternName, remotePattern, {
+    fallbackAuthor: APP_TEXTS.zoo.unknownAuthor,
+    fallbackDescription: APP_TEXTS.zoo.fallbackDescription,
+  });
 }
 
 class ZooPatternModal {
@@ -770,9 +710,13 @@ class ZooPatternModal {
 
     return {
       delayScale: 0.2 + normalizedVelocity * 0.22,
-      fadeScale: CARD_SCROLL_FADE_SLOW_SCALE + normalizedVelocity * (CARD_SCROLL_FADE_FAST_SCALE - CARD_SCROLL_FADE_SLOW_SCALE),
-      moveScale: CARD_SCROLL_MOVE_SLOW_SCALE + normalizedVelocity * (CARD_SCROLL_MOVE_FAST_SCALE - CARD_SCROLL_MOVE_SLOW_SCALE),
-      shiftScale: CARD_SCROLL_SHIFT_SLOW_SCALE + normalizedVelocity * (CARD_SCROLL_SHIFT_FAST_SCALE - CARD_SCROLL_SHIFT_SLOW_SCALE),
+      fadeScale:
+        CARD_SCROLL_FADE_SLOW_SCALE + normalizedVelocity * (CARD_SCROLL_FADE_FAST_SCALE - CARD_SCROLL_FADE_SLOW_SCALE),
+      moveScale:
+        CARD_SCROLL_MOVE_SLOW_SCALE + normalizedVelocity * (CARD_SCROLL_MOVE_FAST_SCALE - CARD_SCROLL_MOVE_SLOW_SCALE),
+      shiftScale:
+        CARD_SCROLL_SHIFT_SLOW_SCALE +
+        normalizedVelocity * (CARD_SCROLL_SHIFT_FAST_SCALE - CARD_SCROLL_SHIFT_SLOW_SCALE),
       waveScale: 0.24 + normalizedVelocity * 0.18,
     };
   }
@@ -825,7 +769,7 @@ class ZooPatternModal {
         record.author.textContent = meta.author;
         this._renderLinks(record.links, meta.links);
         record.previewPlaceholder.hidden = true;
-        this._drawPatternPreview(record.preview, meta.pattern);
+        drawPatternPreview(record.preview, meta.pattern);
       })
       .catch(() => {
         record.loaded = true;
@@ -845,53 +789,6 @@ class ZooPatternModal {
       });
 
     return record.loadingPromise;
-  }
-
-  private _drawPatternPreview(canvas: HTMLCanvasElement, pattern: number[][]): void {
-    const context = canvas.getContext("2d");
-    if (!context) {
-      return;
-    }
-
-    context.clearRect(0, 0, canvas.width, canvas.height);
-
-    const rows = pattern.length;
-    const cols = pattern.reduce((max, row) => Math.max(max, row.length), 0);
-    if (rows === 0 || cols === 0) {
-      return;
-    }
-
-    const padding = 18;
-    const usableWidth = canvas.width - padding * 2;
-    const usableHeight = canvas.height - padding * 2;
-    const cellSize = Math.min(usableWidth / cols, usableHeight / rows, 18);
-    const drawSize = cellSize >= 4 ? cellSize - 1 : cellSize * 0.92;
-    const offsetX = (canvas.width - cols * cellSize) / 2;
-    const offsetY = (canvas.height - rows * cellSize) / 2;
-
-    if (cellSize >= 2) {
-      context.shadowColor = "rgba(37, 219, 255, 0.22)";
-      context.shadowBlur = Math.min(16, cellSize * 1.2);
-    } else {
-      context.shadowBlur = 0;
-    }
-
-    context.fillStyle = "rgba(112, 186, 223, 0.96)";
-
-    for (let rowIndex = 0; rowIndex < rows; rowIndex++) {
-      const row = pattern[rowIndex];
-      for (let colIndex = 0; colIndex < row.length; colIndex++) {
-        if (row[colIndex] !== 1) {
-          continue;
-        }
-
-        const x = offsetX + colIndex * cellSize + (cellSize - drawSize) / 2;
-        const y = offsetY + rowIndex * cellSize + (cellSize - drawSize) / 2;
-        context.fillRect(x, y, drawSize, drawSize);
-      }
-    }
-
-    context.shadowBlur = 0;
   }
 
   private _renderLinks(container: HTMLElement, links: PatternCardLink[]): void {

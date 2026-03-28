@@ -1,12 +1,38 @@
 html,
 body {
   min-height: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(37, 219, 255, 0.72) rgba(8, 17, 31, 0.9);
+  background-color: #07111f;
+  background-image: linear-gradient(180deg, #0a1627 0%, #07111f 55%, #040914 100%);
 }
 
 body {
   font-family: "Space Grotesk", sans-serif;
-  background: linear-gradient(180deg, #0a1627 0%, #07111f 55%, #040914 100%);
   color: var(--text-main);
+}
+
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 10px;
+}
+
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+  background: rgba(8, 17, 31, 0.9);
+  border-radius: 999px;
+}
+
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(120, 239, 255, 0.9), rgba(37, 219, 255, 0.7));
+  border: 2px solid rgba(8, 17, 31, 0.9);
+  border-radius: 999px;
+}
+
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(120, 239, 255, 1), rgba(37, 219, 255, 0.82));
 }
 
 #app {

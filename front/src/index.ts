@@ -3,6 +3,7 @@ import {
   DEFAULT_APP_ROUTE,
   DOCUMENTATION_ROUTE,
   DRAWING_ROUTE,
+  LEXICON_ROUTE,
   LOGIN_ROUTE,
   REGISTER_ROUTE,
   SETTINGS_ROUTE,
@@ -15,6 +16,7 @@ import { AppRouter } from "@router/AppRouter";
 import { normalizeBasePath } from "@router/paths";
 import { AboutView } from "@views/AboutView";
 import { DocumentationView } from "@views/DocumentationView";
+import { LexiconView } from "@views/LexiconView";
 import { LoginView } from "@views/LoginView";
 import { RegisterView } from "@views/RegisterView";
 import { SettingsView } from "@views/SettingsView";
@@ -64,6 +66,10 @@ router = new AppRouter(
     {
       path: DOCUMENTATION_ROUTE,
       create: () => new DocumentationView(navigate),
+    },
+    {
+      path: LEXICON_ROUTE,
+      create: () => new LexiconView(navigate),
     },
   ],
   DEFAULT_APP_ROUTE,

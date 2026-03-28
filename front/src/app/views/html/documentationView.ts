@@ -1,10 +1,8 @@
-import { DOCUMENTATION_ROUTE, SETTINGS_ROUTE, SIMULATION_ROUTE } from "@app/routes";
+import { DOCUMENTATION_ROUTE, SIMULATION_ROUTE } from "@app/routes";
 import { DOCUMENTATION_ICON } from "@assets/icons/documentationIcon";
 import { normalizeBasePath, toDocumentPath } from "@router/paths";
 import { APP_TEXTS } from "@texts";
 import { createConnectedHeader } from "@views/html/appHeader";
-
-const basePath = normalizeBasePath(import.meta.env.BASE_URL);
 
 type DocumentationCard = {
   description: string;
@@ -15,6 +13,8 @@ type DocumentationGroup = {
   items: string[];
   title: string;
 };
+
+const basePath = normalizeBasePath(import.meta.env.BASE_URL);
 
 const MODE_CARDS: readonly DocumentationCard[] = [
   {
@@ -155,31 +155,24 @@ export function createDocumentationView(username: string, avatarId: string): str
         ${createConnectedHeader({
           avatarId,
           currentPath: DOCUMENTATION_ROUTE,
+          navContent: `<a class="workspace-header__context-link" href="${toDocumentPath(SIMULATION_ROUTE, basePath)}">${APP_TEXTS.documentation.backToSimulation}</a>`,
           username,
-          navContent: `
-            <a class="workspace-header__context-link" href="${toDocumentPath(SIMULATION_ROUTE, basePath)}">
-              ${APP_TEXTS.documentation.backToSimulation}
-            </a>
-          `,
         })}
         <main class="documentation-page route-pane-fade-in">
-          <section class="documentation-hero">
-            <div class="documentation-hero__intro">
-              <span class="documentation-hero__eyebrow">
-                <span class="documentation-hero__icon" aria-hidden="true">${DOCUMENTATION_ICON}</span>
-                <span>${APP_TEXTS.documentation.title}</span>
-              </span>
-              <h1>Conway's Game of Life, plus a seeded pattern lab.</h1>
-              <p>
-                This page is the short map: the rule itself, the studio modes, the random seeding pipeline,
-                and the extra tools layered on top of the simulation.
-              </p>
-              <div class="documentation-hero__links">
-                <a class="documentation-hero__link" href="${toDocumentPath(SIMULATION_ROUTE, basePath)}">Open simulation</a>
-                <a class="documentation-hero__link documentation-hero__link--muted" href="${toDocumentPath(SETTINGS_ROUTE, basePath)}">Account settings</a>
-              </div>
-            </div>
-            <div class="documentation-hero__facts">
+          <header class="documentation-page-header">
+            <span class="documentation-page-header__eyebrow">
+              <span class="documentation-page-header__icon" aria-hidden="true">${DOCUMENTATION_ICON}</span>
+              <span>${APP_TEXTS.documentation.title}</span>
+            </span>
+            <h1>Conway&apos;s Game of Life, plus a seeded pattern lab.</h1>
+            <p>
+              Short map of the studio: the Life rule itself, the three entry modes, the random seeding pipeline,
+              and the telemetry layered on top of the simulation.
+            </p>
+          </header>
+
+          <section class="documentation-section">
+            <div class="documentation-facts-grid">
               <article class="documentation-fact">
                 <span class="documentation-fact__label">Grid</span>
                 <strong class="documentation-fact__value">167 × 167</strong>

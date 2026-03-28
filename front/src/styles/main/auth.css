@@ -17,10 +17,13 @@
 }
 
 .auth-shell {
+  --workspace-header-offset: 64px;
   position: relative;
   z-index: 1;
+  box-sizing: border-box;
   width: 100%;
   min-height: 100vh;
+  padding-top: var(--workspace-header-offset);
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
 }

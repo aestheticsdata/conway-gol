@@ -9,6 +9,7 @@ export const ZOO_ROUTE = "/zoo";
 export const DRAWING_ROUTE = "/drawing";
 export const SETTINGS_ROUTE = "/settings";
 export const DOCUMENTATION_ROUTE = "/documentation";
+export const LEXICON_ROUTE = "/lexicon";
 
 export type WorkspaceRoute = typeof SIMULATION_ROUTE | typeof ZOO_ROUTE | typeof DRAWING_ROUTE;
 
@@ -23,6 +24,7 @@ export const PUBLIC_APP_ROUTES: readonly AppPath[] = [
   DRAWING_ROUTE,
   SETTINGS_ROUTE,
   DOCUMENTATION_ROUTE,
+  LEXICON_ROUTE,
 ];
 
 export const WORKSPACE_ROUTE_TO_MODE: Record<WorkspaceRoute, Mode> = {

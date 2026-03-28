@@ -38,12 +38,19 @@ export const APP_TEXTS = {
     userMenu: {
       settings: "Settings",
       documentation: "Documentation",
+      lexicon: "Lexicon",
       signedInAs: "Signed in as",
     },
   },
   documentation: {
     title: "Documentation",
     backToSimulation: "Back to Simulation",
+  },
+  lexicon: {
+    title: "Lexicon",
+    backToSimulation: "Back to Simulation",
+    backToTop: "Back to top",
+    openDocumentation: "Documentation",
   },
   settings: {
     title: "Settings",

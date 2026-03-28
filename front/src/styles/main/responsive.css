@@ -17,6 +17,11 @@
 }
 
 @media (max-width: 1460px) {
+  .workspace-shell,
+  .auth-shell {
+    --workspace-header-offset: 136px;
+  }
+
   .workspace-header {
     grid-template-columns: 1fr;
     justify-items: start;
@@ -69,6 +74,11 @@
 }
 
 @media (max-width: 900px) {
+  .workspace-shell,
+  .auth-shell {
+    --workspace-header-offset: 128px;
+  }
+
   .workspace-auth-nav {
     gap: 16px;
   }
