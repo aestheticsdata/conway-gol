@@ -106,7 +106,7 @@ const DRAWING_FEATURES: readonly string[] = [
 const TELEMETRY_FEATURES: readonly string[] = [
   "Iteration counter for raw step count.",
   "Stable-after detector when a board stops changing.",
-  "Cycle detector when a previously seen state comes back.",
+  "Cycle detector that reports the period once a previously seen state comes back.",
   "Alive / dead cell counters.",
   "Two compact charts: alive variation and absolute alive count.",
   "Playback speed slider from 0 to 60 FPS.",

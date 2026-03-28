@@ -90,7 +90,7 @@ export const APP_TEXTS = {
   playback: {
     iteration: "Iteration:",
     stabilization: "Stable after:",
-    cycleDetected: "Cycle detected at:",
+    cycleDetected: "Cycle period:",
     aliveCells: "Alive cells:",
     deadCells: "Dead cells:",
     fps: "FPS:",

@@ -90,7 +90,7 @@ export class SimulationWorkspace {
   private _grid: Grid | null = null;
   private _iterationCounterValue = 0;
   private _stabilizationIterationValue: number | null = null;
-  private _cycleDetectedIterationValue: number | null = null;
+  private _cycleDetectedPeriodValue: number | null = null;
   private _legendLastAliveCount: number | null = null;
   private readonly _seenStates = new Map<string, SeenStateEntry[]>();
   private _previousPackedState: Uint32Array | null = null;
@@ -536,7 +536,10 @@ export class SimulationWorkspace {
 
   private _sanitizeHxfBasename(raw: string): string {
     const baseName = raw.replace(/\.hxf$/iu, "").trim();
-    const sanitizedName = baseName.replace(/[\\/:*?"<>|]/gu, "-").replace(/\s+/gu, " ").trim();
+    const sanitizedName = baseName
+      .replace(/[\\/:*?"<>|]/gu, "-")
+      .replace(/\s+/gu, " ")
+      .trim();
     return sanitizedName || "drawing";
   }
 
@@ -551,7 +554,7 @@ export class SimulationWorkspace {
   }
 
   private _resetCycleDetectedCounter(): void {
-    this._cycleDetectedIterationValue = null;
+    this._cycleDetectedPeriodValue = null;
     this._cycleDetectedCounter.textContent = "-";
   }
 
@@ -649,11 +652,12 @@ export class SimulationWorkspace {
       return;
     }
 
-    if (this._cycleDetectedIterationValue === null) {
+    if (this._cycleDetectedPeriodValue === null) {
       const cycleDetectedAtIteration = this._findSeenStateIteration(packedState, this._iterationCounterValue - 1);
       if (cycleDetectedAtIteration !== null) {
-        this._cycleDetectedIterationValue = cycleDetectedAtIteration;
-        this._cycleDetectedCounter.textContent = String(cycleDetectedAtIteration);
+        const cyclePeriod = this._iterationCounterValue - cycleDetectedAtIteration;
+        this._cycleDetectedPeriodValue = cyclePeriod;
+        this._cycleDetectedCounter.textContent = String(cyclePeriod);
         this._previousPackedState = packedState;
         return;
       }
@@ -728,7 +732,7 @@ export class SimulationWorkspace {
   private _handleStateChange = (stats: GridStateChangeStats): void => {
     this._updateCellStats(stats);
     this._syncDrawingRestoreButton();
-    if (this._cycleDetectedIterationValue === null) {
+    if (this._cycleDetectedPeriodValue === null) {
       this._updateTelemetryLegendValues(stats);
       this._aliveVariationChart.push(stats.alive);
       this._aliveCountChart.push(stats.alive);
@@ -1032,7 +1036,9 @@ export class SimulationWorkspace {
 
       case "zoo": {
         const critterList = await this._loadCritterList();
-        const defaultSpecies = critterList?.includes("canadagoose") ? "canadagoose" : (critterList?.[0] ?? "canadagoose");
+        const defaultSpecies = critterList?.includes("canadagoose")
+          ? "canadagoose"
+          : (critterList?.[0] ?? "canadagoose");
         const activeSpecies = this._selectedSpecies ?? defaultSpecies;
         this._selectedSpecies = activeSpecies;
         this._drawingToolBox?.hide();
