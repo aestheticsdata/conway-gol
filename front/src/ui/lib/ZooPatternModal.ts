@@ -112,7 +112,9 @@ function applyCardMotion(
 }
 
 function extractPatternMeta(patternName: string, remotePattern: RemotePattern): PatternCardMeta {
-  return extractHxfPatternCardMeta(patternName, remotePattern, {
+  return extractHxfPatternCardMeta({
+    patternName,
+    remotePattern,
     fallbackAuthor: APP_TEXTS.zoo.unknownAuthor,
     fallbackDescription: APP_TEXTS.zoo.fallbackDescription,
   });

@@ -23,7 +23,9 @@ export type LexiconPatternCardMeta = PatternCardMetaBase & {
   previewAscii: string;
 };
 
-type HxfPatternCardMetaOptions = {
+export type ExtractHxfPatternCardMetaInput = {
+  patternName: string;
+  remotePattern: RemotePattern;
   fallbackAuthor: string;
   fallbackDescription: string;
 };
@@ -137,13 +139,10 @@ export function extractAuthorFromNarrative(text: string): string | null {
   return null;
 }
 
-export function extractHxfPatternCardMeta(
-  patternName: string,
-  remotePattern: RemotePattern,
-  options: HxfPatternCardMetaOptions,
-): HxfPatternCardMeta {
+export function extractHxfPatternCardMeta(input: ExtractHxfPatternCardMetaInput): HxfPatternCardMeta {
+  const { patternName, remotePattern, fallbackAuthor, fallbackDescription } = input;
   let displayName = patternName;
-  let author = options.fallbackAuthor;
+  let author = fallbackAuthor;
   const descriptionCandidates: string[] = [];
   const linkCandidates: string[] = [];
 
@@ -178,7 +177,7 @@ export function extractHxfPatternCardMeta(
 
   return {
     author,
-    description: descriptionCandidates[0] ?? options.fallbackDescription,
+    description: descriptionCandidates[0] ?? fallbackDescription,
     displayName,
     links: linkCandidates.map((href) => createPatternLink(href)),
     pattern: remotePattern.automata,
