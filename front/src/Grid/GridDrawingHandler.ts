@@ -399,10 +399,10 @@ class GridDrawingHandler {
       });
     }
 
-    const shouldShowGuides = this._isBrushCenteredOnGrid(this._hoverPointer);
+    const guides = this._getCenteredGuides(this._hoverPointer);
 
-    if (shouldShowGuides) {
-      this._renderCenterGuides();
+    if (guides.showHorizontal || guides.showVertical) {
+      this._renderCenterGuides(guides.showHorizontal, guides.showVertical);
     }
   }
 
@@ -461,17 +461,20 @@ class GridDrawingHandler {
     this._drawingContext.fillRect(x, y, size, size);
   }
 
-  private _isBrushCenteredOnGrid(pointer: GridPointerPosition): boolean {
+  private _getCenteredGuides(pointer: GridPointerPosition): { showHorizontal: boolean; showVertical: boolean } {
     if (this._drawingMode === "hand") {
-      return false;
+      return { showHorizontal: false, showVertical: false };
     }
 
     const centroid = this._getShapeCentroid(pointer.yPos, pointer.xPos);
     if (!centroid) {
-      return false;
+      return { showHorizontal: false, showVertical: false };
     }
 
-    return this._isNearGridCenter(centroid.row, centroid.col);
+    return {
+      showHorizontal: this._isNearCenterRow(centroid.row),
+      showVertical: this._isNearCenterCol(centroid.col),
+    };
   }
 
   private _getShapeCentroid(anchorRow: number, anchorCol: number): { row: number; col: number } | null {
@@ -495,22 +498,27 @@ class GridDrawingHandler {
     };
   }
 
-  private _isNearGridCenter(row: number, col: number): boolean {
-    return (
-      Math.abs(row - this._centerRow) <= CENTER_GUIDE_TOLERANCE &&
-      Math.abs(col - this._centerCol) <= CENTER_GUIDE_TOLERANCE
-    );
+  private _isNearCenterRow(row: number): boolean {
+    return Math.abs(row - this._centerRow) <= CENTER_GUIDE_TOLERANCE;
   }
 
-  private _renderCenterGuides(): void {
+  private _isNearCenterCol(col: number): boolean {
+    return Math.abs(col - this._centerCol) <= CENTER_GUIDE_TOLERANCE;
+  }
+
+  private _renderCenterGuides(showHorizontal: boolean, showVertical: boolean): void {
     const x = this._centerCol * CELL_SIZE + 1;
     const y = this._centerRow * CELL_SIZE + 1;
 
     this._drawingContext.save();
     this._drawingContext.globalAlpha = 0.5;
     this._drawingContext.fillStyle = this._centerGuideColor;
-    this._drawingContext.fillRect(1, y, this._drawingCanvas.width - 2, CELL_SIZE);
-    this._drawingContext.fillRect(x, 1, CELL_SIZE, this._drawingCanvas.height - 2);
+    if (showHorizontal) {
+      this._drawingContext.fillRect(1, y, this._drawingCanvas.width - 2, CELL_SIZE);
+    }
+    if (showVertical) {
+      this._drawingContext.fillRect(x, 1, CELL_SIZE, this._drawingCanvas.height - 2);
+    }
     this._drawingContext.restore();
   }
 }
