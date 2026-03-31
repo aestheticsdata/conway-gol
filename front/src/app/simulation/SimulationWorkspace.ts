@@ -3,6 +3,7 @@ import { CANVAS_PX_HEIGHT, CANVAS_PX_WIDTH, GRID_COLS, GRID_ROWS } from "@grid/c
 import Grid from "@grid/Grid";
 import { DEFAULT_RANDOM_PRESET, isRandomPresetId } from "@grid/randomPresets";
 import ZoomBox from "@grid/zoom/ZoomBox";
+import { CELL_PATTERN_CROSSFADE_DEFAULTS } from "@helpers/canvasCellPatternCrossfade";
 import { getRequiredContext2D, queryRequired } from "@helpers/dom";
 import { getTrimmedSearchParam, replaceCurrentSearchParam } from "@lib/searchParamsHelper";
 import CritterService from "@services/CritterService";
@@ -249,7 +250,10 @@ export class SimulationWorkspace {
     this._drawingHxfExportButton.removeEventListener("click", this._onDrawingHxfExportClick);
     this._drawingHxfImportButton.removeEventListener("click", this._onDrawingHxfImportButtonClick);
     this._drawingHxfImportInput.removeEventListener("change", this._onDrawingHxfImportFileChange);
-    this._drawingRestoreTooltipTarget.removeEventListener("pointerenter", this._handleDrawingRestoreTooltipPointerEnter);
+    this._drawingRestoreTooltipTarget.removeEventListener(
+      "pointerenter",
+      this._handleDrawingRestoreTooltipPointerEnter,
+    );
     this._drawingRestoreTooltipTarget.removeEventListener("pointermove", this._handleDrawingRestoreTooltipPointerMove);
     this._drawingRestoreTooltipTarget.removeEventListener("pointerleave", this._hidePlaybackRestoreTooltip);
     this._drawingRestoreTooltipTarget.removeEventListener("pointercancel", this._hidePlaybackRestoreTooltip);
@@ -763,8 +767,20 @@ export class SimulationWorkspace {
     this._stopPlayback();
     this._setPlaybackButtonState(false);
     this._resetSimulationPlaybackState();
-    this._grid.geometrizeRandomPattern();
-    this._randomControls.resetRotationZoomAfterGeometrize();
+    this._grid.runCellPatternCrossfade(
+      () => {
+        const grid = this._grid;
+        if (!grid) {
+          return;
+        }
+        grid.geometrizeRandomPattern({ skipRender: true });
+        this._randomControls.resetRotationZoomAfterGeometrize();
+      },
+      {
+        fadeOutMs: CELL_PATTERN_CROSSFADE_DEFAULTS.fadeOutMs * 0.35,
+        fadeInMs: CELL_PATTERN_CROSSFADE_DEFAULTS.fadeInMs * 0.35,
+      },
+    );
   };
 
   private _onRandomPaneRandomize = (): void => {
@@ -773,18 +789,52 @@ export class SimulationWorkspace {
     }
 
     this._clearPlaybackRestoreSnapshot();
+    this._stopPlayback();
+    this._setPlaybackButtonState(false);
+    this._resetSimulationPlaybackState();
     this._randomControls.randomizeControls();
     this._randomPresetVariation = true;
 
-    if (this._randomControls.isAutoSeedEnabled()) {
-      this._refreshAutoSeed();
-    } else {
-      this._randomAutoSeed = null;
-    }
+    this._grid.runCellPatternCrossfade(() => {
+      const grid = this._grid;
+      if (!grid) {
+        return;
+      }
+      const maxRandomAttempts = 32;
+      for (let attempt = 0; attempt < maxRandomAttempts; attempt++) {
+        if (attempt > 0) {
+          this._randomControls.randomizeControls();
+        }
 
-    this._resetSimulationPlaybackState();
-    this._grid.syncTransforms(this._randomControls.currentRotation(), this._randomControls.currentZoom());
-    this._grid.reseedRandomPreset(this._currentRandomPreset(), true, this._currentRandomParams());
+        if (this._randomControls.isAutoSeedEnabled()) {
+          this._refreshAutoSeed();
+        } else {
+          this._randomAutoSeed = null;
+        }
+
+        this._resetSimulationPlaybackState();
+        grid.syncTransforms(this._randomControls.currentRotation(), this._randomControls.currentZoom());
+        grid.reseedRandomPreset(this._currentRandomPreset(), true, this._currentRandomParams(), {
+          skipRender: true,
+        });
+        if (grid.getAliveCount() > 0) {
+          return;
+        }
+      }
+
+      this._randomControls.applyFallbackNoiseConfiguration();
+      this._randomPresetVariation = true;
+      if (this._randomControls.isAutoSeedEnabled()) {
+        this._refreshAutoSeed();
+      } else {
+        this._randomAutoSeed = null;
+      }
+      this._resetSimulationPlaybackState();
+      grid.syncTransforms(this._randomControls.currentRotation(), this._randomControls.currentZoom());
+      grid.reseedRandomPreset(this._currentRandomPreset(), true, this._currentRandomParams(), {
+        skipRender: true,
+      });
+    });
   };
 
   private _onRandomPresetSave = async (): Promise<void> => {

@@ -2,8 +2,8 @@ import { DEFAULT_RANDOM_PRESET, isRandomPresetId, RANDOM_PRESETS } from "@grid/r
 import { DEFAULT_NOISE_LEVELS } from "@grid/seeding/RandomPresetSeeder";
 import { queryRequired } from "@helpers/dom";
 import { APP_TEXTS } from "@texts";
-import { CONTROL_TEXTS } from "@ui/controls/drawing/texts";
 import { syncSliderFill } from "@ui/components/slider/createSlider";
+import { CONTROL_TEXTS } from "@ui/controls/drawing/texts";
 import CustomSelect from "@ui/controls/shared/CustomSelect";
 import Tooltip from "@ui/lib/Tooltip";
 import NoiseTypeSelector from "./NoiseTypeSelector";

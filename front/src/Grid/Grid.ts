@@ -1,6 +1,5 @@
 import { CELL_STATE } from "@cell/constants";
 import Data from "@data/Data";
-import { drawGrid } from "@helpers/canvas";
 import {
   CELL_SIZE,
   GRID_CENTER_COL,
@@ -10,25 +9,24 @@ import {
   getCanvasCellColors,
   getCanvasPreviewCellColors,
   getCanvasTheme,
-} from "./constants";
-import GridDrawingHandler from "./GridDrawingHandler";
-import {
-  geometrizeGridPattern,
-  isGeometrizeResultAcceptable,
-  softenGeometrizeResult,
-} from "./geometrizePattern";
-import { transformGrid } from "./gridTransforms";
-import { DEFAULT_RANDOM_PRESET } from "./randomPresets";
-import Simulation from "./Simulation";
-import { DEFAULT_RANDOM_PARAMS } from "./seeding/RandomPresetSeeder";
+} from "@grid/constants";
+import GridDrawingHandler from "@grid/GridDrawingHandler";
+import { geometrizeGridPattern, isGeometrizeResultAcceptable, softenGeometrizeResult } from "@grid/geometrizePattern";
+import { transformGrid } from "@grid/gridTransforms";
+import { DEFAULT_RANDOM_PRESET } from "@grid/randomPresets";
+import Simulation from "@grid/Simulation";
+import { DEFAULT_RANDOM_PARAMS } from "@grid/seeding/RandomPresetSeeder";
+import { drawGrid } from "@helpers/canvas";
+import { runCellPatternCrossfade } from "@helpers/canvasCellPatternCrossfade";
 
+import type { CanvasTheme } from "@grid/constants";
+import type { RandomPresetId } from "@grid/randomPresets";
+import type { SimulationStateStats } from "@grid/Simulation";
+import type { RandomSeedParams } from "@grid/seeding/RandomPresetSeeder";
+import type ZoomBox from "@grid/zoom/ZoomBox";
+import type { CellPatternEasingId, CellPatternMaskId } from "@helpers/canvasCellPatternCrossfade";
 import type DrawingToolBox from "@ui/controls/drawing/DrawingToolBox";
 import type UserCustomSelector from "@ui/controls/drawing/UserCustomSelector";
-import type { CanvasTheme } from "./constants";
-import type { RandomPresetId } from "./randomPresets";
-import type { SimulationStateStats } from "./Simulation";
-import type { RandomSeedParams } from "./seeding/RandomPresetSeeder";
-import type ZoomBox from "./zoom/ZoomBox";
 
 export type GridStateChangeStats = SimulationStateStats & {
   changedCells: number | null;
@@ -95,6 +93,7 @@ class Grid {
   private _rotationDeg = 0;
   private _zoomLevel = 0;
   private _baseGrid: number[][] | null = null;
+  private _cellPatternCrossfadeCancel: (() => void) | null = null;
 
   constructor(options: GridOptions) {
     this._canvas = options.canvas;
@@ -272,7 +271,7 @@ class Grid {
    * is shown (uses live cells). Resets rotation/zoom to identity so the new shape is
    * stored as the base pattern.
    */
-  public geometrizeRandomPattern(): void {
+  public geometrizeRandomPattern(options?: { skipRender?: boolean }): void {
     if (!this._baseGrid) {
       return;
     }
@@ -284,8 +283,7 @@ class Grid {
     let g = geometrizeGridPattern(source, Math.random);
     for (
       let attempt = 1;
-      attempt < maxAttempts &&
-      (Grid._countAliveInGrid(g) === 0 || !isGeometrizeResultAcceptable(g));
+      attempt < maxAttempts && (Grid._countAliveInGrid(g) === 0 || !isGeometrizeResultAcceptable(g));
       attempt++
     ) {
       g = geometrizeGridPattern(source, Math.random);
@@ -301,9 +299,11 @@ class Grid {
     this._rotationDeg = 0;
     this._zoomLevel = 0;
     this._simulation.seedFromGrid(g);
-    this._render();
-    this._drawGrid();
-    this._emitStateChange();
+    if (!options?.skipRender) {
+      this._render();
+      this._drawGrid();
+      this._emitStateChange();
+    }
   }
 
   private static _countAliveInGrid(grid: number[][]): number {
@@ -336,13 +336,81 @@ class Grid {
     preset: RandomPresetId,
     randomVariation = false,
     params: RandomSeedParams = DEFAULT_RANDOM_PARAMS,
+    options?: { skipRender?: boolean },
   ): void {
     this._simulation.seedByPreset(preset, randomVariation, params);
     this._baseGrid = this._simulation.toGrid();
     this._applyTransforms();
-    this._render();
-    this._drawGrid();
-    this._emitStateChange();
+    if (!options?.skipRender) {
+      this._render();
+      this._drawGrid();
+      this._emitStateChange();
+    }
+  }
+
+  /**
+   * Cloud-wipes live cells, runs `applyNewPattern` (should mutate this grid with `skipRender` on
+   * seed helpers), then reveals the new pattern. Cancels any in-flight crossfade from a previous call.
+   * Optional timings default to `CELL_PATTERN_CROSSFADE_DEFAULTS` (`@helpers/canvasCellPatternCrossfade/constants`).
+   */
+  public runCellPatternCrossfade(
+    applyNewPattern: () => void,
+    timing?: {
+      fadeOutMs?: number;
+      fadeInMs?: number;
+      gapMs?: number;
+      sweepWaveMix?: number;
+      pixelBlockSize?: number;
+      easing?: CellPatternEasingId;
+      easingFadeOut?: CellPatternEasingId;
+      easingFadeIn?: CellPatternEasingId;
+      maskId?: CellPatternMaskId;
+      maskSeed?: number;
+    },
+  ): void {
+    this._cancelCellPatternCrossfade();
+    const before = this.toGrid().map((row) => [...row]);
+    const getBeforeCell = (row: number, col: number): number => before[row]?.[col] ?? CELL_STATE.DEAD;
+    const controller = runCellPatternCrossfade({
+      ctx: this._ctx,
+      canvas: this._canvas,
+      rows: GRID_ROWS,
+      cols: GRID_COLS,
+      cellSize: CELL_SIZE,
+      cellColors: this._cellColors,
+      getBeforeCell,
+      applyNewPattern,
+      getAfterCell: (row, col) => this._simulation.getCell(row, col),
+      drawGridLines: () => this._drawGrid(),
+      ...(timing?.fadeOutMs !== undefined ? { fadeOutMs: timing.fadeOutMs } : {}),
+      ...(timing?.fadeInMs !== undefined ? { fadeInMs: timing.fadeInMs } : {}),
+      ...(timing?.gapMs !== undefined ? { gapMs: timing.gapMs } : {}),
+      ...(timing?.sweepWaveMix !== undefined ? { sweepWaveMix: timing.sweepWaveMix } : {}),
+      ...(timing?.pixelBlockSize !== undefined ? { pixelBlockSize: timing.pixelBlockSize } : {}),
+      ...(timing?.easing !== undefined ? { easing: timing.easing } : {}),
+      ...(timing?.easingFadeOut !== undefined ? { easingFadeOut: timing.easingFadeOut } : {}),
+      ...(timing?.easingFadeIn !== undefined ? { easingFadeIn: timing.easingFadeIn } : {}),
+      ...(timing?.maskId !== undefined ? { maskId: timing.maskId } : {}),
+      ...(timing?.maskSeed !== undefined ? { maskSeed: timing.maskSeed } : {}),
+      onComplete: () => {
+        this._cellPatternCrossfadeCancel = null;
+        this._emitStateChange();
+      },
+    });
+    this._cellPatternCrossfadeCancel = () => {
+      controller.cancel();
+      this._cellPatternCrossfadeCancel = null;
+      this._render();
+      this._drawGrid();
+      this._emitStateChange();
+    };
+  }
+
+  private _cancelCellPatternCrossfade(): void {
+    if (!this._cellPatternCrossfadeCancel) {
+      return;
+    }
+    this._cellPatternCrossfadeCancel();
   }
 
   // ── Initialization ────────────────────────────────────────────────────────

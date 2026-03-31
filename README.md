@@ -12,6 +12,7 @@ A full-stack implementation of [Conway's Game of Life](https://en.wikipedia.org/
 - [Architecture](#architecture)
 - [Frontend Design System](#frontend-design-system)
 - [Frontend Code Map](#frontend-code-map)
+- [Cell pattern crossfade (random mode)](#cell-pattern-crossfade-random-mode)
 - [Running Locally](#running-locally)
 - [Testing](#testing)
 - [Deployment](#deployment)
@@ -26,6 +27,7 @@ A full-stack implementation of [Conway's Game of Life](https://en.wikipedia.org/
 - Navigation API based router behind a framework-agnostic adapter and screen abstraction
 - Login screen used as a fake auth entry point for the future connected-user flow
 - Random mode with 14 named presets (geometric, fractal, noise, and Conway-motif families), five generation controls (density, rotation, zoom, noise type, seed), a `Generate` action for a new variation, and a `Reset` button that restores all controls to their initial values
+- Random mode **Add geometry** and **Randomize** apply the new pattern behind a **masked canvas transition**: live cells erase in a stochastic wipe (plasma, spiral, snakes, curtains, shuffle, etc.), then the grid state updates, then the new pattern reveals with the same mask; durations and mask parameters are centralised in `front/src/helpers/canvasCellPatternCrossfade/constants.ts`
 - Zoo mode with 1,400+ catalog patterns
 - Drawing mode with save/load for custom patterns plus a `Restore` action that re-seeds the grid from the snapshot captured on the first `Play` press for the current drawing
 - Image import in drawing mode: upload any common image format, automatically converted to a cell pattern via grayscale + Floyd-Steinberg dithering, with a live threshold slider for post-import tuning that is disabled while playback is running
@@ -163,6 +165,14 @@ conway-gol/
 │   │   │   ├── Helpers.ts
 │   │   │   ├── api.ts
 │   │   │   ├── canvas.ts
+│   │   │   ├── canvasCellPatternCrossfade/
+│   │   │   │   ├── cellPatternMasks.ts
+│   │   │   │   ├── constants.ts
+│   │   │   │   ├── easing.ts
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── paint.ts
+│   │   │   │   ├── runCellPatternCrossfade.ts
+│   │   │   │   └── types.ts
 │   │   │   ├── constants.ts
 │   │   │   └── dom.ts
 │   │   ├── services/
@@ -436,6 +446,8 @@ Grid geometry is configured in `front/src/Grid/constants.ts`:
 - render simulation state to the main canvas
 - delegate drawing-mode mouse interactions to `GridDrawingHandler`
 
+For random-mode UX, `Grid` also exposes `runCellPatternCrossfade(applyNewPattern, timing?)`, which snapshots the current grid, animates a mask-driven erase on the **before** state, runs `applyNewPattern` once (typically reseeding with `{ skipRender: true }` on `reseedRandomPreset` / `geometrizeRandomPattern`), then animates reveal on the **after** state. A new crossfade cancels any in-flight one and restores the canvas. See [Cell pattern crossfade (random mode)](#cell-pattern-crossfade-random-mode).
+
 Mode-specific initialization is split into private methods:
 
 - `_initializeRandom()` seeds the selected random preset and saves the base grid snapshot
@@ -458,6 +470,7 @@ This keeps Conway logic out of the renderer, DOM event handling out of `Simulati
 - playback telemetry tracking for fixed points (`stable after`) and repeating loops (`cycle period`)
 - drawing-mode restore snapshot lifecycle: the first `Play` captures the current grid, `Restore` re-seeds from that saved state, and loading/importing/mode changes clear the snapshot
 - random preset controls and the custom dropdown, including rotation, zoom, and reset
+- wrapping **Add geometry** and **Randomize** in `Grid.runCellPatternCrossfade`: playback is stopped before randomize; up to 32 reseed attempts avoid an all-dead grid, then a noise fallback configuration is applied if needed; geometrize uses shorter fade timings than the module defaults
 - reusable tile-button groups for route mode selection and random noise type selection
 - route-to-mode synchronization between `/simulation`, `/zoo`, and `/drawing`
 
@@ -568,6 +581,8 @@ As a result, frontend code outside `front/src/infra/http/` should not import Axi
 `front/src/helpers/api.ts` exposes `getRequestURL()`, which constructs absolute API URLs from the shared `API_BASE_PATH` constant in `helpers/constants.ts`.
 
 `front/src/helpers/canvas.ts` exposes `drawGrid()`, a standalone canvas utility used by both `Grid` and `ZoomBox`.
+
+`front/src/helpers/canvasCellPatternCrossfade/` implements the masked erase/reveal transition when random mode replaces the pattern (see [Cell pattern crossfade (random mode)](#cell-pattern-crossfade-random-mode)).
 
 `front/src/assets/icons/` contains the shared inline SVG icons used by the workspace shell, including:
 
@@ -700,6 +715,7 @@ index.ts
   │   └── SimulationScreen
   │       └── SimulationWorkspace
   │           ├── Grid
+  │           │   ├── runCellPatternCrossfade (helpers/canvasCellPatternCrossfade) for random pattern swaps
   │           │   ├── Simulation
   │           │   │   └── IRandomPresetSeeder -> RandomPresetSeeder
   │           │   ├── GridDrawingHandler (drawing mode only)
@@ -726,6 +742,42 @@ Design rules used by the current frontend:
 - Data loading (`Data`) does not touch the DOM. Pattern comments are returned to the caller via `Data.comments` and rendered by `SimulationWorkspace._renderComments()`.
 - Cross-module imports use path aliases (`@app`, `@cell`, `@data`, `@grid`, `@helpers`, `@infra`, `@lib`, `@navigation`, `@router`, `@services`, `@simulation`, `@views`). Intra-module imports (same folder or immediate subfolder) use relative `./` paths.
 - `front/src/lib/` is the home for domain-agnostic utilities that are not UI components, not Grid logic, and not infrastructure. Currently it contains `lib/image/` for image processing.
+
+## Cell pattern crossfade (random mode)
+
+When the user clicks **Add geometry** or **Randomize** in random mode, the workspace does not swap the simulation and repaint in one frame. Instead, `SimulationWorkspace` calls `Grid.runCellPatternCrossfade`, which delegates to `runCellPatternCrossfade` in `front/src/helpers/canvasCellPatternCrossfade/runCellPatternCrossfade.ts`.
+
+### Behaviour
+
+1. **Fade out** — For each cell that was alive in the snapshot, opacity stays at 1 until a per-cell threshold (from a spatial mask) is crossed, then drops to 0 in one step. Progress uses `requestAnimationFrame` and `performance.now()`, with optional easing (`easing.ts`).
+2. **Gap** — Optional short hold on the fully erased frame (`gapMs` in `constants.ts`).
+3. **Apply** — The callback mutates backing state (e.g. `geometrizeRandomPattern({ skipRender: true })` or `reseedRandomPreset(..., { skipRender: true })`) so the simulation already reflects the new pattern before paint.
+4. **Fade in** — The same mask reveals alive cells of the new state threshold-by-threshold.
+
+Default timings, gap, optional blend with a legacy column sweep, per-cell vs block (“pixel”) grouping, and default easing live in **`CELL_PATTERN_CROSSFADE_DEFAULTS`** in `front/src/helpers/canvasCellPatternCrossfade/constants.ts`. Call sites may override fade durations (geometrize uses a shorter fade than randomize).
+
+### Masks
+
+`cellPatternMasks.ts` precomputes a `Float32Array` of thresholds per cell. Supported mask ids include `plasma`, `plasma_tight`, `spiral`, `snake_rows`, `snake_cols`, `radial_burst`, `diamond`, `curtain_horizontal`, `curtain_vertical`, `diagonal_wipe`, `random_shuffle`, and `hash_dissolve`. If `maskId` is omitted, a mask is chosen at random; `maskSeed` fixes stochastic mask parameters for reproducibility.
+
+### Grid API
+
+- `reseedRandomPreset` and `geometrizeRandomPattern` accept an optional `{ skipRender?: boolean }` so orchestration can defer `_render` / `_drawGrid` until the transition finishes.
+- `runCellPatternCrossfade` stores a cancel function; starting another crossfade or cancelling restores the grid via `_render` and `_emitStateChange` as needed.
+
+### Files
+
+| File | Role |
+|------|------|
+| `front/src/helpers/canvasCellPatternCrossfade/types.ts` | `CellPatternMaskId`, `CellPatternEasingId`, options and controller types |
+| `front/src/helpers/canvasCellPatternCrossfade/constants.ts` | `CELL_PATTERN_CROSSFADE_DEFAULTS` and exported aliases |
+| `front/src/helpers/canvasCellPatternCrossfade/easing.ts` | Easing functions for global progress |
+| `front/src/helpers/canvasCellPatternCrossfade/paint.ts` | Canvas painting with per-cell alive alpha |
+| `front/src/helpers/canvasCellPatternCrossfade/cellPatternMasks.ts` | Threshold precomputation and mask catalogue |
+| `front/src/helpers/canvasCellPatternCrossfade/runCellPatternCrossfade.ts` | rAF loop, `cancel`, `finished` promise |
+| `front/src/helpers/canvasCellPatternCrossfade/index.ts` | Public exports |
+| `front/src/Grid/Grid.ts` | `runCellPatternCrossfade`, `skipRender` on seed helpers, cancel wiring |
+| `front/src/app/simulation/SimulationWorkspace.ts` | Wraps geometrize and randomize actions |
 
 ## Image import pipeline
 
@@ -984,6 +1036,18 @@ Catalog patterns are stored as JSON with the `.hxf` extension:
 Custom patterns are submitted in the same JSON shape through `POST /usercustom/:filename`, but are persisted in the database rather than the filesystem.
 
 ## Refactoring History
+
+### Phase 17 - Cell pattern crossfade for random geometrize and randomize (2026-03)
+
+Random mode **Add geometry** and **Randomize** no longer replace the grid in a single paint. A dedicated helper module animates a mask-driven erase of the previous live cells, applies the new seed in the middle of the sequence (with `skipRender` on `Grid` so state and canvas stay in sync), then reveals the new pattern with the same mask.
+
+**New module:** `front/src/helpers/canvasCellPatternCrossfade/` — types, defaults, easing, per-cell alpha painting, mask precomputation (plasma, spiral, snakes, radial/diamond, curtains, diagonal, shuffle, hash dissolve, etc.), and `runCellPatternCrossfade` with `cancel` / `finished`.
+
+**Grid:** `runCellPatternCrossfade`; optional `{ skipRender }` on `geometrizeRandomPattern` and `reseedRandomPreset`; cancellation restores canvas and emits state.
+
+**SimulationWorkspace:** geometrize wrapped in crossfade with shorter fade timings; randomize stops playback first, runs the mutation inside crossfade, retries up to 32 times for a non-empty grid, then falls back via `applyFallbackNoiseConfiguration` if needed.
+
+**Files involved:** `front/src/helpers/canvasCellPatternCrossfade/*`, `front/src/Grid/Grid.ts`, `front/src/app/simulation/SimulationWorkspace.ts` (minor import order in `RandomControlsPanel.ts` only).
 
 ### Phase 16 - Drawing-mode Restore snapshot (2026-03)
 
