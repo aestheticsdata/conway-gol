@@ -19,6 +19,7 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "TS_NODE_BASEURL=./dist node -r tsconfig-paths/register dist/src/main.js",
+    "start:pm2": "pm2 start ecosystem.config.js --env production",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "test": "vitest run",

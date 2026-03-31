@@ -25,8 +25,8 @@ LEGACY_PM2_APP_NAME="${LEGACY_PM2_APP_NAME:-conway-gol-server}"
 PROD_PORT="${PROD_PORT:-6300}"
 PROD_CATALOG_DIR="${PROD_CATALOG_DIR:-$NEST_DIR/data/patterns}"
 
-# Load DATABASE_URL from api-nest/.env only if it is not already provided by the shell.
-# This lets us deploy with a prod DATABASE_URL without copying a secrets file to the server.
+# Load DATABASE_URL and SESSION_SECRET from api-nest/.env only if they are not already provided by the shell.
+# This lets us deploy with prod values without copying a secrets file to the server.
 NEST_ENV="$SCRIPT_DIR/api-nest/.env"
 if [ -z "${DATABASE_URL:-}" ] && [ -f "$NEST_ENV" ]; then
   set -a
@@ -37,6 +37,17 @@ fi
 if [ -z "${DATABASE_URL:-}" ]; then
   echo "ERROR: DATABASE_URL is not set. Required for Nest/Prisma build." >&2
   echo "Add it to api-nest/.env or run: export DATABASE_URL='mysql://...'" >&2
+  exit 1
+fi
+if [ -z "${SESSION_SECRET:-}" ] && [ -f "$NEST_ENV" ]; then
+  set -a
+  # shellcheck source=/dev/null
+  source "$NEST_ENV"
+  set +a
+fi
+if [ -z "${SESSION_SECRET:-}" ]; then
+  echo "ERROR: SESSION_SECRET is not set. Required for Nest/Prisma runtime." >&2
+  echo "Add it to api-nest/.env or run: export SESSION_SECRET='...'" >&2
   exit 1
 fi
 
@@ -80,6 +91,7 @@ remote_restart_pm2() {
     PROD_PORT="$PROD_PORT" \
     PROD_CATALOG_DIR="$PROD_CATALOG_DIR" \
     DATABASE_URL="$DATABASE_URL" \
+    SESSION_SECRET="$SESSION_SECRET" \
     'bash -s' << 'EOF'
 set -Eeuo pipefail
 
@@ -89,6 +101,7 @@ export PM2_APP_NAME
 export PORT="$PROD_PORT"
 export CATALOG_DIR="$PROD_CATALOG_DIR"
 export DATABASE_URL
+export SESSION_SECRET
 
 pm2 reload "$NEST_DIR/ecosystem.config.js" --env production --update-env 2>/dev/null \
   || pm2 start "$NEST_DIR/ecosystem.config.js" --env production
@@ -215,6 +228,7 @@ EOF
   ssh "$REMOTE_USER_HOST" \
     NEST_RELEASE_REMOTE="$NEST_RELEASE_REMOTE" \
     DATABASE_URL="$DATABASE_URL" \
+    SESSION_SECRET="$SESSION_SECRET" \
     'bash -s' << 'EOF'
 set -Eeuo pipefail
 
@@ -230,6 +244,7 @@ rm -rf node_modules dist
 pnpm --version
 pnpm install --frozen-lockfile
 export DATABASE_URL
+export SESSION_SECRET
 pnpm prisma migrate deploy
 pnpm build
 EOF
