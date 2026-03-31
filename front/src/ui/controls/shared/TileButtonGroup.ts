@@ -1,4 +1,4 @@
-import { queryAll } from "@helpers/dom";
+import { queryAll } from "@lib/dom/dom";
 
 type TileButtonGroupOptions<T extends string> = {
   selector: string;

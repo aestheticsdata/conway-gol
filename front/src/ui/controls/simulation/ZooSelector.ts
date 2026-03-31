@@ -1,5 +1,5 @@
 import { species } from "@data/species/species";
-import { queryRequired } from "@helpers/dom";
+import { queryRequired } from "@lib/dom/dom";
 import ZooPatternModal from "@ui/lib/ZooPatternModal";
 
 class ZooSelector {

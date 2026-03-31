@@ -10,11 +10,11 @@ import {
   BRUSH_SHAPE_VLINE_ICON,
   BRUSH_SHAPE_X_ICON,
 } from "@assets/icons/brushShapeIcons";
-import { queryRequired } from "@helpers/dom";
+import { queryRequired } from "@lib/dom/dom";
+import { CONTROL_TEXTS } from "@texts";
 import { syncSliderFill } from "@ui/components/slider/createSlider";
 import CustomSelect from "@ui/controls/shared/CustomSelect";
 import { DEFAULT_BRUSH_SHAPE, DEFAULT_BRUSH_SIZE, MAX_BRUSH_SIZE, MIN_BRUSH_SIZE } from "./constants";
-import { CONTROL_TEXTS } from "./texts";
 
 import type { CustomSelectOption } from "@ui/controls/shared/CustomSelect";
 import type { BrushShape } from "./constants";

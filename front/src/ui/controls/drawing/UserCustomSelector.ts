@@ -1,9 +1,9 @@
-import { queryRequired } from "@helpers/dom";
+import { queryRequired } from "@lib/dom/dom";
 import UserCustomService from "@services/UserCustomService";
+import { CONTROL_TEXTS } from "@texts";
 import CustomSelect from "@ui/controls/shared/CustomSelect";
 import SavePresetModal from "@ui/lib/SavePresetModal";
 import Tooltip from "@ui/lib/Tooltip";
-import { CONTROL_TEXTS } from "./texts";
 
 class UserCustomSelector {
   private readonly _customDrawingDOMSelector: HTMLElement;

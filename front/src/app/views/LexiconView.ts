@@ -1,7 +1,7 @@
 import { LOGIN_ROUTE, ZOO_ROUTE } from "@app/routes";
 import { LIFE_LEXICON } from "@data/lexicon/lexiconParser";
 import { resolveLexiconPatternCandidate, resolveLexiconPatternToZooPattern } from "@data/lexicon/zooPatternResolver";
-import { buildPathWithSearchParam } from "@lib/searchParamsHelper";
+import { buildPathWithSearchParam } from "@lib/url/searchParamsHelper";
 import { normalizeBasePath, toDocumentPath } from "@router/paths";
 import { authSessionService } from "@services/AuthSessionService";
 import CritterService from "@services/CritterService";

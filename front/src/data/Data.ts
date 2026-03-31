@@ -1,8 +1,8 @@
 import { CELL_STATE } from "@cell/constants";
+import { species } from "@data/species/species";
 import { GRID_COLS, GRID_ROWS } from "@grid/constants";
 import PatternService from "@services/PatternService";
-import { species } from "./species/species";
-import { DATA_TEXTS } from "./texts";
+import { DATA_TEXTS } from "@texts";
 
 type PatternContent = {
   position?: number[];

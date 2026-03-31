@@ -13,7 +13,7 @@ import {
   SIMULATION_ROUTE,
   ZOO_ROUTE,
 } from "@app/routes";
-import { queryRequired } from "@helpers/dom";
+import { queryRequired } from "@lib/dom/dom";
 import { NavigationApiAdapter } from "@navigation/NavigationApiAdapter";
 import { AppRouter } from "@router/AppRouter";
 import { normalizeBasePath } from "@router/paths";

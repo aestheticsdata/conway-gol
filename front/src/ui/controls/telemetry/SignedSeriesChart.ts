@@ -1,4 +1,4 @@
-import { getRequiredContext2D } from "@helpers/dom";
+import { getRequiredContext2D } from "@lib/dom/dom";
 import {
   drawTelemetryAxes,
   drawTelemetrySurface,

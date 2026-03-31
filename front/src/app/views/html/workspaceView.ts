@@ -12,11 +12,10 @@ import { NOISE_UNIFORM_ICON } from "@assets/icons/noiseUniformIcon";
 import { PAW_ICON } from "@assets/icons/pawIcon";
 import { PENCIL_ICON } from "@assets/icons/pencilIcon";
 import { SHUFFLE_ICON } from "@assets/icons/shuffleIcon";
-import { APP_TEXTS } from "@texts";
+import { APP_TEXTS, CONTROL_TEXTS } from "@texts";
 import { createButton } from "@ui/components/button/createButton";
 import { createSliderField } from "@ui/components/slider/createSlider";
 import { DEFAULT_BRUSH_SIZE, MAX_BRUSH_SIZE, MIN_BRUSH_SIZE } from "@ui/controls/drawing/constants";
-import { CONTROL_TEXTS } from "@ui/controls/drawing/texts";
 import { createConnectedHeader } from "@views/html/appHeader";
 import { createTileSelectorButton } from "@views/html/tileSelector";
 

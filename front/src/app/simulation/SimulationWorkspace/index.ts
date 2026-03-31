@@ -3,9 +3,9 @@ import { CANVAS_PX_HEIGHT, CANVAS_PX_WIDTH, GRID_COLS, GRID_ROWS } from "@grid/c
 import Grid from "@grid/Grid";
 import { DEFAULT_RANDOM_PRESET, isRandomPresetId } from "@grid/randomPresets";
 import ZoomBox from "@grid/zoom/ZoomBox";
-import { CELL_PATTERN_CROSSFADE_DEFAULTS } from "@helpers/canvasCellPatternCrossfade";
-import { getRequiredContext2D, queryRequired } from "@helpers/dom";
-import { getTrimmedSearchParam, replaceCurrentSearchParam } from "@lib/searchParamsHelper";
+import { CELL_PATTERN_CROSSFADE_DEFAULTS } from "@lib/canvas/cellPatternCrossfade";
+import { getRequiredContext2D, queryRequired } from "@lib/dom/dom";
+import { getTrimmedSearchParam, replaceCurrentSearchParam } from "@lib/url/searchParamsHelper";
 import CritterService from "@services/CritterService";
 import UserCustomService from "@services/UserCustomService";
 import PlaybackTelemetryTracker from "@simulation/PlaybackTelemetryTracker";
@@ -18,11 +18,10 @@ import {
 } from "@simulation/SimulationWorkspace/hxf";
 import { formatSignedTelemetryValue, telemetryToneForValue } from "@simulation/SimulationWorkspace/telemetryFormat";
 import { uint8ArraysEqual } from "@simulation/SimulationWorkspace/uint8Equals";
-import { APP_TEXTS } from "@texts";
+import { APP_TEXTS, CONTROL_TEXTS } from "@texts";
 import { syncSliderFill } from "@ui/components/slider/createSlider";
 import DrawingToolBox from "@ui/controls/drawing/DrawingToolBox";
 import ImageImporter from "@ui/controls/drawing/ImageImporter";
-import { CONTROL_TEXTS } from "@ui/controls/drawing/texts";
 import UserCustomSelector from "@ui/controls/drawing/UserCustomSelector";
 import ModeSelector, { type Mode } from "@ui/controls/simulation/ModeSelector";
 import RandomControlsPanel from "@ui/controls/simulation/RandomControlsPanel";

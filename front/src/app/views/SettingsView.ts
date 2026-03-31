@@ -1,6 +1,6 @@
 import { LOGIN_ROUTE } from "@app/routes";
 import { getUserAvatarOption, USER_AVATAR_OPTIONS } from "@assets/icons/userAvatars";
-import { queryAll } from "@helpers/dom";
+import { queryAll } from "@lib/dom/dom";
 import AuthService from "@services/AuthService";
 import { authSessionService } from "@services/AuthSessionService";
 import SessionService from "@services/SessionService";

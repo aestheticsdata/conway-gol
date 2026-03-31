@@ -1,5 +1,5 @@
 import { CLOSE_ICON } from "@assets/icons/closeIcon";
-import { CONTROL_TEXTS } from "@ui/controls/drawing/texts";
+import { CONTROL_TEXTS } from "@texts";
 
 const HXF_IMPORT_AUTO_CLOSE_DURATION_MS = 3000;
 

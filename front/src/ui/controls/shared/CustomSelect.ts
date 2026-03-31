@@ -1,4 +1,4 @@
-import { queryRequired } from "@helpers/dom";
+import { queryRequired } from "@lib/dom/dom";
 
 export type CustomSelectOption = {
   value: string;

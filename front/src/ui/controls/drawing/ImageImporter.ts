@@ -1,5 +1,5 @@
 import { GRID_COLS, GRID_ROWS } from "@grid/constants";
-import { queryRequired } from "@helpers/dom";
+import { queryRequired } from "@lib/dom/dom";
 import { ACCEPTED_EXTENSIONS, floydSteinberg, ImageSeedError, seedFromImage } from "@lib/image/ImageSeeder";
 import { syncSliderFill } from "@ui/components/slider/createSlider";
 import Tooltip from "@ui/lib/Tooltip";
