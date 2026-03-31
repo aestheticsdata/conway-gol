@@ -1,6 +1,6 @@
 import { CELL_SIZE } from "@grid/constants";
 
-type DrawGridParams = {
+interface DrawGridParams {
   ctx: CanvasRenderingContext2D;
   canvas: HTMLCanvasElement;
   zoom?: number;

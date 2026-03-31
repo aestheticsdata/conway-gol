@@ -1,15 +1,15 @@
 import { DEFAULT_RANDOM_PRESET, isRandomPresetId, RANDOM_PRESETS } from "@grid/randomPresets";
-import { DEFAULT_NOISE_LEVELS } from "@grid/seeding/RandomPresetSeeder";
+import { DEFAULT_NOISE_LEVELS } from "@grid/seeding/randomPresetTypes";
 import { queryRequired } from "@helpers/dom";
 import { APP_TEXTS } from "@texts";
 import { syncSliderFill } from "@ui/components/slider/createSlider";
 import { CONTROL_TEXTS } from "@ui/controls/drawing/texts";
 import CustomSelect from "@ui/controls/shared/CustomSelect";
+import NoiseTypeSelector from "@ui/controls/simulation/NoiseTypeSelector";
 import Tooltip from "@ui/lib/Tooltip";
-import NoiseTypeSelector from "./NoiseTypeSelector";
 
 import type { RandomPresetId } from "@grid/randomPresets";
-import type { NoiseType } from "@grid/seeding/RandomPresetSeeder";
+import type { NoiseType } from "@grid/seeding/randomPresetTypes";
 
 type RandomControlsPanelOptions = {
   root: HTMLElement;

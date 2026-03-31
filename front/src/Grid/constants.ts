@@ -9,7 +9,7 @@ function toPositiveOdd(value: number): number {
   return int % 2 === 0 ? int + 1 : int;
 }
 
-export type CanvasTheme = {
+export interface CanvasTheme {
   gridColor: string;
   zoomGridColor: string;
   zoomBoundaryCellColor: string;

@@ -1,9 +1,10 @@
 import { CELL_STATE } from "@cell/constants";
-import { GRID_COLS, GRID_ROWS, INITIAL_DENSITY } from "./constants";
-import { DEFAULT_RANDOM_PARAMS, RandomPresetSeeder } from "./seeding/RandomPresetSeeder";
+import { GRID_COLS, GRID_ROWS, INITIAL_DENSITY } from "@grid/constants";
+import { RandomPresetSeeder } from "@grid/seeding/RandomPresetSeeder";
+import { DEFAULT_RANDOM_PARAMS } from "@grid/seeding/randomPresetTypes";
 
-import type { RandomPresetId } from "./randomPresets";
-import type { IRandomPresetSeeder, RandomSeedParams } from "./seeding/RandomPresetSeeder";
+import type { RandomPresetId } from "@grid/randomPresets";
+import type { IRandomPresetSeeder, RandomSeedParams } from "@grid/seeding/randomPresetTypes";
 
 export type SimulationStateStats = {
   alive: number;

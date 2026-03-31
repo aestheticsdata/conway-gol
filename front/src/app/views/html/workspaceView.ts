@@ -21,7 +21,7 @@ import { createConnectedHeader } from "@views/html/appHeader";
 import { createTileSelectorButton } from "@views/html/tileSelector";
 
 import type { WorkspaceRoute } from "@app/routes";
-import type { NoiseType } from "@grid/seeding/RandomPresetSeeder";
+import type { NoiseType } from "@grid/seeding/randomPresetTypes";
 import type { SessionViewer } from "@services/AuthSessionService";
 import type { TileSelectorButtonOptions } from "@views/html/tileSelector";
 

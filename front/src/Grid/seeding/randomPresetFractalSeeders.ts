@@ -1,8 +1,8 @@
 import { CELL_STATE } from "@cell/constants";
-import { drawOrthogonalSegment, fillRect } from "./randomPresetUtils";
+import { drawOrthogonalSegment, fillRect } from "@grid/seeding/randomPresetUtils";
 
 import type { RandomPresetId } from "@grid/randomPresets";
-import type { RandomPresetSeedContext, RandomPresetSeedFn } from "./randomPresetTypes";
+import type { RandomPresetSeedContext, RandomPresetSeedFn } from "@grid/seeding/randomPresetTypes";
 
 type FractalPresetId = Extract<RandomPresetId, "sierpinski" | "cantor" | "hilbert">;
 

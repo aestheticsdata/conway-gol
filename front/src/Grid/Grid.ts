@@ -15,14 +15,14 @@ import { geometrizeGridPattern, isGeometrizeResultAcceptable, softenGeometrizeRe
 import { transformGrid } from "@grid/gridTransforms";
 import { DEFAULT_RANDOM_PRESET } from "@grid/randomPresets";
 import Simulation from "@grid/Simulation";
-import { DEFAULT_RANDOM_PARAMS } from "@grid/seeding/RandomPresetSeeder";
+import { DEFAULT_RANDOM_PARAMS } from "@grid/seeding/randomPresetTypes";
 import { drawGrid } from "@helpers/canvas";
 import { runCellPatternCrossfade } from "@helpers/canvasCellPatternCrossfade";
 
 import type { CanvasTheme } from "@grid/constants";
 import type { RandomPresetId } from "@grid/randomPresets";
 import type { SimulationStateStats } from "@grid/Simulation";
-import type { RandomSeedParams } from "@grid/seeding/RandomPresetSeeder";
+import type { RandomSeedParams } from "@grid/seeding/randomPresetTypes";
 import type ZoomBox from "@grid/zoom/ZoomBox";
 import type { CellPatternEasingId, CellPatternMaskId } from "@helpers/canvasCellPatternCrossfade";
 import type DrawingToolBox from "@ui/controls/drawing/DrawingToolBox";

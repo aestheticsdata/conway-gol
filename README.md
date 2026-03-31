@@ -9,6 +9,7 @@ A full-stack implementation of [Conway's Game of Life](https://en.wikipedia.org/
 - [Features](#features)
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
+- [Module layout notes](#module-layout-notes)
 - [Architecture](#architecture)
 - [Frontend Design System](#frontend-design-system)
 - [Frontend Code Map](#frontend-code-map)
@@ -85,7 +86,13 @@ conway-gol/
 │   │   │   ├── simulation/
 │   │   │   │   ├── PlaybackTelemetryTracker.test.ts
 │   │   │   │   ├── PlaybackTelemetryTracker.ts
-│   │   │   │   └── SimulationWorkspace.ts
+│   │   │   │   └── SimulationWorkspace/
+│   │   │   │       ├── index.ts
+│   │   │   │       ├── commentDom.ts
+│   │   │   │       ├── hxf.ts
+│   │   │   │       ├── telemetryFormat.ts
+│   │   │   │       ├── types.ts
+│   │   │   │       └── uint8Equals.ts
 │   │   │   ├── views/
 │   │   │   │   ├── html/
 │   │   │   │   │   ├── lexicon/
@@ -128,6 +135,20 @@ conway-gol/
 │   │   │   ├── GridDrawingHandler.ts
 │   │   │   ├── Simulation.ts
 │   │   │   ├── constants.ts
+│   │   │   ├── geometrizePattern/
+│   │   │   │   ├── index.ts
+│   │   │   │   ├── geometrizeGridPattern.ts
+│   │   │   │   ├── types.ts
+│   │   │   │   ├── cloneGrid.ts
+│   │   │   │   ├── randomInt.ts
+│   │   │   │   ├── symmetry.ts
+│   │   │   │   ├── coarsen.ts
+│   │   │   │   ├── stripes.ts
+│   │   │   │   ├── regularPass.ts
+│   │   │   │   ├── morphology.ts
+│   │   │   │   ├── regions.ts
+│   │   │   │   ├── recipes.ts
+│   │   │   │   └── quality.ts
 │   │   │   ├── gridTransforms.ts
 │   │   │   ├── randomPresets.ts
 │   │   │   ├── texts.ts
@@ -135,9 +156,32 @@ conway-gol/
 │   │   │   │   ├── RandomPresetSeeder.ts
 │   │   │   │   ├── randomPresetFractalSeeders.ts
 │   │   │   │   ├── randomPresetNoise.ts
-│   │   │   │   ├── randomPresetShapeSeeders.ts
 │   │   │   │   ├── randomPresetTypes.ts
-│   │   │   │   ├── randomPresetUtils.ts
+│   │   │   │   ├── randomPresetUtils/
+│   │   │   │   │   ├── index.ts
+│   │   │   │   │   ├── createPresetRng.ts
+│   │   │   │   │   ├── drawOrthogonalSegment.ts
+│   │   │   │   │   ├── fillRect.ts
+│   │   │   │   │   ├── mulberry32.ts
+│   │   │   │   │   └── presetSeed.ts
+│   │   │   │   ├── noiseMask/
+│   │   │   │   │   ├── math/
+│   │   │   │   │   │   ├── index.ts
+│   │   │   │   │   │   ├── clamp01.ts
+│   │   │   │   │   │   ├── mix.ts
+│   │   │   │   │   │   ├── smoothstep01.ts
+│   │   │   │   │   │   └── applyNoiseLevelMix.ts
+│   │   │   │   │   └── generators/
+│   │   │   │   │       ├── index.ts
+│   │   │   │   │       ├── fillNoiseMask.ts
+│   │   │   │   │       ├── fillUniformNoise.ts
+│   │   │   │   │       ├── fillValueNoise.ts
+│   │   │   │   │       ├── fillClusterNoise.ts
+│   │   │   │   │       ├── fillGradientNoise.ts
+│   │   │   │   │       ├── fillCenterBurstNoise.ts
+│   │   │   │   │       ├── fillEdgeBiasNoise.ts
+│   │   │   │   │       ├── fillInterferenceNoise.ts
+│   │   │   │   │       └── fillMarblingNoise.ts
 │   │   │   │   └── shapes/
 │   │   │   │       ├── conway.ts
 │   │   │   │       ├── field.ts
@@ -162,7 +206,6 @@ conway-gol/
 │   │   │   └── http/
 │   │   │       └── HttpClient.ts
 │   │   ├── helpers/
-│   │   │   ├── Helpers.ts
 │   │   │   ├── api.ts
 │   │   │   ├── canvas.ts
 │   │   │   ├── canvasCellPatternCrossfade/
@@ -214,6 +257,15 @@ conway-gol/
 ├── deploy-front.sh
 └── README.md
 ```
+
+### Module layout notes
+
+Summary of refactored frontend folders (complements the tree above):
+
+- **`app/simulation/SimulationWorkspace/`** — The workspace class is in `index.ts`. Supporting modules: `hxf.ts` (`.hxf` import/export), `commentDom.ts` (pattern comment nodes), `telemetryFormat.ts`, `types.ts` (options + playback snapshot types), `uint8Equals.ts`. The import alias `@simulation/SimulationWorkspace` resolves to this folder (`index.ts`).
+- **`Grid/geometrizePattern/`** — Stochastic geometrization for random mode: `symmetry.ts`, `coarsen.ts`, `stripes.ts`, `regularPass.ts`, `morphology.ts`, `regions.ts`, `recipes.ts`, `quality.ts` (`isGeometrizeResultAcceptable`, `softenGeometrizeResult`), plus small helpers (`cloneGrid`, `randomInt`, `types`). Public entry: `@grid/geometrizePattern` → `geometrizeGridPattern`, `isGeometrizeResultAcceptable`, `softenGeometrizeResult`, type `GeometrizeRng`.
+- **`Grid/seeding/`** — `RandomPresetSeeder` wires `shapes/` (exported `SHAPE_RANDOM_PRESET_SEEDERS` from `shapes/index.ts`), `randomPresetFractalSeeders.ts`, and `randomPresetNoise.ts`. **`randomPresetUtils/`** — one file per concern: `presetSeed`, `mulberry32`, `createPresetRng`, `fillRect`, `drawOrthogonalSegment` (re-exported from `index.ts`). **`noiseMask/`** — `math/` (`clamp01`, `mix`, `smoothstep01`, `applyNoiseLevelMix`) and **`generators/`** — one `fill*Noise` file per noise type plus `fillNoiseMask.ts`. Shared **`randomPresetTypes.ts`** exports `RandomSeedParams`, `DEFAULT_RANDOM_PARAMS`, `NoiseType`, etc.; UI and `Grid` import types/constants from there, not from a barrel on `RandomPresetSeeder`.
+- **`helpers/`** — Legacy `Helpers.ts` removed; use `api.ts`, `canvas.ts`, `dom.ts`, `constants.ts`, and `canvasCellPatternCrossfade/`.
 
 ## Architecture
 
@@ -404,16 +456,16 @@ The current route registry is intentionally small:
 - exposes read/write methods for cells
 - delegates random-mode initialization to a seeding strategy
 
-`RandomPresetSeeder` in `front/src/Grid/seeding/RandomPresetSeeder.ts` is the entry point for random-mode initial states. It receives a flat cell buffer plus grid dimensions and dispatches to one of three focused modules:
+`RandomPresetSeeder` in `front/src/Grid/seeding/RandomPresetSeeder.ts` is the entry point for random-mode initial states. It receives a flat cell buffer plus grid dimensions and dispatches to:
 
-- `randomPresetShapeSeeders.ts` — re-export barrel; actual implementations live in `seeding/shapes/`:
+- `seeding/shapes/index.ts` — exports `SHAPE_RANDOM_PRESET_SEEDERS`, assembled from:
   - `shapes/stamp.ts` — stamp-based presets: `stars`, `circles`, `sinus`, `clusters`
   - `shapes/field.ts` — field-formula presets: `rings`, `stripes`, `checker`, `diagonal`, `cross`
   - `shapes/conway.ts` — **Primordial bits** preset (`conway`)
 - `randomPresetFractalSeeders.ts` — fractal presets: `sierpinski` (Sierpiński triangle), `cantor` (Cantor dust), `hilbert` (Hilbert curve)
-- `randomPresetNoise.ts` — the `noise` preset and the `applySpatialNoiseMask` post-processing step shared by all other presets
+- `randomPresetNoise.ts` — the `noise` preset and the `applySpatialNoiseMask` post-processing step shared by all other presets (mask generation under `seeding/noiseMask/`)
 
-Shared types and interfaces live in `randomPresetTypes.ts`; the Mulberry32 PRNG and FNV-1a preset hasher live in `randomPresetUtils.ts`.
+Shared types and interfaces live in `randomPresetTypes.ts`. PRNG and grid stroke helpers live in `randomPresetUtils/` (`@grid/seeding/randomPresetUtils`).
 
 Each preset supports two behaviours:
 
@@ -462,7 +514,7 @@ Mode-specific initialization is split into private methods:
 
 This keeps Conway logic out of the renderer, DOM event handling out of `Simulation`, and drawing interaction out of `Grid`.
 
-`SimulationWorkspace` in `front/src/app/simulation/SimulationWorkspace.ts` is the workspace orchestrator. It sits above `Grid` and owns:
+`SimulationWorkspace` in `front/src/app/simulation/SimulationWorkspace/` (`index.ts`) is the workspace orchestrator. It sits above `Grid` and owns:
 
 - the shell DOM for left pane, canvas area, and right pane
 - mode-specific UI visibility
@@ -713,9 +765,10 @@ index.ts
   ├── AppRouter
   │   ├── LoginScreen
   │   └── SimulationScreen
-  │       └── SimulationWorkspace
+  │       └── SimulationWorkspace (folder: index + hxf, commentDom, …)
   │           ├── Grid
   │           │   ├── runCellPatternCrossfade (helpers/canvasCellPatternCrossfade) for random pattern swaps
+  │           │   ├── geometrizePattern/ (Add geometry recipes)
   │           │   ├── Simulation
   │           │   │   └── IRandomPresetSeeder -> RandomPresetSeeder
   │           │   ├── GridDrawingHandler (drawing mode only)
@@ -739,8 +792,8 @@ Design rules used by the current frontend:
 - `SimulationWorkspace` orchestrates the shell, mode-specific controls, and route-aware workspace state, but does not implement Conway rules itself.
 - `AppRouter` owns screen lifecycle and browser path changes, not screen business logic.
 - Required DOM access should go through `front/src/helpers/dom.ts`.
-- Data loading (`Data`) does not touch the DOM. Pattern comments are returned to the caller via `Data.comments` and rendered by `SimulationWorkspace._renderComments()`.
-- Cross-module imports use path aliases (`@app`, `@cell`, `@data`, `@grid`, `@helpers`, `@infra`, `@lib`, `@navigation`, `@router`, `@services`, `@simulation`, `@views`). Intra-module imports (same folder or immediate subfolder) use relative `./` paths.
+- Data loading (`Data`) does not touch the DOM. Pattern comments are returned to the caller via `Data.comments` and rendered via `SimulationWorkspace/commentDom.ts` (`buildCommentDomNodes`).
+- Cross-module imports use path aliases (`@app`, `@cell`, `@data`, `@grid`, `@helpers`, `@infra`, `@lib`, `@navigation`, `@router`, `@services`, `@simulation`, `@views`). Prefer aliases for any import that leaves the current top-level folder (e.g. `@grid/seeding/...`, `@grid/geometrizePattern/...`, `@simulation/SimulationWorkspace/...`).
 - `front/src/lib/` is the home for domain-agnostic utilities that are not UI components, not Grid logic, and not infrastructure. Currently it contains `lib/image/` for image processing.
 
 ## Cell pattern crossfade (random mode)
@@ -777,7 +830,7 @@ Default timings, gap, optional blend with a legacy column sweep, per-cell vs blo
 | `front/src/helpers/canvasCellPatternCrossfade/runCellPatternCrossfade.ts` | rAF loop, `cancel`, `finished` promise |
 | `front/src/helpers/canvasCellPatternCrossfade/index.ts` | Public exports |
 | `front/src/Grid/Grid.ts` | `runCellPatternCrossfade`, `skipRender` on seed helpers, cancel wiring |
-| `front/src/app/simulation/SimulationWorkspace.ts` | Wraps geometrize and randomize actions |
+| `front/src/app/simulation/SimulationWorkspace/index.ts` | Wraps geometrize and randomize actions |
 
 ## Image import pipeline
 
@@ -1047,7 +1100,7 @@ Random mode **Add geometry** and **Randomize** no longer replace the grid in a s
 
 **SimulationWorkspace:** geometrize wrapped in crossfade with shorter fade timings; randomize stops playback first, runs the mutation inside crossfade, retries up to 32 times for a non-empty grid, then falls back via `applyFallbackNoiseConfiguration` if needed.
 
-**Files involved:** `front/src/helpers/canvasCellPatternCrossfade/*`, `front/src/Grid/Grid.ts`, `front/src/app/simulation/SimulationWorkspace.ts` (minor import order in `RandomControlsPanel.ts` only).
+**Files involved:** `front/src/helpers/canvasCellPatternCrossfade/*`, `front/src/Grid/Grid.ts`, `front/src/app/simulation/SimulationWorkspace/` (orchestrator in `index.ts`).
 
 ### Phase 16 - Drawing-mode Restore snapshot (2026-03)
 
@@ -1059,7 +1112,7 @@ Unlike a generic reset, `Restore` does not blank the grid or regenerate a patter
 - `Restore` stops playback, resets the iteration counter and telemetry charts, and re-seeds `Grid` from the stored snapshot.
 - Loading a different custom drawing, importing an image, or leaving/re-entering drawing mode clears the stored snapshot so stale state is never restored.
 
-**Files involved:** `front/src/app/simulation/SimulationWorkspace.ts`, `front/src/app/views/html/workspaceView.ts`, `front/src/ui/controls/drawing/texts.ts`
+**Files involved:** `front/src/app/simulation/SimulationWorkspace/`, `front/src/app/views/html/workspaceView.ts`, `front/src/ui/controls/drawing/texts.ts`
 
 ### Phase 14 - Interference and marbling noise types (2026-03)
 
@@ -1070,7 +1123,7 @@ Two additional `NoiseType` values extend random seeding and spatial post-masks:
 | `interference` | Two slightly mis-tuned sine waves along different axes; their product yields moiré-style beats and fringes that read clearly when the grid is dense. |
 | `marbling` | Coordinates are domain-warped with low-frequency sinusoids, then a product of sines is evaluated — vein-like, marble or wood-grain structure at high density. |
 
-**Implementation:** `fillInterferenceNoise` and `fillMarblingNoise` in `front/src/Grid/seeding/randomPresetNoise.ts`; `applySpatialNoiseMask` uses the same low-mask preference as `center-burst` (threshold `0.5`). **UI:** `noiseInterferenceIcon.ts` and `noiseMarblingIcon.ts` (inline SVG, same tile-selector stroke styling as existing noise icons), labels in `front/src/texts.ts`, options in `workspaceView.ts` and `RandomControlsPanel.ts`.
+**Implementation:** `fillInterferenceNoise` and `fillMarblingNoise` in `front/src/Grid/seeding/noiseMask/generators/` (wired from `randomPresetNoise.ts`); `applySpatialNoiseMask` uses the same low-mask preference as `center-burst` (threshold `0.5`). **UI:** `noiseInterferenceIcon.ts` and `noiseMarblingIcon.ts` (inline SVG, same tile-selector stroke styling as existing noise icons), labels in `front/src/texts.ts`, options in `workspaceView.ts` and `RandomControlsPanel.ts`.
 
 ### Phase 15 - Drawing-mode zoom viewport expanded to 14×14 (2026-03)
 
@@ -1230,7 +1283,7 @@ Two generation modes are chosen randomly on each `Generate`:
 
 #### shapes/ subfolder
 
-`randomPresetShapeSeeders.ts` (359 lines) was split into a `seeding/shapes/` subfolder so each preset family can be read and extended independently:
+The former monolithic shape seeder (~359 lines) was split into a `seeding/shapes/` subfolder so each preset family can be read and extended independently:
 
 | File | Contents |
 |---|---|
@@ -1239,7 +1292,7 @@ Two generation modes are chosen randomly on each `Generate`:
 | `shapes/conway.ts` | Primordial bits preset: motif library, `stampConwayMotif`, `getConstellationPositions`, `seedConway` |
 | `shapes/index.ts` | Assembles and exports `SHAPE_RANDOM_PRESET_SEEDERS` |
 
-`randomPresetShapeSeeders.ts` is now a one-line re-export barrel. `RandomPresetSeeder.ts` is unchanged.
+A short-lived `randomPresetShapeSeeders.ts` re-export file was later removed; `RandomPresetSeeder` imports `SHAPE_RANDOM_PRESET_SEEDERS` from `shapes/index.ts` (`@grid/seeding/shapes`) directly.
 
 ### Phase 9 - Fractal presets, new noise types, and seeder module split (2026-03)
 
@@ -1261,7 +1314,7 @@ Three new noise types were added to `NoiseType`, raising the total from three to
 
 These types work both as the direct generation algorithm for the `noise` preset and as spatial post-processing masks for all other presets, consistent with the existing `perlin-like` and `clusters` behaviour.
 
-The monolithic `RandomPresetSeeder.ts` (~660 lines) was split into five focused modules so each preset family and its supporting utilities can be read and extended independently. `RandomPresetSeeder.ts` is now a thin orchestrator; all implementation lives in `randomPresetShapeSeeders.ts`, `randomPresetFractalSeeders.ts`, `randomPresetNoise.ts`, `randomPresetTypes.ts`, and `randomPresetUtils.ts`. The public API exported from `RandomPresetSeeder.ts` is unchanged.
+The monolithic `RandomPresetSeeder.ts` (~660 lines) was split into focused modules so each preset family and its supporting utilities can be read and extended independently. `RandomPresetSeeder.ts` is a thin orchestrator; implementation lives under `seeding/shapes/`, `randomPresetFractalSeeders.ts`, `randomPresetNoise.ts` (plus `noiseMask/`), `randomPresetTypes.ts`, and `randomPresetUtils/` (directory). Later refactors added `Grid/geometrizePattern/` and `app/simulation/SimulationWorkspace/` without changing the seeder’s external behaviour.
 
 ### Phase 8 - Shared HTTP facade and service composition (2026-03)
 
@@ -1364,7 +1417,7 @@ When an explicit seed is provided, `effectiveRandom = true` is forced so all pre
 
 Several concerns that had been mixed together were separated and the import graph was made explicit:
 
-- `Helpers.ts` was split into two focused modules: `helpers/api.ts` (`getRequestURL`) and `helpers/canvas.ts` (`drawGrid`). The `API_BASE_PATH` constant was moved to `helpers/constants.ts` alongside `URLS`.
+- `Helpers.ts` was split into two focused modules: `helpers/api.ts` (`getRequestURL`) and `helpers/canvas.ts` (`drawGrid`). The `API_BASE_PATH` constant was moved to `helpers/constants.ts` alongside `URLS`. The obsolete `Helpers.ts` stub was later deleted (see [Module layout notes](#module-layout-notes) under `helpers/`).
 - `Data.factory()` was renamed to `Data.load()`. DOM manipulation (rendering pattern comments) was removed from `Data` entirely. `Data.comments` is now read by the caller after the promise resolves, and `Main._renderComments()` handles display using safe DOM APIs (`createElement`, `createTextNode`, `replaceChildren`) instead of `innerHTML`.
 - `Grid` gained an optional `onLoad` callback in its options. It is called with `data.comments` after a zoo or drawing pattern finishes loading, letting `Main` display comments without `Grid` or `Data` knowing about the DOM.
 - `ZoomBox` was updated to import `drawGrid` from `@helpers/canvas` (it was still using the old `Helpers` class).

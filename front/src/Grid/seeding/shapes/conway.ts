@@ -1,6 +1,6 @@
 import { CELL_STATE } from "@cell/constants";
 
-import type { RandomPresetSeedContext } from "../randomPresetTypes";
+import type { RandomPresetSeedContext } from "@grid/seeding/randomPresetTypes";
 
 // ---------------------------------------------------------------------------
 // Conway motifs preset

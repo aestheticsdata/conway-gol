@@ -8,6 +8,16 @@ import { getRequiredContext2D, queryRequired } from "@helpers/dom";
 import { getTrimmedSearchParam, replaceCurrentSearchParam } from "@lib/searchParamsHelper";
 import CritterService from "@services/CritterService";
 import UserCustomService from "@services/UserCustomService";
+import PlaybackTelemetryTracker from "@simulation/PlaybackTelemetryTracker";
+import { buildCommentDomNodes } from "@simulation/SimulationWorkspace/commentDom";
+import {
+  parseHxfImportAutomata,
+  patternNameFromImportFile,
+  sanitizeHxfBasename,
+  triggerHxfDownload,
+} from "@simulation/SimulationWorkspace/hxf";
+import { formatSignedTelemetryValue, telemetryToneForValue } from "@simulation/SimulationWorkspace/telemetryFormat";
+import { uint8ArraysEqual } from "@simulation/SimulationWorkspace/uint8Equals";
 import { APP_TEXTS } from "@texts";
 import { syncSliderFill } from "@ui/components/slider/createSlider";
 import DrawingToolBox from "@ui/controls/drawing/DrawingToolBox";
@@ -23,29 +33,14 @@ import HxfImportSavingOverlay from "@ui/lib/HxfImportSavingOverlay";
 import SavePresetModal from "@ui/lib/SavePresetModal";
 import Tooltip from "@ui/lib/Tooltip";
 import Swal from "sweetalert2";
-import PlaybackTelemetryTracker from "./PlaybackTelemetryTracker";
 
 import type { WorkspaceRoute } from "@app/routes";
 import type { DrawingCursorPosition, GridStateChangeStats } from "@grid/Grid";
 import type { RandomPresetId } from "@grid/randomPresets";
-import type { RandomSeedParams } from "@grid/seeding/RandomPresetSeeder";
+import type { RandomSeedParams } from "@grid/seeding/randomPresetTypes";
 import type { SessionCapabilities } from "@services/AuthSessionService";
-
-interface SimulationWorkspaceOptions {
-  capabilities: SessionCapabilities;
-  root: HTMLElement;
-  route: WorkspaceRoute;
-  onRouteModeChange: (route: WorkspaceRoute) => void;
-}
-
-interface HxfPatternPayload {
-  comments: string[];
-  automata: number[][];
-}
-
-type PlaybackRestoreSnapshot =
-  | { kind: "drawing"; grid: number[][]; state: Uint8Array }
-  | { kind: "random"; baseGrid: number[][]; rotationDeg: number; zoomLevel: number; state: Uint8Array };
+import type { HxfPatternPayload } from "@simulation/SimulationWorkspace/hxf";
+import type { PlaybackRestoreSnapshot, SimulationWorkspaceOptions } from "@simulation/SimulationWorkspace/types";
 
 export class SimulationWorkspace {
   private readonly _root: HTMLElement;
@@ -470,13 +465,13 @@ export class SimulationWorkspace {
       return;
     }
 
-    const downloadName = this._sanitizeHxfBasename(rawName);
+    const downloadName = sanitizeHxfBasename(rawName);
     const payload: HxfPatternPayload = {
       comments: this._currentPatternComments.length > 0 ? [...this._currentPatternComments] : [""],
       automata: this._grid.toGrid(),
     };
 
-    this._triggerHxfDownload(payload, `${downloadName}.hxf`);
+    triggerHxfDownload(payload, `${downloadName}.hxf`);
   };
 
   private _onDrawingHxfImportButtonClick = (): void => {
@@ -510,7 +505,7 @@ export class SimulationWorkspace {
 
     let automata: number[][];
     try {
-      automata = this._parseHxfImportAutomata(text);
+      automata = parseHxfImportAutomata(text);
     } catch (err) {
       const isGridError = err instanceof Error && err.message === "grid";
       void Swal.fire({
@@ -528,7 +523,7 @@ export class SimulationWorkspace {
       return;
     }
 
-    const patternName = this._patternNameFromImportFile(file);
+    const patternName = patternNameFromImportFile(file);
 
     this._hxfImportSavingOverlay.showLoading();
     try {
@@ -543,69 +538,6 @@ export class SimulationWorkspace {
       );
     }
   };
-
-  private _patternNameFromImportFile(file: File): string {
-    const stripped = file.name.replace(/\.(hxf|json)$/iu, "").trim();
-    return this._sanitizeHxfBasename(stripped);
-  }
-
-  private _parseHxfImportAutomata(text: string): number[][] {
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(text);
-    } catch {
-      throw new Error("parse");
-    }
-
-    if (!parsed || typeof parsed !== "object" || !("automata" in parsed)) {
-      throw new Error("parse");
-    }
-
-    const automata = (parsed as { automata: unknown }).automata;
-    if (!Array.isArray(automata) || automata.length !== GRID_ROWS) {
-      throw new Error("grid");
-    }
-
-    for (let row = 0; row < GRID_ROWS; row++) {
-      const line = automata[row];
-      if (!Array.isArray(line) || line.length !== GRID_COLS) {
-        throw new Error("grid");
-      }
-
-      for (let col = 0; col < GRID_COLS; col++) {
-        const cell = line[col];
-        if (cell !== 0 && cell !== 1) {
-          throw new Error("grid");
-        }
-      }
-    }
-
-    return automata as number[][];
-  }
-
-  private _triggerHxfDownload(payload: HxfPatternPayload, filename: string): void {
-    const blob = new Blob([JSON.stringify(payload)], {
-      type: "application/json;charset=utf-8",
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = filename;
-    link.style.display = "none";
-    document.body.append(link);
-    link.click();
-    link.remove();
-    window.setTimeout(() => URL.revokeObjectURL(url), 0);
-  }
-
-  private _sanitizeHxfBasename(raw: string): string {
-    const baseName = raw.replace(/\.hxf$/iu, "").trim();
-    const sanitizedName = baseName
-      .replace(/[\\/:*?"<>|]/gu, "-")
-      .replace(/\s+/gu, " ")
-      .trim();
-    return sanitizedName || "drawing";
-  }
 
   private _resetIterationCounter(): void {
     this._iterationCounterValue = 0;
@@ -646,8 +578,8 @@ export class SimulationWorkspace {
 
     this._setTelemetryLegendValue(
       this._aliveVariationLegendValue,
-      this._formatSignedValue(aliveVariation),
-      this._toneForValue(aliveVariation),
+      formatSignedTelemetryValue(aliveVariation),
+      telemetryToneForValue(aliveVariation),
     );
     this._setTelemetryLegendValue(
       this._aliveCountLegendValue,
@@ -668,23 +600,6 @@ export class SimulationWorkspace {
       "telemetry-chart-legend-value--neutral",
     );
     element.classList.add(`telemetry-chart-legend-value--${tone}`);
-  }
-
-  private _formatSignedValue(value: number): string {
-    if (value > 0) {
-      return `+${value}`;
-    }
-    return String(value);
-  }
-
-  private _toneForValue(value: number): "positive" | "negative" | "neutral" {
-    if (value > 0) {
-      return "positive";
-    }
-    if (value < 0) {
-      return "negative";
-    }
-    return "neutral";
   }
 
   private _updateStabilizationCounter(stats: GridStateChangeStats): void {
@@ -974,13 +889,13 @@ export class SimulationWorkspace {
     }
 
     if (this._playbackRestoreSnapshot.kind === "drawing") {
-      const hasChanges = !this._statesEqual(this._grid.copyState(), this._playbackRestoreSnapshot.state);
+      const hasChanges = !uint8ArraysEqual(this._grid.copyState(), this._playbackRestoreSnapshot.state);
       this._setDrawingRestoreUiDisabled(!hasChanges);
       this._setRandomRestoreUiDisabled(true);
       return;
     }
 
-    const hasChanges = !this._statesEqual(this._grid.copyState(), this._playbackRestoreSnapshot.state);
+    const hasChanges = !uint8ArraysEqual(this._grid.copyState(), this._playbackRestoreSnapshot.state);
     this._setRandomRestoreUiDisabled(!hasChanges);
     this._setDrawingRestoreUiDisabled(true);
   }
@@ -999,20 +914,6 @@ export class SimulationWorkspace {
     if (!disabled) {
       this._playbackRestoreTooltip.hide();
     }
-  }
-
-  private _statesEqual(left: Uint8Array, right: Uint8Array): boolean {
-    if (left.length !== right.length) {
-      return false;
-    }
-
-    for (let index = 0; index < left.length; index++) {
-      if (left[index] !== right[index]) {
-        return false;
-      }
-    }
-
-    return true;
   }
 
   private _handleDrawingRestoreTooltipPointerEnter = (event: PointerEvent): void => {
@@ -1058,7 +959,7 @@ export class SimulationWorkspace {
 
   private _getDrawingExportFilename(): string {
     const rawName = (this._userCustomSelector?.currentValue() || this._selectedSpecies || "drawing").trim();
-    return `${this._sanitizeHxfBasename(rawName)}.hxf`;
+    return `${sanitizeHxfBasename(rawName)}.hxf`;
   }
 
   private async _loadCritterList(): Promise<string[] | undefined> {
@@ -1248,85 +1149,6 @@ export class SimulationWorkspace {
 
   private _renderComments(comments: string[]): void {
     this._currentPatternComments = [...comments];
-    const nodes = comments
-      .map((line) => this._createCommentNode(line.trim()))
-      .filter((node): node is HTMLElement => node !== null);
-
-    this._commentsDOMSelector.replaceChildren(...nodes);
-  }
-
-  private _createCommentNode(line: string): HTMLElement | null {
-    if (!line) {
-      return null;
-    }
-
-    if (line.startsWith("http://") || line.startsWith("https://")) {
-      const { row, content } = this._createCommentRow("link");
-      const anchor = document.createElement("a");
-      anchor.className = "critter-comment__link";
-      anchor.href = line;
-      anchor.target = "_blank";
-      anchor.rel = "noopener noreferrer";
-      anchor.title = line;
-      anchor.textContent = line;
-      content.append(anchor);
-      return row;
-    }
-
-    const meta = this._parseCommentMeta(line);
-    if (meta) {
-      const { row, content } = this._createCommentRow("meta");
-      const label = document.createElement("span");
-      label.className = "critter-comment__label";
-      label.textContent = `${meta.label}:`;
-
-      const value = document.createElement("span");
-      value.className = "critter-comment__value";
-      value.textContent = meta.value;
-
-      content.append(label, value);
-      return row;
-    }
-
-    const { row, content } = this._createCommentRow("body");
-    const value = document.createElement("span");
-    value.className = "critter-comment__value";
-    value.textContent = line;
-    content.append(value);
-    return row;
-  }
-
-  private _createCommentRow(kind: "meta" | "body" | "link"): {
-    row: HTMLDivElement;
-    content: HTMLDivElement;
-  } {
-    const row = document.createElement("div");
-    row.className = `critter-comment critter-comment--${kind}`;
-
-    const bullet = document.createElement("span");
-    bullet.className = "critter-comment__bullet";
-    bullet.setAttribute("aria-hidden", "true");
-    bullet.textContent = APP_TEXTS.comments.itemPrefix.trim() || "-";
-
-    const content = document.createElement("div");
-    content.className = "critter-comment__content";
-
-    row.append(bullet, content);
-    return { row, content };
-  }
-
-  private _parseCommentMeta(line: string): { label: string; value: string } | null {
-    const match = line.match(/^([^:]+):\s*(.+)$/);
-    if (!match) {
-      return null;
-    }
-
-    const label = match[1]?.trim();
-    const value = match[2]?.trim();
-    if (!label || !value) {
-      return null;
-    }
-
-    return { label, value };
+    this._commentsDOMSelector.replaceChildren(...buildCommentDomNodes(comments));
   }
 }
