@@ -9,6 +9,20 @@ function normalizeCredentialValue(value: string): string {
   return value.trim();
 }
 
+export function getEmailValidationError(email: string): string {
+  const normalized = normalizeCredentialValue(email);
+
+  if (normalized.length === 0) {
+    return AUTH_VALIDATION_TEXTS.email.required;
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) {
+    return AUTH_VALIDATION_TEXTS.email.invalid;
+  }
+
+  return "";
+}
+
 export function getUsernameValidationError(username: string): string {
   const normalized = normalizeCredentialValue(username);
 

@@ -25,6 +25,21 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+This package also powers the Conway Game of Life backend (Prisma, catalog patterns, auth). One cross-cutting detail worth documenting here:
+
+### User avatar ids (profile)
+
+Preset profile avatars are **not** rows in a database table. The `User.avatarId` column stores a short string key. The **source of truth** for valid ids is:
+
+- **`src/shared/user-avatar-ids.ts`** — `USER_AVATAR_IDS` (canonical ids), `DEFAULT_USER_AVATAR_ID`, optional **`AVATAR_ID_ALIASES`** (map old stored ids to new ones after a rename), `resolveCanonicalAvatarId()` for API responses, and `USER_AVATAR_ID_LIST` for DTO validation.
+
+**Workflow**
+
+1. **New preset:** add the id to `USER_AVATAR_IDS`, then add the SVG entry in the frontend `front/src/assets/icons/userAvatars.ts` (the front module calls `assertAvatarOptionsMatchCanonicalCatalog()` so mismatches fail fast at load time).
+2. **Rename an id:** add `old → new` under `AVATAR_ID_ALIASES` so legacy `User.avatarId` values still resolve; optionally migrate rows with SQL.
+
+**Auth touchpoints:** `AuthService` normalizes `avatarId` on read via `resolveCanonicalAvatarId`. `src/auth/dto/update-profile.dto.ts` rejects unknown ids with `@IsIn(USER_AVATAR_ID_LIST)`.
+
 ## Project setup
 
 ```bash

@@ -10,6 +10,7 @@ import { DOCUMENTATION_ICON } from "@assets/icons/documentationIcon";
 import { LEXICON_ICON } from "@assets/icons/lexiconIcon";
 import { LOG_OUT_ICON } from "@assets/icons/logOutIcon";
 import { SETTINGS_ICON } from "@assets/icons/settingsIcon";
+import { SIGN_IN_ICON } from "@assets/icons/signInIcon";
 import { getUserAvatarOption } from "@assets/icons/userAvatars";
 import { normalizeBasePath, toDocumentPath } from "@router/paths";
 import { APP_TEXTS } from "@texts";
@@ -24,12 +25,13 @@ const AUTH_NAV_ITEMS: readonly { label: string; route: AppPath }[] = [
   { label: APP_TEXTS.auth.nav.about, route: ABOUT_ROUTE },
 ];
 
-type ConnectedHeaderOptions = {
+export interface WorkspaceHeaderOptions {
   avatarId: string;
   currentPath: AppPath;
   navContent?: string;
+  sessionMode?: "authenticated" | "guest";
   username: string;
-};
+}
 
 function escapeHtml(value: string): string {
   return value.replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
@@ -119,6 +121,66 @@ function createConnectedUserMenu(currentPath: AppPath, username: string, avatarI
   `;
 }
 
+function createGuestUserMenu(currentPath: AppPath, username: string, avatarId: string): string {
+  const normalizedUsername = username.trim().replace(/^@+/, "") || APP_TEXTS.workspace.userMenu.guestName;
+  const documentationCurrentAttribute = currentPath === DOCUMENTATION_ROUTE ? ' aria-current="page"' : "";
+  const lexiconCurrentAttribute = currentPath === LEXICON_ROUTE ? ' aria-current="page"' : "";
+  const avatar = getUserAvatarOption(avatarId);
+
+  return `
+    <div class="workspace-user-menu workspace-user-menu--guest" data-workspace-user-menu>
+      <button
+        type="button"
+        class="workspace-user-menu__trigger"
+        data-workspace-user-menu-trigger
+        aria-haspopup="menu"
+        aria-expanded="false"
+      >
+        <span class="workspace-user-menu__avatar" data-session-avatar-id="${escapeHtml(avatar.id)}" aria-hidden="true">
+          ${avatar.svg}
+        </span>
+        <span class="workspace-user-menu__name">${escapeHtml(normalizedUsername)}</span>
+        <span class="workspace-user-menu__chevron" aria-hidden="true"></span>
+      </button>
+      <div class="workspace-user-menu__panel" data-workspace-user-menu-panel role="menu" hidden>
+        <div class="workspace-user-menu__meta">
+          <span class="workspace-user-menu__meta-label">${APP_TEXTS.workspace.userMenu.guestLabel}</span>
+          <div class="workspace-user-menu__meta-account">
+            <span
+              class="workspace-user-menu__avatar workspace-user-menu__meta-avatar"
+              data-session-avatar-id="${escapeHtml(avatar.id)}"
+              aria-hidden="true"
+            >
+              ${avatar.svg}
+            </span>
+            <strong class="workspace-user-menu__meta-value">${escapeHtml(normalizedUsername)}</strong>
+          </div>
+        </div>
+        <a
+          class="workspace-user-menu__item workspace-user-menu__item--link"
+          href="${toDocumentPath(DOCUMENTATION_ROUTE, basePath)}"
+          role="menuitem"${documentationCurrentAttribute}
+        >
+          <span class="workspace-user-menu__item-icon" aria-hidden="true">${DOCUMENTATION_ICON}</span>
+          <span class="workspace-user-menu__item-label">${APP_TEXTS.workspace.userMenu.documentation}</span>
+        </a>
+        <a
+          class="workspace-user-menu__item workspace-user-menu__item--link"
+          href="${toDocumentPath(LEXICON_ROUTE, basePath)}"
+          role="menuitem"${lexiconCurrentAttribute}
+        >
+          <span class="workspace-user-menu__item-icon" aria-hidden="true">${LEXICON_ICON}</span>
+          <span class="workspace-user-menu__item-label">${APP_TEXTS.workspace.userMenu.lexicon}</span>
+        </a>
+        <a class="workspace-user-menu__item workspace-user-menu__item--link" href="${toDocumentPath(LOGIN_ROUTE, basePath)}" role="menuitem">
+          <span class="workspace-user-menu__item-icon" aria-hidden="true">${SIGN_IN_ICON}</span>
+          <span class="workspace-user-menu__item-label">${APP_TEXTS.workspace.userMenu.signIn}</span>
+        </a>
+      </div>
+    </div>
+  `;
+}
+
 export function createAuthHeader(activeRoute: AppPath): string {
   return `
     <header class="workspace-header workspace-header--auth">
@@ -132,8 +194,8 @@ export function createAuthHeader(activeRoute: AppPath): string {
   `;
 }
 
-export function createConnectedHeader(options: ConnectedHeaderOptions): string {
-  const { avatarId, currentPath, navContent = "", username } = options;
+export function createConnectedHeader(options: WorkspaceHeaderOptions): string {
+  const { avatarId, currentPath, navContent = "", sessionMode = "authenticated", username } = options;
 
   return `
     <header class="workspace-header workspace-header--connected">
@@ -141,7 +203,11 @@ export function createConnectedHeader(options: ConnectedHeaderOptions): string {
       <div class="workspace-header__nav workspace-header__nav--connected">
         ${navContent}
       </div>
-      ${createConnectedUserMenu(currentPath, username, avatarId)}
+      ${
+        sessionMode === "authenticated"
+          ? createConnectedUserMenu(currentPath, username, avatarId)
+          : createGuestUserMenu(currentPath, username, avatarId)
+      }
     </header>
   `;
 }

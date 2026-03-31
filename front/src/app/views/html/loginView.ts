@@ -1,9 +1,10 @@
 import { LOGIN_ROUTE } from "@app/routes";
+import { APP_TEXTS } from "@texts";
 import { createButton } from "@ui/components/button/createButton";
 import { createAuthSecretField, createAuthTextField } from "@views/html/authFields";
 import { createAuthLayout } from "@views/html/authLayout";
 
-export function createLoginView(username: string): string {
+export function createLoginView(): string {
   return createAuthLayout({
     activeRoute: LOGIN_ROUTE,
     content: `
@@ -14,26 +15,39 @@ export function createLoginView(username: string): string {
         ${createAuthTextField({
           label: "Username",
           name: "username",
-          placeholder: "your-username",
-          value: username,
+          placeholder: "username",
           autocomplete: "username",
+          clearable: true,
+          clearAriaLabel: APP_TEXTS.auth.clearUsername,
         })}
         ${createAuthSecretField({
           label: "Password",
           name: "password",
           placeholder: "••••••••",
-          value: "demo-password",
           autocomplete: "current-password",
           toggleSubject: "password",
         })}
+        <p class="auth-form__error" data-auth-error aria-live="polite"></p>
+        <div class="auth-form__primary-actions">
+        ${createButton({
+          type: "button",
+          className: "auth-guest-entry",
+          label: APP_TEXTS.auth.continueAsGuest,
+          size: "compact",
+        }).replace("<button ", "<button data-continue-as-guest ")}
         ${createButton({
           type: "submit",
           className: "auth-submit",
           icon: "arrow-right",
           iconPosition: "trailing",
-          label: "Enter Simulation",
+          label: "Log in",
           size: "compact",
         })}
+        </div>
+        <p class="auth-form__guest-copy">${APP_TEXTS.guest.signInCallToAction}</p>
+        <p class="auth-form__forgot">
+          <a href="#" class="auth-forgot-link" data-forgot-password>Forgot password?</a>
+        </p>
       </form>
     `,
   });

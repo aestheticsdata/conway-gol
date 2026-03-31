@@ -3,8 +3,8 @@ import { LIFE_LEXICON } from "@data/lexicon/lexiconParser";
 import { resolveLexiconPatternCandidate, resolveLexiconPatternToZooPattern } from "@data/lexicon/zooPatternResolver";
 import { buildPathWithSearchParam } from "@lib/searchParamsHelper";
 import { normalizeBasePath, toDocumentPath } from "@router/paths";
+import { authSessionService } from "@services/AuthSessionService";
 import CritterService from "@services/CritterService";
-import SessionService from "@services/SessionService";
 import { APP_TEXTS } from "@texts";
 import { drawPatternPreview, normalizePatternPreviewSource } from "@ui/lib/patternPreview";
 import WorkspaceUserMenu from "@ui/lib/WorkspaceUserMenu";
@@ -18,7 +18,6 @@ const basePath = normalizeBasePath(import.meta.env.BASE_URL);
 export class LexiconView implements Screen {
   private _root?: HTMLElement;
   private _userMenu?: WorkspaceUserMenu;
-  private readonly _session = new SessionService();
   private readonly _critterService = new CritterService();
   private _scrollAnimationFrame = 0;
   private _zooPatternLinkToken = 0;
@@ -26,11 +25,9 @@ export class LexiconView implements Screen {
   constructor(private readonly _navigate: (path: AppPath) => Promise<void>) {}
 
   public mount(container: HTMLElement): void {
+    const viewer = authSessionService.getViewer();
     const htmlHost = document.createElement("div");
-    htmlHost.innerHTML = createLexiconView(
-      this._session.getUsernameOrFallback(),
-      this._session.getAvatarIdOrFallback(),
-    );
+    htmlHost.innerHTML = createLexiconView(viewer);
     this._root = htmlHost.firstElementChild as HTMLElement;
     container.replaceChildren(this._root);
 
@@ -243,7 +240,8 @@ export class LexiconView implements Screen {
   }
 
   private _onLogout = (): void => {
-    this._session.clear();
-    void this._navigate(LOGIN_ROUTE);
+    void authSessionService.logout().finally(() => {
+      void this._navigate(LOGIN_ROUTE);
+    });
   };
 }

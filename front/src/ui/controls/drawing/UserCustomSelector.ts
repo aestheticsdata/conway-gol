@@ -2,6 +2,7 @@ import { queryRequired } from "@helpers/dom";
 import UserCustomService from "@services/UserCustomService";
 import CustomSelect from "@ui/controls/shared/CustomSelect";
 import SavePresetModal from "@ui/lib/SavePresetModal";
+import Tooltip from "@ui/lib/Tooltip";
 import { CONTROL_TEXTS } from "./texts";
 
 class UserCustomSelector {
@@ -9,8 +10,11 @@ class UserCustomSelector {
   private readonly _userCustomService: UserCustomService;
   private readonly _savePresetModal: SavePresetModal;
   private readonly _customSelect: CustomSelect;
+  private readonly _saveTooltipTarget: HTMLElement;
+  private readonly _saveDisabledTooltip: Tooltip;
   private _userCustomList: string[] = [];
   private _selectedValue = "";
+  private _saveDisabledHint = "";
   public readonly saveBtn: HTMLButtonElement;
   private readonly _cb: (speciesName: string) => void;
 
@@ -24,16 +28,22 @@ class UserCustomSelector {
   constructor(cb: (speciesName: string) => void, savePresetModal?: SavePresetModal) {
     this._customDrawingDOMSelector = queryRequired<HTMLElement>(".custom-drawing-files");
     this.saveBtn = queryRequired<HTMLButtonElement>(".drawing-save-action .save");
+    this._saveTooltipTarget = queryRequired<HTMLElement>(".drawing-save-tooltip-target");
     this._cb = cb;
     this.saveBtn.style.display = "block";
     this._userCustomService = new UserCustomService();
     this._savePresetModal = savePresetModal ?? new SavePresetModal();
+    this._saveDisabledTooltip = new Tooltip();
     this._customSelect = new CustomSelect(queryRequired<HTMLElement>(".custom-drawing-custom-select"), {
       onChange: this._onSelectChange,
       placeholder: CONTROL_TEXTS.userCustomSelector.placeholder,
       visibleOptionCount: 8,
     });
     this.saveBtn.addEventListener("click", this._save);
+    this._saveTooltipTarget.addEventListener("pointerenter", this._handleSaveTooltipPointerEnter);
+    this._saveTooltipTarget.addEventListener("pointermove", this._handleSaveTooltipPointerMove);
+    this._saveTooltipTarget.addEventListener("pointerleave", this._hideSaveTooltip);
+    this._saveTooltipTarget.addEventListener("pointercancel", this._hideSaveTooltip);
   }
 
   public show(): void {
@@ -42,6 +52,7 @@ class UserCustomSelector {
 
   public hide(): void {
     this._customDrawingDOMSelector.style.display = "none";
+    this._saveDisabledTooltip.hide();
   }
 
   public showSaveBtn(): void {
@@ -50,6 +61,15 @@ class UserCustomSelector {
 
   public hideSaveBtn(): void {
     this.saveBtn.style.display = "none";
+  }
+
+  public setSaveEnabled(enabled: boolean, title = ""): void {
+    this.saveBtn.disabled = !enabled;
+    this._saveDisabledHint = enabled ? "" : title;
+    this._saveTooltipTarget.hidden = enabled;
+    if (enabled) {
+      this._saveDisabledTooltip.hide();
+    }
   }
 
   public handleDocumentPointerDown(event: PointerEvent): void {
@@ -62,7 +82,12 @@ class UserCustomSelector {
 
   public destroy(): void {
     this.saveBtn.removeEventListener("click", this._save);
+    this._saveTooltipTarget.removeEventListener("pointerenter", this._handleSaveTooltipPointerEnter);
+    this._saveTooltipTarget.removeEventListener("pointermove", this._handleSaveTooltipPointerMove);
+    this._saveTooltipTarget.removeEventListener("pointerleave", this._hideSaveTooltip);
+    this._saveTooltipTarget.removeEventListener("pointercancel", this._hideSaveTooltip);
     this._customSelect.destroy();
+    this._saveDisabledTooltip.destroy();
   }
 
   public currentValue(): string {
@@ -74,6 +99,10 @@ class UserCustomSelector {
   }
 
   private _save = async () => {
+    if (this.saveBtn.disabled) {
+      return;
+    }
+
     const filename = await this._savePresetModal.open({
       title: CONTROL_TEXTS.userCustomSelector.prompt.title,
       inputPlaceholder: CONTROL_TEXTS.userCustomSelector.prompt.inputPlaceholder,
@@ -110,6 +139,30 @@ class UserCustomSelector {
     this._selectedValue = value;
     this._cb(value);
   };
+
+  private _handleSaveTooltipPointerEnter = (event: PointerEvent): void => {
+    this._showSaveTooltip(event);
+  };
+
+  private _handleSaveTooltipPointerMove = (event: PointerEvent): void => {
+    this._showSaveTooltip(event);
+  };
+
+  private _hideSaveTooltip = (): void => {
+    this._saveDisabledTooltip.hide();
+  };
+
+  private _showSaveTooltip(event: PointerEvent): void {
+    if (event.pointerType === "touch" || !this.saveBtn.disabled || !this._saveDisabledHint) {
+      this._saveDisabledTooltip.hide();
+      return;
+    }
+
+    this._saveDisabledTooltip.show(this._saveDisabledHint, {
+      clientX: event.clientX,
+      clientY: event.clientY,
+    });
+  }
 }
 
 export default UserCustomSelector;

@@ -22,6 +22,7 @@ import { createTileSelectorButton } from "@views/html/tileSelector";
 
 import type { WorkspaceRoute } from "@app/routes";
 import type { NoiseType } from "@grid/seeding/RandomPresetSeeder";
+import type { SessionViewer } from "@services/AuthSessionService";
 import type { TileSelectorButtonOptions } from "@views/html/tileSelector";
 
 type ModeSelectorOption = Omit<TileSelectorButtonOptions, "dataAttributeName" | "selected"> & {
@@ -130,11 +131,12 @@ function createModeSelector(route: WorkspaceRoute): string {
   ).join("");
 }
 
-function createWorkspaceHeader(route: WorkspaceRoute, username: string, avatarId: string): string {
+function createWorkspaceHeader(route: WorkspaceRoute, viewer: SessionViewer): string {
   return createConnectedHeader({
-    avatarId,
+    avatarId: viewer.avatarId,
     currentPath: route,
-    username,
+    sessionMode: viewer.mode,
+    username: viewer.username,
     navContent: `
       <div class="workspace-mode-selector mode-selector tile-selector" aria-label="${APP_TEXTS.modes.label}">
         ${createModeSelector(route)}
@@ -295,6 +297,9 @@ function createRandomControls(): string {
     <div class="random-preset-selector" style="display: none">
       <div class="random-pane-randomizer">
         ${createButton({ className: "random-pane-randomize" })}
+        <div class="random-geometrize-tooltip-host">
+          ${createButton({ className: "random-pane-geometrize", labelSize: "sm" })}
+        </div>
       </div>
       <label for="random-preset-trigger"></label>
       <div class="custom-select random-preset-custom-select">
@@ -381,8 +386,15 @@ function createRandomControls(): string {
       </div>
       <div class="random-generate-wrapper">
         ${createButton({ className: "random-generate" })}
-        ${createButton({ className: "random-save" })}
+        <div class="ui-button-tooltip-wrapper">
+          ${createButton({ className: "random-save" })}
+          <span class="ui-button-tooltip-target random-save-tooltip-target" aria-hidden="true" hidden></span>
+        </div>
         ${createButton({ className: "random-reset" })}
+        <div class="random-restore-wrapper">
+          ${createButton({ className: "random-restore" })}
+          <span class="random-restore-tooltip-target" aria-hidden="true"></span>
+        </div>
       </div>
     </div>
   `;
@@ -422,7 +434,10 @@ function createDrawingFiles(): string {
 function createDrawingSaveAction(): string {
   return `
     <div class="drawing-save-action">
-      ${createButton({ className: "save" })}
+      <div class="ui-button-tooltip-wrapper">
+        ${createButton({ className: "save" })}
+        <span class="ui-button-tooltip-target drawing-save-tooltip-target" aria-hidden="true" hidden></span>
+      </div>
     </div>
   `;
 }
@@ -590,11 +605,11 @@ function createWorkspaceInspector(): string {
   `;
 }
 
-export function createWorkspaceView(route: WorkspaceRoute, username: string, avatarId: string): string {
+export function createWorkspaceView(route: WorkspaceRoute, viewer: SessionViewer): string {
   return `
     <section class="workspace-screen">
       <div class="workspace-shell">
-        ${createWorkspaceHeader(route, username, avatarId)}
+        ${createWorkspaceHeader(route, viewer)}
         <div class="container">
           ${createWorkspaceSidebar(route)}
           ${createCanvasArea()}

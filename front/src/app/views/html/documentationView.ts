@@ -4,6 +4,8 @@ import { normalizeBasePath, toDocumentPath } from "@router/paths";
 import { APP_TEXTS } from "@texts";
 import { createConnectedHeader } from "@views/html/appHeader";
 
+import type { SessionViewer } from "@services/AuthSessionService";
+
 interface DocumentationCard {
   description: string;
   title: string;
@@ -222,15 +224,16 @@ function renderPresetGroups(groups: readonly DocumentationGroup[]): string {
     .join("");
 }
 
-export function createDocumentationView(username: string, avatarId: string): string {
+export function createDocumentationView(viewer: SessionViewer): string {
   return `
     <section class="workspace-screen workspace-screen--documentation">
       <div class="workspace-shell workspace-shell--documentation">
         ${createConnectedHeader({
-          avatarId,
+          avatarId: viewer.avatarId,
           currentPath: DOCUMENTATION_ROUTE,
+          sessionMode: viewer.mode,
           navContent: `<a class="workspace-header__context-link" href="${toDocumentPath(SIMULATION_ROUTE, basePath)}">${APP_TEXTS.documentation.backToSimulation}</a>`,
-          username,
+          username: viewer.username,
         })}
         <main class="documentation-page route-pane-fade-in">
           <header class="documentation-page-header">

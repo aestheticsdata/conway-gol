@@ -10,6 +10,10 @@ export const AUTH_VALIDATION_TEXTS = {
     confirmRequired: "Confirm your password.",
     mismatch: "Passwords do not match.",
   },
+  email: {
+    required: "Email is required.",
+    invalid: "Enter a valid email address.",
+  },
   recoveryPassphrase: {
     currentRequired: "Current recovery passphrase is required.",
     currentInvalid: "Current recovery passphrase is incorrect.",
@@ -26,6 +30,8 @@ export const APP_TEXTS = {
   },
   auth: {
     eyebrow: "Conway's Game of Life",
+    clearUsername: "Clear username",
+    continueAsGuest: "Continue as guest",
     nav: {
       login: "Login",
       register: "Register",
@@ -38,7 +44,10 @@ export const APP_TEXTS = {
     userMenu: {
       settings: "Settings",
       documentation: "Documentation",
+      guestLabel: "Guest mode",
+      guestName: "Guest",
       lexicon: "Lexicon",
+      signIn: "Sign in",
       signedInAs: "Signed in as",
     },
   },
@@ -57,14 +66,13 @@ export const APP_TEXTS = {
     backToStudio: "Back to Studio",
     saveChanges: "Save changes",
     changesSaved: "Changes saved locally.",
-    intro:
-      "Manage the lightweight local account state used by the studio while the full authentication backend is still being wired.",
+    intro: "Manage your authenticated studio profile.",
     account: {
       eyebrow: "Username",
       title: "Current username",
       copy: "Username and avatar changes are applied when you save.",
       statusLabel: "Session mode",
-      statusValue: "Local browser session",
+      statusValue: "Authenticated session",
     },
     avatar: {
       eyebrow: "Avatar",
@@ -140,6 +148,8 @@ export const APP_TEXTS = {
     autoSeed: "Random seed",
     seedSliderDisabledHint: "Uncheck Random seed to enable slider",
     randomizePane: "randomize parameters",
+    geometrizePane: "Add geometry",
+    geometrizeExperimentalHint: "Experimental feature — results can be unpredictable.",
     generate: "Generate",
     save: "Save",
     reset: "Reset",
@@ -155,9 +165,16 @@ export const APP_TEXTS = {
     emptySearch: "No patterns match this search.",
     favoriteLabel: "Toggle favorite",
     favoriteCountLabel: "Favorites",
+    favoriteGuestHint: "Sign in to favorite patterns.",
     closePatternLists: "Close patterns list",
     patternCountSingular: "pattern",
     patternCountPlural: "patterns",
+  },
+  drawing: {
+    saveGuestHint: "Sign in to save drawings.",
+  },
+  guest: {
+    signInCallToAction: "Sign in to unlock saving, favorites and settings.",
   },
   comments: {
     itemPrefix: "- ",

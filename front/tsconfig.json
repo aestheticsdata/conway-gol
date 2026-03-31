@@ -25,7 +25,8 @@
       "@texts": ["src/texts.ts"],
       "@lib/*": ["src/lib/*"],
       "@ui/*": ["src/ui/*"],
-      "@views/*": ["src/app/views/*"]
+      "@views/*": ["src/app/views/*"],
+      "@conway/shared/*": ["../api-nest/src/shared/*"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"]

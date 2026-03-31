@@ -8,6 +8,10 @@ export interface RouteDefinition {
   create: () => Screen;
 }
 
+export interface AppRouterOptions {
+  beforeEnter?: (context: RouteContext) => AppPath | undefined | Promise<AppPath | undefined>;
+}
+
 export class AppRouter {
   private readonly _routes = new Map<AppPath, RouteDefinition>();
   private _currentScreen?: Screen;
@@ -18,6 +22,7 @@ export class AppRouter {
     private readonly _navigation: NavigationAdapter,
     routes: RouteDefinition[],
     private readonly _fallbackPath: AppPath,
+    private readonly _options: AppRouterOptions = {},
   ) {
     routes.forEach((route) => {
       this._routes.set(normalizeAppPath(route.path), route);
@@ -57,6 +62,18 @@ export class AppRouter {
       return;
     }
 
+    const context: RouteContext = {
+      path: normalizedPath,
+      url,
+      query: url.searchParams,
+    };
+
+    const redirectPath = await this._options.beforeEnter?.(context);
+    if (redirectPath && redirectPath !== normalizedPath) {
+      await this.replace(redirectPath);
+      return;
+    }
+
     const token = ++this._renderToken;
     const nextScreen = route.create();
 
@@ -66,12 +83,6 @@ export class AppRouter {
 
     nextScreen.mount(this._outlet);
     this._currentScreen = nextScreen;
-
-    const context: RouteContext = {
-      path: normalizedPath,
-      url,
-      query: url.searchParams,
-    };
 
     await nextScreen.enter(context);
 

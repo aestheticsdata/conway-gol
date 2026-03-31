@@ -136,6 +136,35 @@
   margin: 0;
 }
 
+.ui-account-recovery-modal__verify-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.ui-account-recovery-modal__verify-actions .ui-button {
+  height: 36px;
+  padding: 0 12px;
+}
+
+.ui-account-recovery-modal__password-section {
+  margin-top: 10px;
+}
+
+.ui-account-recovery-modal .ui-credential-modal__input:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.ui-account-recovery-modal__message {
+  margin-top: 10px;
+  min-height: 1.2em;
+}
+
+.ui-account-recovery-modal__message[aria-hidden="true"] {
+  visibility: hidden;
+}
+
 .ui-save-modal__actions {
   display: flex;
   justify-content: flex-end;

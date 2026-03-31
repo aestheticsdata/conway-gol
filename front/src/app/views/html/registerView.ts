@@ -18,14 +18,14 @@ export function createRegisterView(): string {
           autocomplete: "username",
           errorId: "register-username-error",
         })}
-        ${createAuthSecretField({
-          label: "Password",
-          name: "password",
-          placeholder: "••••••••",
-          autocomplete: "new-password",
-          errorId: "register-password-error",
-          toggleSubject: "password",
-        })}
+${createAuthSecretField({
+  label: "Password",
+  name: "password",
+  placeholder: "••••••••",
+  autocomplete: "new-password",
+  errorId: "register-password-error",
+  toggleSubject: "password",
+})}
         ${createAuthSecretField({
           label: "Confirm Password",
           name: "passwordConfirmation",
@@ -50,6 +50,7 @@ export function createRegisterView(): string {
           errorId: "register-recovery-passphrase-confirmation-error",
           toggleSubject: "recovery passphrase confirmation",
         })}
+        <p class="auth-form__error" data-auth-error aria-live="polite"></p>
         ${createButton({ type: "submit", className: "auth-submit", label: "Create Account", size: "compact" })}
       </form>
     `,

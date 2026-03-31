@@ -1,3 +1,4 @@
+import { CELL_STATE } from "@cell/constants";
 import Data from "@data/Data";
 import { drawGrid } from "@helpers/canvas";
 import {
@@ -11,6 +12,11 @@ import {
   getCanvasTheme,
 } from "./constants";
 import GridDrawingHandler from "./GridDrawingHandler";
+import {
+  geometrizeGridPattern,
+  isGeometrizeResultAcceptable,
+  softenGeometrizeResult,
+} from "./geometrizePattern";
 import { transformGrid } from "./gridTransforms";
 import { DEFAULT_RANDOM_PRESET } from "./randomPresets";
 import Simulation from "./Simulation";
@@ -45,6 +51,10 @@ type RandomGridOptions = GridBaseOptions & {
   mode: "random";
   randomPreset?: RandomPresetId;
   randomParams?: RandomSeedParams;
+  /** When true, matches “Generate” / spatial variation for the preset family. */
+  randomPresetVariation?: boolean;
+  initialRotationDeg?: number;
+  initialZoomLevel?: number;
 };
 
 type ZooGridOptions = GridBaseOptions & {
@@ -96,12 +106,17 @@ class Grid {
     this._previewCellColors = getCanvasPreviewCellColors(this._theme);
 
     switch (options.mode) {
-      case "random":
+      case "random": {
+        const randomOpts = options;
+        this._rotationDeg = randomOpts.initialRotationDeg ?? 0;
+        this._zoomLevel = randomOpts.initialZoomLevel ?? 0;
         this._initializeRandom(
-          options.randomPreset ?? DEFAULT_RANDOM_PRESET,
-          options.randomParams ?? DEFAULT_RANDOM_PARAMS,
+          randomOpts.randomPreset ?? DEFAULT_RANDOM_PRESET,
+          randomOpts.randomParams ?? DEFAULT_RANDOM_PARAMS,
+          randomOpts.randomPresetVariation ?? false,
         );
         break;
+      }
       case "zoo":
         this._initializeZoo(options.species, options.onLoad);
         break;
@@ -205,6 +220,31 @@ class Grid {
     this._emitStateChange();
   }
 
+  /**
+   * Random mode: base pattern (before rotation/zoom) and transform values for
+   * restoring the first-play frame after simulation runs.
+   */
+  public captureRandomPlaybackLayout(): { baseGrid: number[][]; rotationDeg: number; zoomLevel: number } | null {
+    if (!this._baseGrid) {
+      return null;
+    }
+    return {
+      baseGrid: this._baseGrid.map((row) => [...row]),
+      rotationDeg: this._rotationDeg,
+      zoomLevel: this._zoomLevel,
+    };
+  }
+
+  public restoreRandomPlaybackLayout(baseGrid: number[][], rotationDeg: number, zoomLevel: number): void {
+    this._baseGrid = baseGrid.map((row) => [...row]);
+    this._rotationDeg = rotationDeg;
+    this._zoomLevel = zoomLevel;
+    this._applyTransforms();
+    this._render();
+    this._drawGrid();
+    this._emitStateChange();
+  }
+
   public clearCanvas(): void {
     this._baseGrid = null;
     this._simulation.seedDead();
@@ -221,6 +261,71 @@ class Grid {
   /** Snapshot current simulation state as a flat 0/1 buffer. */
   public copyState(): Uint8Array {
     return this._simulation.copyState();
+  }
+
+  public getAliveCount(): number {
+    return this._simulation.getStateStats().alive;
+  }
+
+  /**
+   * Replace the current random pattern with a symmetric, block-aligned version of what
+   * is shown (uses live cells). Resets rotation/zoom to identity so the new shape is
+   * stored as the base pattern.
+   */
+  public geometrizeRandomPattern(): void {
+    if (!this._baseGrid) {
+      return;
+    }
+    let source = this.toGrid();
+    if (Grid._countAliveInGrid(source) === 0) {
+      source = Grid._ensureNonEmptyGeometrizeResult(source);
+    }
+    const maxAttempts = 48;
+    let g = geometrizeGridPattern(source, Math.random);
+    for (
+      let attempt = 1;
+      attempt < maxAttempts &&
+      (Grid._countAliveInGrid(g) === 0 || !isGeometrizeResultAcceptable(g));
+      attempt++
+    ) {
+      g = geometrizeGridPattern(source, Math.random);
+    }
+    if (!isGeometrizeResultAcceptable(g)) {
+      g = softenGeometrizeResult(g, Math.random);
+    }
+    if (!isGeometrizeResultAcceptable(g)) {
+      g = softenGeometrizeResult(g, Math.random);
+    }
+    g = Grid._ensureNonEmptyGeometrizeResult(g);
+    this._baseGrid = g;
+    this._rotationDeg = 0;
+    this._zoomLevel = 0;
+    this._simulation.seedFromGrid(g);
+    this._render();
+    this._drawGrid();
+    this._emitStateChange();
+  }
+
+  private static _countAliveInGrid(grid: number[][]): number {
+    let n = 0;
+    for (const row of grid) {
+      for (const v of row) {
+        if (v > 0) n++;
+      }
+    }
+    return n;
+  }
+
+  /** Guarantees at least one live cell (center) when the pattern is empty. */
+  private static _ensureNonEmptyGeometrizeResult(grid: number[][]): number[][] {
+    if (Grid._countAliveInGrid(grid) > 0) {
+      return grid;
+    }
+    const out = grid.map((row) => [...row]);
+    if (out.length > 0 && out[0].length > 0) {
+      out[GRID_CENTER_ROW][GRID_CENTER_COL] = CELL_STATE.ALIVE;
+    }
+    return out;
   }
 
   /**
@@ -242,9 +347,10 @@ class Grid {
 
   // ── Initialization ────────────────────────────────────────────────────────
 
-  private _initializeRandom(randomPreset: RandomPresetId, params: RandomSeedParams): void {
-    this._simulation.seedByPreset(randomPreset, false, params);
+  private _initializeRandom(randomPreset: RandomPresetId, params: RandomSeedParams, randomVariation = false): void {
+    this._simulation.seedByPreset(randomPreset, randomVariation, params);
     this._baseGrid = this._simulation.toGrid();
+    this._applyTransforms();
     this._render();
     this._drawGrid();
     this._emitStateChange();

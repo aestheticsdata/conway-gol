@@ -1,4 +1,6 @@
 type UiButtonSize = "compact";
+/** Smaller label text for long copy (explicit opt-in; prefer over JS text fitting). */
+type UiButtonLabelSize = "default" | "sm";
 type UiButtonType = "button" | "submit" | "reset";
 type UiButtonIcon = "arrow-right" | "pause" | "play";
 type UiButtonIconPosition = "leading" | "trailing";
@@ -19,6 +21,8 @@ export type UiButtonOptions = {
   icon?: UiButtonIcon;
   iconPosition?: UiButtonIconPosition;
   label?: string;
+  /** Default: inherit DS body size; `sm` uses `ui-button--label-sm` (see buttons.css). */
+  labelSize?: UiButtonLabelSize;
   size?: UiButtonSize;
   title?: string;
   type?: UiButtonType;
@@ -66,6 +70,7 @@ export function createButton(options: UiButtonOptions): string {
     icon,
     iconPosition = "leading",
     label = "",
+    labelSize = "default",
     size = "compact",
     title,
     type = "button",
@@ -74,6 +79,7 @@ export function createButton(options: UiButtonOptions): string {
   const classes = [
     "ui-button",
     `ui-button--${size}`,
+    labelSize === "sm" ? "ui-button--label-sm" : "",
     icon ? "ui-button--with-icon" : "",
     icon ? `ui-button--icon-${iconPosition}` : "",
     className,

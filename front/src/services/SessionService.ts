@@ -1,7 +1,9 @@
+import { DEFAULT_USER_AVATAR_ID } from "@assets/icons/userAvatars";
+
 const SESSION_USERNAME_KEY = "cgl.session.username";
 const SESSION_AVATAR_KEY = "cgl.session.avatar";
 const DEFAULT_SESSION_USERNAME = "demo-user";
-const DEFAULT_SESSION_AVATAR = "node-grid";
+const DEFAULT_SESSION_AVATAR = DEFAULT_USER_AVATAR_ID;
 
 class SessionService {
   public getUsername(): string | null {

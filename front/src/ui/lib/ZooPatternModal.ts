@@ -2,7 +2,9 @@ import { CLOSE_ICON } from "@assets/icons/closeIcon";
 import { HEART_ICON } from "@assets/icons/heartIcon";
 import { PERSON_ICON } from "@assets/icons/personIcon";
 import { extractHxfPatternCardMeta } from "@data/patterns/patternCardMeta";
-import PatternFavoriteService from "@services/PatternFavoriteService";
+import { species } from "@data/species/species";
+import { authSessionService } from "@services/AuthSessionService";
+import { patternFavoriteService } from "@services/PatternFavoriteService";
 import PatternService from "@services/PatternService";
 import { APP_TEXTS, formatZooPatternListsCountSuffix } from "@texts";
 import { createLinkButtonElement } from "@ui/components/button/createButton";
@@ -121,6 +123,22 @@ function extractPatternMeta(patternName: string, remotePattern: RemotePattern): 
   });
 }
 
+function resolveLocalSpeciesPattern(patternName: string): number[][] | null {
+  const directMatch = species[patternName]?.content;
+  if (directMatch) {
+    return directMatch;
+  }
+
+  const normalizedPatternName = patternName.trim().toLowerCase();
+  for (const [candidateName, candidate] of Object.entries(species)) {
+    if (candidateName.toLowerCase() === normalizedPatternName) {
+      return candidate.content;
+    }
+  }
+
+  return null;
+}
+
 class ZooPatternModal {
   private readonly _overlay: HTMLDivElement;
   private readonly _closeButton: HTMLButtonElement;
@@ -129,7 +147,7 @@ class ZooPatternModal {
   private readonly _resultsGrid: HTMLElement;
   private readonly _emptyState: HTMLElement;
   private readonly _titleCountEl: HTMLSpanElement;
-  private readonly _favoriteService = new PatternFavoriteService();
+  private readonly _favoriteService = patternFavoriteService;
   private readonly _patternService = new PatternService();
   private readonly _cardRecords = new Map<string, PatternCardRecord>();
   private _patternNames: string[] = [];
@@ -166,8 +184,10 @@ class ZooPatternModal {
           </div>
           <div class="zoo-pattern-modal__header-actions">
             <input
-              type="search"
+              type="text"
               class="ui-input zoo-pattern-modal__search"
+              inputmode="search"
+              autocomplete="off"
               placeholder="${APP_TEXTS.zoo.searchPlaceholder}"
               aria-label="${APP_TEXTS.zoo.searchPlaceholder}"
             >
@@ -207,6 +227,7 @@ class ZooPatternModal {
     this._syncOverlayInset();
     this._resetBodyScroll();
     this._renderPatternGrid();
+    this._refreshFavoriteSnapshot();
     this._overlay.hidden = false;
     this._overlay.classList.remove("is-closing");
     this._resetBodyScroll();
@@ -385,6 +406,33 @@ class ZooPatternModal {
 
     this._resultsGrid.replaceChildren(fragment);
     this._resetObserver(matches);
+  }
+
+  private _refreshFavoriteSnapshot(): void {
+    if (this._favoriteService.hasSnapshot()) {
+      this._refreshVisibleFavoriteStates();
+    }
+
+    void this._favoriteService
+      .refreshSnapshot()
+      .then(() => {
+        if (this._isOpen) {
+          this._refreshVisibleFavoriteStates();
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to load pattern favorites", error);
+      });
+  }
+
+  private _refreshVisibleFavoriteStates(): void {
+    for (const [patternName, record] of this._cardRecords.entries()) {
+      if (!record.card.isConnected) {
+        continue;
+      }
+
+      this._syncFavoriteState(record, patternName);
+    }
   }
 
   private _matchesQuery(patternName: string, query: string): boolean {
@@ -682,7 +730,18 @@ class ZooPatternModal {
     favoriteButton.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
-      this._favoriteService.toggleFavorite(patternName);
+      if (!authSessionService.capabilities().canFavoritePatterns || this._favoriteService.isPending(patternName)) {
+        return;
+      }
+
+      void this._favoriteService
+        .toggleFavorite(patternName)
+        .catch((error) => {
+          console.error("Failed to update pattern favorite", error);
+        })
+        .finally(() => {
+          this._syncFavoriteState(record, patternName);
+        });
       this._syncFavoriteState(record, patternName);
     });
 
@@ -787,17 +846,29 @@ class ZooPatternModal {
         );
       })
       .catch(() => {
+        const localSpeciesPattern = resolveLocalSpeciesPattern(patternName);
         record.loaded = true;
         record.meta = {
           author: APP_TEXTS.zoo.unknownAuthor,
           description: APP_TEXTS.zoo.fallbackDescription,
           displayName: patternName,
           links: [],
-          pattern: [],
+          pattern: localSpeciesPattern ?? [],
         };
+        record.title.textContent = patternName;
         record.description.textContent = APP_TEXTS.zoo.fallbackDescription;
         record.author.textContent = APP_TEXTS.zoo.unknownAuthor;
         this._renderLinks(record.links, []);
+        if (localSpeciesPattern) {
+          record.previewPlaceholder.hidden = true;
+          drawPatternPreview(
+            record.preview,
+            normalizePatternPreviewSource({
+              kind: "grid",
+              pattern: localSpeciesPattern,
+            }),
+          );
+        }
       })
       .finally(() => {
         record.loadingPromise = null;
@@ -832,12 +903,17 @@ class ZooPatternModal {
   private _syncFavoriteState(record: PatternCardRecord, patternName: string): void {
     const isFavorite = this._favoriteService.isFavorite(patternName);
     const count = this._favoriteService.getFavoriteCount(patternName);
+    const canFavoritePatterns = authSessionService.capabilities().canFavoritePatterns;
+    const isPending = this._favoriteService.isPending(patternName);
     record.favoriteButton.classList.toggle("is-favorite", isFavorite);
+    record.favoriteButton.classList.toggle("is-disabled", !canFavoritePatterns || isPending);
+    record.favoriteButton.disabled = !canFavoritePatterns || isPending;
     record.favoriteButton.setAttribute("aria-pressed", String(isFavorite));
     record.favoriteButton.setAttribute(
       "aria-label",
       `${APP_TEXTS.zoo.favoriteLabel}: ${patternName}. ${APP_TEXTS.zoo.favoriteCountLabel}: ${count}.`,
     );
+    record.favoriteButton.title = canFavoritePatterns ? "" : APP_TEXTS.zoo.favoriteGuestHint;
     record.count.textContent = String(count);
   }
 }

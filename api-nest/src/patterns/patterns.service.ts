@@ -9,17 +9,18 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
-type PatternPayload = {
+import type { AppSession } from "@app/auth/session.d";
+
+interface PatternPayload {
   comments: string[];
   automata: number[][];
-};
+}
 
 const LEGACY_CUSTOM_SUBDIR = "user-custom";
-const LEGACY_PUBLIC_EMAIL = "legacy-public-patterns@conwaygol.local";
-const LEGACY_PUBLIC_USERNAME = "legacy-public-patterns";
 
 @Injectable()
 export class PatternsService {
@@ -33,20 +34,21 @@ export class PatternsService {
     this.catalogDir = path.resolve(appConfig.catalogDir);
   }
 
-  async list(subdir = ""): Promise<string[]> {
+  async list(subdir = "", session?: AppSession): Promise<string[]> {
     if (subdir === LEGACY_CUSTOM_SUBDIR) {
-      return this.listCustomPatterns();
+      return this.listCustomPatterns(session);
     }
 
     const dirPath = this.resolveCatalogSubdir(subdir);
     return this.listPatternFiles(dirPath);
   }
 
-  async listCustomPatterns(): Promise<string[]> {
+  async listCustomPatterns(session?: AppSession): Promise<string[]> {
+    const ownerId = this.requireSessionUserId(session);
     const dbPatterns = await this.prisma.customPattern.findMany({
       where: {
+        ownerId,
         deletedAt: null,
-        visibility: PatternVisibility.PUBLIC,
       },
       select: {
         name: true,
@@ -59,9 +61,9 @@ export class PatternsService {
     return dbPatterns.map(({ name }) => name);
   }
 
-  async getPatternContent(name: string): Promise<string> {
+  async getPatternContent(name: string, session?: AppSession): Promise<string> {
     if (name.endsWith("-custom")) {
-      return this.getCustomPatternContent(name.slice(0, -"-custom".length));
+      return this.getCustomPatternContent(name.slice(0, -"-custom".length), session);
     }
 
     const normalizedName = name.toLowerCase();
@@ -74,14 +76,14 @@ export class PatternsService {
     }
   }
 
-  async saveCustomPattern(filename: string, body: unknown): Promise<{ msg: string }> {
+  async saveCustomPattern(filename: string, body: unknown, session?: AppSession): Promise<{ msg: string }> {
     const patternName = filename.trim();
     if (!patternName) {
       throw new BadRequestException("filename is required");
     }
 
     const payload = this.validatePatternPayload(body);
-    const ownerId = await this.ensureLegacyPublicOwnerId();
+    const ownerId = this.requireSessionUserId(session);
     const existingPattern = await this.prisma.customPattern.findUnique({
       where: {
         ownerId_name: {
@@ -107,7 +109,7 @@ export class PatternsService {
         data: {
           comments: payload.comments,
           automata: payload.automata,
-          visibility: PatternVisibility.PUBLIC,
+          visibility: PatternVisibility.PRIVATE,
         },
       });
     } else {
@@ -115,7 +117,7 @@ export class PatternsService {
         data: {
           ownerId,
           name: patternName,
-          visibility: PatternVisibility.PUBLIC,
+          visibility: PatternVisibility.PRIVATE,
           comments: payload.comments,
           automata: payload.automata,
         },
@@ -125,12 +127,13 @@ export class PatternsService {
     return { msg: `${patternName} saved` };
   }
 
-  private async getCustomPatternContent(name: string): Promise<string> {
+  private async getCustomPatternContent(name: string, session?: AppSession): Promise<string> {
+    const ownerId = this.requireSessionUserId(session);
     const customPattern = await this.prisma.customPattern.findFirst({
       where: {
+        ownerId,
         name,
         deletedAt: null,
-        visibility: PatternVisibility.PUBLIC,
       },
       select: {
         comments: true,
@@ -151,24 +154,12 @@ export class PatternsService {
     throw new NotFoundException(`Custom pattern "${name}" not found`);
   }
 
-  private async ensureLegacyPublicOwnerId(): Promise<string> {
-    const legacyUser = await this.prisma.user.upsert({
-      where: {
-        email: LEGACY_PUBLIC_EMAIL,
-      },
-      update: {
-        deletedAt: null,
-      },
-      create: {
-        email: LEGACY_PUBLIC_EMAIL,
-        username: LEGACY_PUBLIC_USERNAME,
-      },
-      select: {
-        id: true,
-      },
-    });
+  private requireSessionUserId(session?: AppSession): string {
+    if (!session?.userId) {
+      throw new UnauthorizedException();
+    }
 
-    return legacyUser.id;
+    return session.userId;
   }
 
   private async listPatternFiles(dirPath: string): Promise<string[]> {

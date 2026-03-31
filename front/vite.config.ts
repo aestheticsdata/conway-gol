@@ -39,6 +39,7 @@ export default defineConfig(({ mode }) => {
         "@lib": resolve(__dirname, "src/lib"),
         "@ui": resolve(__dirname, "src/ui"),
         "@views": resolve(__dirname, "src/app/views"),
+        "@conway/shared": resolve(__dirname, "../api-nest/src/shared"),
       },
     },
 

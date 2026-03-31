@@ -411,6 +411,10 @@
   text-align: left;
 }
 
+.workspace-user-menu--guest .workspace-user-menu__trigger {
+  min-width: 116px;
+}
+
 .settings-layout {
   width: min(calc(100% - 56px), 960px);
   margin: 0 auto 32px;

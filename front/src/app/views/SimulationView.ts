@@ -1,5 +1,5 @@
 import { LOGIN_ROUTE } from "@app/routes";
-import SessionService from "@services/SessionService";
+import { authSessionService } from "@services/AuthSessionService";
 import { SimulationWorkspace } from "@simulation/SimulationWorkspace";
 import { APP_TEXTS } from "@texts";
 import WorkspaceUserMenu from "@ui/lib/WorkspaceUserMenu";
@@ -12,7 +12,6 @@ import type { RouteContext, Screen } from "@router/Screen";
 export class SimulationView implements Screen {
   private _root?: HTMLElement;
   private _workspace?: SimulationWorkspace;
-  private readonly _session = new SessionService();
   private _userMenu?: WorkspaceUserMenu;
 
   constructor(
@@ -21,12 +20,9 @@ export class SimulationView implements Screen {
   ) {}
 
   public mount(container: HTMLElement): void {
+    const viewer = authSessionService.getViewer();
     const htmlHost = document.createElement("div");
-    htmlHost.innerHTML = createWorkspaceView(
-      this._route,
-      this._session.getUsernameOrFallback(),
-      this._session.getAvatarIdOrFallback(),
-    );
+    htmlHost.innerHTML = createWorkspaceView(this._route, viewer);
     this._root = htmlHost.firstElementChild as HTMLElement;
     container.replaceChildren(this._root);
 
@@ -46,6 +42,7 @@ export class SimulationView implements Screen {
     this._workspace = new SimulationWorkspace({
       root: this._root,
       route: this._route,
+      capabilities: authSessionService.capabilities(),
       onRouteModeChange: (route) => {
         void this._navigate(route);
       },
@@ -66,7 +63,8 @@ export class SimulationView implements Screen {
   }
 
   private _onLogout = (): void => {
-    this._session.clear();
-    void this._navigate(LOGIN_ROUTE);
+    void authSessionService.logout().finally(() => {
+      void this._navigate(LOGIN_ROUTE);
+    });
   };
 }

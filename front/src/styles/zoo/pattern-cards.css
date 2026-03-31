@@ -233,6 +233,12 @@
   color: #ff7e96;
 }
 
+.zoo-pattern-card__favorite:disabled,
+.zoo-pattern-card__favorite.is-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .zoo-pattern-card__favorite-icon {
   display: inline-flex;
   width: 16px;

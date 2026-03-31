@@ -6,6 +6,7 @@ import { HealthModule } from "@health/health.module";
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { PatternsModule } from "@patterns/patterns.module";
+import { AuthModule } from "@auth/auth.module";
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { PatternsModule } from "@patterns/patterns.module";
     PrismaModule,
     HealthModule,
     PatternsModule,
+    AuthModule,
   ],
 })
 export class AppModule {}

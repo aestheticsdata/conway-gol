@@ -16,6 +16,7 @@ A full-stack implementation of [Conway's Game of Life](https://en.wikipedia.org/
 - [Testing](#testing)
 - [Deployment](#deployment)
 - [API Endpoints](#api-endpoints)
+- [User avatars (profile)](#user-avatars-profile)
 - [Pattern File Format (.hxf)](#pattern-file-format-hxf)
 - [Refactoring History](#refactoring-history)
 
@@ -477,7 +478,7 @@ This keeps Conway logic out of the renderer, DOM event handling out of `Simulati
 
 `front/src/ui/components/` contains small shared markup primitives used by the workspace shell:
 
-- `button/createButton.ts`: shared button template helper
+- `button/createButton.ts`: shared button template helper (`labelSize` for smaller labels — see [createButton label size](#createbutton-label-size))
 - `slider/createSlider.ts`: shared labeled range-slider template helper plus `syncSliderFill()` for active-track fill
 
 `front/src/lib/image/ImageSeeder.ts` is the image processing library. It is deliberately kept outside the Grid and UI layers because it has no dependency on Conway rules, canvas state, or DOM access. It is imported only by `ImageImporter`. See [Image import pipeline](#image-import-pipeline) below.
@@ -585,6 +586,23 @@ Catalog patterns are read from `api-nest/data/patterns/`.
 
 Custom patterns are stored in SQL through Prisma.
 
+#### User avatars (profile)
+
+Account settings let users pick a **preset avatar** (inline SVG). There is no `Avatar` table: `User.avatarId` stores a **string id** from a fixed catalog.
+
+| Concern | Location |
+|--------|----------|
+| Canonical list of ids, default id, optional rename map | `api-nest/src/shared/user-avatar-ids.ts` |
+| Labels + SVG markup | `front/src/assets/icons/userAvatars.ts` |
+| API validation of `PATCH /auth/profile` | `UpdateProfileDto` uses `@IsIn` against the canonical list |
+| Responses (`login`, `me`, `updateProfile`) | `resolveCanonicalAvatarId()` maps DB values to a current canonical id (or `null` if unknown) |
+
+**Adding an avatar:** append the new id to `USER_AVATAR_IDS` in `user-avatar-ids.ts`, then add a matching `{ id, label, svg }` entry in `userAvatars.ts`. At runtime, `assertAvatarOptionsMatchCanonicalCatalog()` throws if the two lists diverge.
+
+**Renaming an id:** add `{ "old-id": "new-id" }` to `AVATAR_ID_ALIASES` so existing rows still resolve; optionally run a SQL migration to rewrite `User.avatarId` to the new id.
+
+The frontend resolves the shared module through the `@conway/shared/*` alias (see `front/tsconfig.json` and `front/vite.config.ts`), which points at `api-nest/src/shared/`.
+
 ### Front/API routing
 
 The frontend always calls the same-origin API prefix `/conway-gol/api`.
@@ -656,6 +674,19 @@ The tile-button primitive is designed to stay reusable:
 - labels can stay short in the tile while accessibility labels and titles preserve the full meaning
 
 When extending the UI, prefer adding or reusing tokens before introducing one-off colors, radii, or shadows directly in component CSS.
+
+### createButton label size
+
+Gradient CTA markup is produced by `front/src/ui/components/button/createButton.ts` (used from HTML view templates such as `workspaceView.ts`).
+
+| Option | Values | Effect |
+|--------|--------|--------|
+| `labelSize` | `"default"` (omit) | Uses the normal button label font size from the shared button styles (~15px for primary shell buttons). |
+| `labelSize` | `"sm"` | Adds the modifier class `ui-button--label-sm` on the `<button>`, which reduces label font size (see `front/src/styles/main/buttons.css`). |
+
+**Why opt-in instead of automatic shrinking:** long or translated labels are handled by choosing `labelSize: "sm"` where needed. That keeps typography predictable and avoids runtime text-measurement logic. If a new locale or label still overflows, adjust the `sm` size in one place in `buttons.css` or add another documented variant later.
+
+**Example:** the random-mode control labeled “Add geometry” uses `createButton({ className: "random-pane-geometrize", labelSize: "sm" })` so it fits alongside “Randomize” without crowding the row.
 
 ## Frontend Code Map
 

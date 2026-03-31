@@ -1,3 +1,4 @@
+import { CLOSE_ICON } from "@assets/icons/closeIcon";
 import { EYE_ICON, EYE_OFF_ICON } from "@assets/icons/passwordVisibilityIcon";
 
 interface AuthFieldOptions {
@@ -12,6 +13,9 @@ interface AuthFieldOptions {
 
 interface AuthTextFieldOptions extends AuthFieldOptions {
   type?: "text" | "email";
+  /** Wraps the input in `ui-input-shell` with the same close (×) control as save/credential modals. */
+  clearable?: boolean;
+  clearAriaLabel?: string;
 }
 
 interface AuthSecretFieldOptions extends AuthFieldOptions {
@@ -35,19 +39,46 @@ function createFieldErrorMessage(errorId?: string, fieldName?: string): string {
 }
 
 export function createAuthTextField(options: AuthTextFieldOptions): string {
-  const { autocomplete, errorId, label, name, placeholder, required = true, type = "text", value } = options;
+  const {
+    autocomplete,
+    clearable = false,
+    clearAriaLabel = "Clear",
+    errorId,
+    label,
+    name,
+    placeholder,
+    required = true,
+    type = "text",
+    value,
+  } = options;
   const ariaDescribedBy = errorId ? ` aria-describedby="${escapeHtml(errorId)}"` : "";
   const requiredAttribute = required ? " required" : "";
-
-  return `
-    <label class="auth-field">
-      <span>${escapeHtml(label)}</span>
-      <input
+  const inputMarkup = `<input
         class="ui-input"
         type="${type}"
         name="${escapeHtml(name)}"
         placeholder="${escapeHtml(placeholder)}"${createOptionalAttribute("autocomplete", autocomplete)}${createOptionalAttribute("value", value)}${ariaDescribedBy}${requiredAttribute}
-      >
+      >`;
+
+  const controlMarkup = clearable
+    ? `<div class="ui-input-shell">
+        ${inputMarkup}
+        <button
+          type="button"
+          class="ui-input-shell__button ui-input-shell__button--clear"
+          data-auth-clear-field="${escapeHtml(name)}"
+          aria-label="${escapeHtml(clearAriaLabel)}"
+          hidden
+        >
+          <span class="ui-input-shell__icon" aria-hidden="true">${CLOSE_ICON}</span>
+        </button>
+      </div>`
+    : inputMarkup;
+
+  return `
+    <label class="auth-field">
+      <span>${escapeHtml(label)}</span>
+      ${controlMarkup}
       ${createFieldErrorMessage(errorId, name)}
     </label>
   `;

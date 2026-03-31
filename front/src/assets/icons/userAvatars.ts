@@ -1,10 +1,18 @@
-export const DEFAULT_USER_AVATAR_ID = "node-grid";
+import {
+  assertAvatarOptionsMatchCanonicalCatalog,
+  DEFAULT_USER_AVATAR_ID,
+  resolveCanonicalAvatarId,
+} from "@conway/shared/user-avatar-ids";
+
+import type { UserAvatarId } from "@conway/shared/user-avatar-ids";
 
 export type UserAvatarOption = {
-  id: string;
+  id: UserAvatarId;
   label: string;
   svg: string;
 };
+
+export { DEFAULT_USER_AVATAR_ID, type UserAvatarId } from "@conway/shared/user-avatar-ids";
 
 export const USER_AVATAR_OPTIONS: readonly UserAvatarOption[] = [
   {
@@ -323,6 +331,9 @@ export const USER_AVATAR_OPTIONS: readonly UserAvatarOption[] = [
   },
 ] as const;
 
+assertAvatarOptionsMatchCanonicalCatalog(USER_AVATAR_OPTIONS);
+
 export function getUserAvatarOption(avatarId: string): UserAvatarOption {
-  return USER_AVATAR_OPTIONS.find((option) => option.id === avatarId) ?? USER_AVATAR_OPTIONS[0];
+  const canonical = resolveCanonicalAvatarId(avatarId) ?? DEFAULT_USER_AVATAR_ID;
+  return USER_AVATAR_OPTIONS.find((option) => option.id === canonical) ?? USER_AVATAR_OPTIONS[0];
 }

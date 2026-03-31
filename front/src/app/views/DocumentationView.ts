@@ -1,5 +1,5 @@
 import { LOGIN_ROUTE } from "@app/routes";
-import SessionService from "@services/SessionService";
+import { authSessionService } from "@services/AuthSessionService";
 import { APP_TEXTS } from "@texts";
 import WorkspaceUserMenu from "@ui/lib/WorkspaceUserMenu";
 import { createDocumentationView } from "./html";
@@ -10,16 +10,13 @@ import type { RouteContext, Screen } from "@router/Screen";
 export class DocumentationView implements Screen {
   private _root?: HTMLElement;
   private _userMenu?: WorkspaceUserMenu;
-  private readonly _session = new SessionService();
 
   constructor(private readonly _navigate: (path: AppPath) => Promise<void>) {}
 
   public mount(container: HTMLElement): void {
+    const viewer = authSessionService.getViewer();
     const htmlHost = document.createElement("div");
-    htmlHost.innerHTML = createDocumentationView(
-      this._session.getUsernameOrFallback(),
-      this._session.getAvatarIdOrFallback(),
-    );
+    htmlHost.innerHTML = createDocumentationView(viewer);
     this._root = htmlHost.firstElementChild as HTMLElement;
     container.replaceChildren(this._root);
 
@@ -44,7 +41,8 @@ export class DocumentationView implements Screen {
   }
 
   private _onLogout = (): void => {
-    this._session.clear();
-    void this._navigate(LOGIN_ROUTE);
+    void authSessionService.logout().finally(() => {
+      void this._navigate(LOGIN_ROUTE);
+    });
   };
 }

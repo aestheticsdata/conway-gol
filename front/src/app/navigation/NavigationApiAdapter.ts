@@ -1,4 +1,3 @@
-import { PUBLIC_APP_ROUTES } from "@app/routes";
 import { normalizeAppPath, stripBasePath, toDocumentPath } from "@router/paths";
 
 import type { AppPath, NavigationAdapter, NavigationChangeListener } from "@navigation/NavigationAdapter";
@@ -129,7 +128,7 @@ export class NavigationApiAdapter implements NavigationAdapter {
       return false;
     }
 
-    return path === "/" || PUBLIC_APP_ROUTES.includes(path);
+    return path === "/" || path.startsWith("/");
   }
 
   private _toDocumentUrl(path: AppPath): string {

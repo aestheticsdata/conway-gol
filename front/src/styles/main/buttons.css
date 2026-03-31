@@ -41,6 +41,17 @@
   justify-content: center;
 }
 
+.ui-button-tooltip-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.ui-button-tooltip-target {
+  position: absolute;
+  inset: -6px;
+  cursor: not-allowed;
+}
+
 .ui-button--with-icon {
   gap: 0.65em;
 }
@@ -85,6 +96,11 @@
   margin-top: 0;
   padding: 0 12px;
   line-height: 1;
+}
+
+/* Long labels: opt-in via createButton({ labelSize: "sm" }) */
+:where(.ui-button.ui-button--label-sm) {
+  font-size: 12px;
 }
 
 .ui-link-button {

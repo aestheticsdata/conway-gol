@@ -18,6 +18,7 @@ export function createSettingsView(username: string, avatarId: string, avatarGri
         ${createConnectedHeader({
           avatarId,
           currentPath: SETTINGS_ROUTE,
+          sessionMode: "authenticated",
           username,
         })}
         <div class="settings-layout route-pane-fade-in">

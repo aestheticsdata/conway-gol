@@ -1,13 +1,13 @@
 import { LOGIN_ROUTE } from "@app/routes";
 import { getUserAvatarOption, USER_AVATAR_OPTIONS } from "@assets/icons/userAvatars";
 import { queryAll } from "@helpers/dom";
-import LocalCredentialService from "@services/LocalCredentialService";
+import AuthService from "@services/AuthService";
+import { authSessionService } from "@services/AuthSessionService";
 import SessionService from "@services/SessionService";
 import { APP_TEXTS, AUTH_VALIDATION_TEXTS } from "@texts";
 import CredentialChangeModal from "@ui/lib/CredentialChangeModal";
 import WorkspaceUserMenu from "@ui/lib/WorkspaceUserMenu";
 import {
-  getCurrentRecoveryPassphraseValidationError,
   getPasswordValidationError,
   getRecoveryPassphraseValidationError,
   getUsernameValidationError,
@@ -26,15 +26,13 @@ export class SettingsView implements Screen {
   private _saveChangesButton?: HTMLButtonElement;
   private _usernameInput?: HTMLInputElement;
   private _usernameMessage?: HTMLElement;
-  private _recoveryMessage?: HTMLElement;
-  private _passwordMessage?: HTMLElement;
   private _saveStatus?: HTMLElement;
   private _menuUsername?: HTMLElement;
   private _menuMetaUsername?: HTMLElement;
   private _menuAvatars: HTMLElement[] = [];
   private _avatarButtons: HTMLButtonElement[] = [];
   private _userMenu?: WorkspaceUserMenu;
-  private readonly _credentials = new LocalCredentialService();
+  private readonly _auth = new AuthService();
   private readonly _session = new SessionService();
   private readonly _passphraseModal = new CredentialChangeModal();
   private readonly _passwordModal = new CredentialChangeModal();
@@ -56,8 +54,6 @@ export class SettingsView implements Screen {
     this._saveChangesButton = this._root.querySelector<HTMLButtonElement>(".settings-save-changes") ?? undefined;
     this._usernameInput = this._root.querySelector<HTMLInputElement>(".settings-username-input") ?? undefined;
     this._usernameMessage = this._root.querySelector<HTMLElement>(".settings-username-message") ?? undefined;
-    this._recoveryMessage = this._root.querySelector<HTMLElement>(".settings-recovery-message") ?? undefined;
-    this._passwordMessage = this._root.querySelector<HTMLElement>(".settings-password-message") ?? undefined;
     this._saveStatus = this._root.querySelector<HTMLElement>(".settings-panel__status") ?? undefined;
     this._menuUsername = this._root.querySelector<HTMLElement>(".workspace-user-menu__name") ?? undefined;
     this._menuMetaUsername = this._root.querySelector<HTMLElement>(".workspace-user-menu__meta-value") ?? undefined;
@@ -103,8 +99,6 @@ export class SettingsView implements Screen {
     this._saveChangesButton = undefined;
     this._usernameInput = undefined;
     this._usernameMessage = undefined;
-    this._recoveryMessage = undefined;
-    this._passwordMessage = undefined;
     this._saveStatus = undefined;
     this._menuUsername = undefined;
     this._menuMetaUsername = undefined;
@@ -133,11 +127,7 @@ export class SettingsView implements Screen {
   }
 
   private _onSaveChanges = (): void => {
-    if (!this._usernameInput) {
-      return;
-    }
-
-    if (!this._hasPendingChanges()) {
+    if (!this._usernameInput || !this._hasPendingChanges()) {
       return;
     }
 
@@ -151,17 +141,29 @@ export class SettingsView implements Screen {
       return;
     }
 
-    this._savedUsername = nextUsername;
-    this._savedAvatarId = this._draftAvatarId;
-    this._session.setUsername(nextUsername);
-    this._session.setAvatarId(this._savedAvatarId);
-    this._syncUsername(nextUsername);
-    this._syncHeaderAvatar(this._savedAvatarId);
-    this._usernameInput.removeAttribute("aria-invalid");
-    this._usernameInput.value = nextUsername;
-    this._setMessage(this._usernameMessage, "");
-    this._showTransientSaveStatus(APP_TEXTS.settings.changesSaved);
-    this._syncSaveButtonState();
+    if (this._saveChangesButton) this._saveChangesButton.disabled = true;
+
+    void this._auth
+      .updateProfile(nextUsername, this._draftAvatarId)
+      .then(({ username, avatarId, csrfToken }) => {
+        authSessionService.setAuthenticatedUser({ username, avatarId, csrfToken });
+        this._savedUsername = username;
+        this._savedAvatarId = avatarId ?? this._draftAvatarId;
+        this._draftAvatarId = this._savedAvatarId;
+        this._session.setUsername(username);
+        this._session.setAvatarId(this._savedAvatarId);
+        this._syncUsername(username);
+        this._syncHeaderAvatar(this._savedAvatarId);
+        this._usernameInput?.removeAttribute("aria-invalid");
+        if (this._usernameInput) this._usernameInput.value = username;
+        this._setMessage(this._usernameMessage, "");
+        this._showTransientSaveStatus(APP_TEXTS.settings.changesSaved);
+        this._syncSaveButtonState();
+      })
+      .catch(() => {
+        this._setMessage(this._usernameMessage, "Failed to save. Please try again.");
+        this._syncSaveButtonState();
+      });
   };
 
   private _onUsernameInput = (): void => {
@@ -208,18 +210,11 @@ export class SettingsView implements Screen {
     this._setMessage(this._saveStatus, "");
   }
 
-  private _clearCredentialMessages(): void {
-    this._setMessage(this._recoveryMessage, "");
-    this._setMessage(this._passwordMessage, "");
-  }
-
   private _onChangePassphrase = async (): Promise<void> => {
-    this._clearCredentialMessages();
-
     const passphrase = await this._passphraseModal.open(
       {
         title: "Change passphrase",
-        description: "Set a new recovery passphrase for this local demo flow.",
+        description: "Set a new recovery passphrase.",
         currentLabel: "Current passphrase",
         currentPlaceholder: "Enter your current recovery passphrase",
         currentRequired: AUTH_VALIDATION_TEXTS.recoveryPassphrase.currentRequired,
@@ -238,27 +233,21 @@ export class SettingsView implements Screen {
         inputType: "password",
         autocomplete: "off",
         requireCurrent: true,
-        validateCurrent: (value) =>
-          getCurrentRecoveryPassphraseValidationError(value, this._credentials.getRecoveryPassphrase()),
+        validateCurrent: () => "",
         validatePrimary: getRecoveryPassphraseValidationError,
       },
     );
 
-    if (passphrase === null) {
-      return;
-    }
+    if (passphrase === null) return;
 
-    this._credentials.setRecoveryPassphrase(passphrase);
-    this._setMessage(this._recoveryMessage, APP_TEXTS.settings.recovery.changed);
+    // TODO: wire to API (PATCH /auth/passphrase)
   };
 
   private _onChangePassword = async (): Promise<void> => {
-    this._clearCredentialMessages();
-
     const password = await this._passwordModal.open(
       {
         title: "Change password",
-        description: "Update the studio password used by the current local demo flow.",
+        description: "Update your password.",
         primaryLabel: "New password",
         primaryPlaceholder: "Enter a new password",
         confirmLabel: "Confirm password",
@@ -276,12 +265,9 @@ export class SettingsView implements Screen {
       },
     );
 
-    if (password === null) {
-      return;
-    }
+    if (password === null) return;
 
-    this._credentials.setPassword(password);
-    this._setMessage(this._passwordMessage, APP_TEXTS.settings.password.changed);
+    // TODO: wire to API (PATCH /auth/password)
   };
 
   private _onAvatarSelect = (event: Event): void => {
@@ -338,7 +324,8 @@ export class SettingsView implements Screen {
   }
 
   private _onLogout = (): void => {
-    this._session.clear();
-    void this._navigate(LOGIN_ROUTE);
+    void authSessionService.logout().finally(() => {
+      void this._navigate(LOGIN_ROUTE);
+    });
   };
 }

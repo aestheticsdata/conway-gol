@@ -215,6 +215,27 @@
   gap: 10px;
 }
 
+.auth-form__primary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 6px;
+  width: 100%;
+}
+
+.auth-guest-entry {
+  margin-top: 0;
+}
+
+.auth-form__guest-copy {
+  margin: 0;
+  color: rgba(143, 169, 194, 0.9);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .auth-field {
   display: flex;
   flex-direction: column;
@@ -249,9 +270,26 @@
   text-overflow: ellipsis;
 }
 
-.auth-screen .auth-card .auth-form .auth-submit {
-  align-self: flex-start;
-  margin-top: 6px;
+.auth-screen .auth-card .auth-form .auth-form__primary-actions .auth-submit {
+  margin-top: 0;
+}
+
+.auth-form__forgot {
+  align-self: flex-end;
+  margin: 0;
+}
+
+.auth-forgot-link {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  transition: color 160ms ease;
+}
+
+.auth-forgot-link:hover {
+  color: var(--text-main);
+  text-decoration: underline;
 }
 
 @keyframes ui-save-modal-fade-in {

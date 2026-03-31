@@ -1,5 +1,6 @@
-import { LOGIN_ROUTE } from "@app/routes";
-import LocalCredentialService from "@services/LocalCredentialService";
+import { SIMULATION_ROUTE } from "@app/routes";
+import AuthService from "@services/AuthService";
+import { authSessionService } from "@services/AuthSessionService";
 import SessionService from "@services/SessionService";
 import { AuthPageView } from "./AuthPageView";
 import {
@@ -41,14 +42,14 @@ export class RegisterView extends AuthPageView {
   private _fields?: RegisterFields;
   private _isValidationBound = false;
   private _fieldInteractionState = createRegisterFieldInteractionState();
-  private readonly _credentials = new LocalCredentialService();
+  private readonly _auth = new AuthService();
   private readonly _session = new SessionService();
 
   constructor(navigate: (path: AppPath) => Promise<void>) {
     super({
       documentTitle: "Register",
       render: createRegisterView,
-      onSubmit: (form) => {
+      onSubmit: async (form) => {
         const fields = this._fields ?? this._resolveFields(form);
         if (!fields) {
           return;
@@ -66,10 +67,29 @@ export class RegisterView extends AuthPageView {
           return;
         }
 
-        this._session.setUsername(fields.username.value);
-        this._credentials.setPassword(fields.password.value);
-        this._credentials.setRecoveryPassphrase(fields.recoveryPassphrase.value);
-        void navigate(LOGIN_ROUTE);
+        const errorEl = form.querySelector<HTMLElement>("[data-auth-error]");
+        const submitBtn = form.querySelector<HTMLButtonElement>('[type="submit"]');
+
+        if (errorEl) errorEl.textContent = "";
+        if (submitBtn) submitBtn.disabled = true;
+
+        try {
+          const authUser = await this._auth.register(
+            fields.username.value.trim(),
+            fields.password.value,
+            fields.recoveryPassphrase.value,
+          );
+          authSessionService.setAuthenticatedUser(authUser);
+          this._session.setUsername(authUser.username);
+          await navigate(SIMULATION_ROUTE);
+        } catch (err: unknown) {
+          const status = (err as { response?: { status?: number } })?.response?.status;
+          if (errorEl) {
+            errorEl.textContent =
+              status === 409 ? "Username or email already taken." : "Registration failed. Please try again.";
+          }
+          if (submitBtn) submitBtn.disabled = false;
+        }
       },
     });
   }

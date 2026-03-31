@@ -1,33 +1,62 @@
-import { Body, Controller, Get, Param, Post, Query, Res } from "@nestjs/common";
+import { assertValidCsrfToken } from "@app/auth/assert-valid-csrf-token";
+import { SessionAuthGuard } from "@app/auth/session-auth.guard";
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, Req, Res, UseGuards } from "@nestjs/common";
+import { CatalogPatternFavoritesService } from "@patterns/catalog-pattern-favorites.service";
+import { CatalogPatternNameParamDto } from "@patterns/dto/catalog-pattern-name-param.dto";
 import { PatternsService } from "@patterns/patterns.service";
 
-import type { Response } from "express";
+import type { Request, Response } from "express";
 
 @Controller()
 export class PatternsController {
-  constructor(private readonly patternsService: PatternsService) {}
+  constructor(
+    private readonly patternsService: PatternsService,
+    private readonly catalogPatternFavoritesService: CatalogPatternFavoritesService,
+  ) {}
 
   @Get("list")
-  list(@Query("subdir") subdir?: string) {
-    return this.patternsService.list(subdir);
+  list(@Query("subdir") subdir: string | undefined, @Req() req: Request) {
+    return this.patternsService.list(subdir, req.session);
   }
 
   @Get("pattern/:name")
   @Get("critter/:name")
-  async getPattern(@Param("name") name: string, @Res({ passthrough: true }) response: Response) {
-    const content = await this.patternsService.getPatternContent(name);
+  async getPattern(@Param("name") name: string, @Req() req: Request, @Res({ passthrough: true }) response: Response) {
+    const content = await this.patternsService.getPatternContent(name, req.session);
     response.type("text/plain; charset=utf-8");
     return content;
   }
 
   @Get("usercustom")
-  listUserCustomPatterns() {
-    return this.patternsService.listCustomPatterns();
+  @UseGuards(SessionAuthGuard)
+  listUserCustomPatterns(@Req() req: Request) {
+    return this.patternsService.listCustomPatterns(req.session);
+  }
+
+  @Get("catalog-pattern-favorites")
+  getCatalogPatternFavorites(@Req() req: Request) {
+    return this.catalogPatternFavoritesService.getSnapshot(req.session);
+  }
+
+  @Put("catalog-pattern-favorites/:name")
+  @UseGuards(SessionAuthGuard)
+  favoriteCatalogPattern(@Param() params: CatalogPatternNameParamDto, @Req() req: Request) {
+    const session = assertValidCsrfToken(req);
+    return this.catalogPatternFavoritesService.favorite(params.name, session);
+  }
+
+  @Delete("catalog-pattern-favorites/:name")
+  @UseGuards(SessionAuthGuard)
+  unfavoriteCatalogPattern(@Param() params: CatalogPatternNameParamDto, @Req() req: Request) {
+    const session = assertValidCsrfToken(req);
+    return this.catalogPatternFavoritesService.unfavorite(params.name, session);
   }
 
   /** Persists any full-grid custom pattern (drawn or random snapshot); listed by GET list?subdir=user-custom or GET usercustom. */
   @Post("usercustom/:filename")
-  saveUserCustomPattern(@Param("filename") filename: string, @Body() body: unknown) {
-    return this.patternsService.saveCustomPattern(filename, body);
+  @UseGuards(SessionAuthGuard)
+  saveUserCustomPattern(@Param("filename") filename: string, @Body() body: unknown, @Req() req: Request) {
+    const session = assertValidCsrfToken(req);
+    return this.patternsService.saveCustomPattern(filename, body, session);
   }
 }

@@ -28,22 +28,29 @@ import type { WorkspaceRoute } from "@app/routes";
 import type { DrawingCursorPosition, GridStateChangeStats } from "@grid/Grid";
 import type { RandomPresetId } from "@grid/randomPresets";
 import type { RandomSeedParams } from "@grid/seeding/RandomPresetSeeder";
+import type { SessionCapabilities } from "@services/AuthSessionService";
 
-type SimulationWorkspaceOptions = {
+interface SimulationWorkspaceOptions {
+  capabilities: SessionCapabilities;
   root: HTMLElement;
   route: WorkspaceRoute;
   onRouteModeChange: (route: WorkspaceRoute) => void;
-};
+}
 
-type HxfPatternPayload = {
+interface HxfPatternPayload {
   comments: string[];
   automata: number[][];
-};
+}
+
+type PlaybackRestoreSnapshot =
+  | { kind: "drawing"; grid: number[][]; state: Uint8Array }
+  | { kind: "random"; baseGrid: number[][]; rotationDeg: number; zoomLevel: number; state: Uint8Array };
 
 export class SimulationWorkspace {
   private readonly _root: HTMLElement;
   private readonly _route: WorkspaceRoute;
   private readonly _onRouteModeChange: (route: WorkspaceRoute) => void;
+  private readonly _capabilities: SessionCapabilities;
   private readonly _canvas: HTMLCanvasElement;
   private readonly _stage: CanvasRenderingContext2D;
   private readonly _drawingCanvas: HTMLCanvasElement;
@@ -65,11 +72,13 @@ export class SimulationWorkspace {
   private readonly _pauseBtnLabel: HTMLElement;
   private readonly _drawingClearButton: HTMLButtonElement;
   private readonly _drawingRestoreButton: HTMLButtonElement;
+  private readonly _randomRestoreButton: HTMLButtonElement;
   private readonly _drawingHxfExportButton: HTMLButtonElement;
   private readonly _drawingHxfImportButton: HTMLButtonElement;
   private readonly _drawingHxfImportInput: HTMLInputElement;
   private readonly _drawingRestoreTooltipTarget: HTMLElement;
-  private readonly _drawingRestoreTooltip: Tooltip;
+  private readonly _randomRestoreTooltipTarget: HTMLElement;
+  private readonly _playbackRestoreTooltip: Tooltip;
   private readonly _drawingCursorXValue: HTMLElement;
   private readonly _drawingCursorYValue: HTMLElement;
   private readonly _speedSlider: HTMLInputElement;
@@ -100,8 +109,7 @@ export class SimulationWorkspace {
   private _randomAutoSeed: number | null = null;
   private _critterList?: string[];
   private _drawingToolBox?: DrawingToolBox;
-  private _drawingInitialGridSnapshot: number[][] | null = null;
-  private _drawingInitialStateSnapshot: Uint8Array | null = null;
+  private _playbackRestoreSnapshot: PlaybackRestoreSnapshot | null = null;
   private _currentPatternComments: string[] = [];
   private _zoomBox?: ZoomBox;
   private _userCustomSelector?: UserCustomSelector;
@@ -111,6 +119,7 @@ export class SimulationWorkspace {
     this._root = options.root;
     this._route = options.route;
     this._onRouteModeChange = options.onRouteModeChange;
+    this._capabilities = options.capabilities;
     this._selectedMode = WORKSPACE_ROUTE_TO_MODE[this._route];
 
     document.title = APP_TEXTS.document.title;
@@ -141,11 +150,13 @@ export class SimulationWorkspace {
     this._pauseBtnLabel = queryRequired<HTMLElement>(".ui-button__label", this._pauseBtn);
     this._drawingClearButton = queryRequired<HTMLButtonElement>(".drawing-clear", this._root);
     this._drawingRestoreButton = queryRequired<HTMLButtonElement>(".drawing-restore", this._root);
+    this._randomRestoreButton = queryRequired<HTMLButtonElement>(".random-restore", this._root);
     this._drawingHxfExportButton = queryRequired<HTMLButtonElement>(".drawing-hxf-export", this._root);
     this._drawingHxfImportButton = queryRequired<HTMLButtonElement>(".drawing-hxf-import", this._root);
     this._drawingHxfImportInput = queryRequired<HTMLInputElement>("#drawing-hxf-import-input", this._root);
     this._drawingRestoreTooltipTarget = queryRequired<HTMLElement>(".drawing-restore-tooltip-target", this._root);
-    this._drawingRestoreTooltip = new Tooltip();
+    this._randomRestoreTooltipTarget = queryRequired<HTMLElement>(".random-restore-tooltip-target", this._root);
+    this._playbackRestoreTooltip = new Tooltip();
     this._drawingCursorXValue = queryRequired<HTMLElement>(".drawing-cursor-x-value", this._root);
     this._drawingCursorYValue = queryRequired<HTMLElement>(".drawing-cursor-y-value", this._root);
     this._speedSlider = queryRequired<HTMLInputElement>("#speed-slider", this._root);
@@ -159,13 +170,16 @@ export class SimulationWorkspace {
       root: this._root,
       onPresetChange: this._onRandomPresetChange,
       onRandomizePane: this._onRandomPaneRandomize,
+      onGeometrize: this._onGeometrize,
       onGenerate: this._onRandomPresetGenerate,
       onSave: this._onRandomPresetSave,
       onParamsChange: this._onRandomParamChange,
       onRotationChange: this._onRotationChange,
       onZoomChange: this._onZoomChange,
       onReset: this._onReset,
+      onRestorePlayback: this._onRestorePlayback,
     });
+    this._randomControls.setSaveEnabled(this._capabilities.canSaveDrawings, APP_TEXTS.drawing.saveGuestHint);
     this._customCursor = queryRequired<HTMLElement>(".custom-cursor", this._root);
 
     this._changeZoo = (species: string) => {
@@ -177,17 +191,22 @@ export class SimulationWorkspace {
     this._applyStaticTexts();
     this._pauseBtn.addEventListener("click", this._togglePause);
     this._drawingClearButton.addEventListener("click", this._onClearCanvas);
-    this._drawingRestoreButton.addEventListener("click", this._onRestoreDrawing);
+    this._drawingRestoreButton.addEventListener("click", this._onRestorePlayback);
+    this._randomRestoreButton.addEventListener("click", this._onRestorePlayback);
     this._drawingHxfExportButton.addEventListener("click", this._onDrawingHxfExportClick);
     this._drawingHxfImportButton.addEventListener("click", this._onDrawingHxfImportButtonClick);
     this._drawingHxfImportInput.addEventListener("change", this._onDrawingHxfImportFileChange);
-    this._drawingRestoreTooltipTarget.addEventListener("pointerenter", this._handleRestoreTooltipPointerEnter);
-    this._drawingRestoreTooltipTarget.addEventListener("pointermove", this._handleRestoreTooltipPointerMove);
-    this._drawingRestoreTooltipTarget.addEventListener("pointerleave", this._hideRestoreTooltip);
-    this._drawingRestoreTooltipTarget.addEventListener("pointercancel", this._hideRestoreTooltip);
+    this._drawingRestoreTooltipTarget.addEventListener("pointerenter", this._handleDrawingRestoreTooltipPointerEnter);
+    this._drawingRestoreTooltipTarget.addEventListener("pointermove", this._handleDrawingRestoreTooltipPointerMove);
+    this._drawingRestoreTooltipTarget.addEventListener("pointerleave", this._hidePlaybackRestoreTooltip);
+    this._drawingRestoreTooltipTarget.addEventListener("pointercancel", this._hidePlaybackRestoreTooltip);
+    this._randomRestoreTooltipTarget.addEventListener("pointerenter", this._handleRandomRestoreTooltipPointerEnter);
+    this._randomRestoreTooltipTarget.addEventListener("pointermove", this._handleRandomRestoreTooltipPointerMove);
+    this._randomRestoreTooltipTarget.addEventListener("pointerleave", this._hidePlaybackRestoreTooltip);
+    this._randomRestoreTooltipTarget.addEventListener("pointercancel", this._hidePlaybackRestoreTooltip);
     this._setFPS();
     this._setPlaybackButtonState(false);
-    this._updateDrawingRestoreButton();
+    this._syncPlaybackRestoreButtons();
     this._resetSimulationPlaybackState();
 
     new ModeSelector(this._changeMode, this._root);
@@ -222,17 +241,22 @@ export class SimulationWorkspace {
     this._savePresetModal.destroy();
     this._hxfImportSavingOverlay.destroy();
     this._imageImporter?.destroy();
-    this._drawingRestoreTooltip.destroy();
+    this._playbackRestoreTooltip.destroy();
     this._pauseBtn.removeEventListener("click", this._togglePause);
     this._drawingClearButton.removeEventListener("click", this._onClearCanvas);
-    this._drawingRestoreButton.removeEventListener("click", this._onRestoreDrawing);
+    this._drawingRestoreButton.removeEventListener("click", this._onRestorePlayback);
+    this._randomRestoreButton.removeEventListener("click", this._onRestorePlayback);
     this._drawingHxfExportButton.removeEventListener("click", this._onDrawingHxfExportClick);
     this._drawingHxfImportButton.removeEventListener("click", this._onDrawingHxfImportButtonClick);
     this._drawingHxfImportInput.removeEventListener("change", this._onDrawingHxfImportFileChange);
-    this._drawingRestoreTooltipTarget.removeEventListener("pointerenter", this._handleRestoreTooltipPointerEnter);
-    this._drawingRestoreTooltipTarget.removeEventListener("pointermove", this._handleRestoreTooltipPointerMove);
-    this._drawingRestoreTooltipTarget.removeEventListener("pointerleave", this._hideRestoreTooltip);
-    this._drawingRestoreTooltipTarget.removeEventListener("pointercancel", this._hideRestoreTooltip);
+    this._drawingRestoreTooltipTarget.removeEventListener("pointerenter", this._handleDrawingRestoreTooltipPointerEnter);
+    this._drawingRestoreTooltipTarget.removeEventListener("pointermove", this._handleDrawingRestoreTooltipPointerMove);
+    this._drawingRestoreTooltipTarget.removeEventListener("pointerleave", this._hidePlaybackRestoreTooltip);
+    this._drawingRestoreTooltipTarget.removeEventListener("pointercancel", this._hidePlaybackRestoreTooltip);
+    this._randomRestoreTooltipTarget.removeEventListener("pointerenter", this._handleRandomRestoreTooltipPointerEnter);
+    this._randomRestoreTooltipTarget.removeEventListener("pointermove", this._handleRandomRestoreTooltipPointerMove);
+    this._randomRestoreTooltipTarget.removeEventListener("pointerleave", this._hidePlaybackRestoreTooltip);
+    this._randomRestoreTooltipTarget.removeEventListener("pointercancel", this._hidePlaybackRestoreTooltip);
     document.removeEventListener("pointerdown", this._handleDocumentPointerDown);
     document.removeEventListener("keydown", this._handleDocumentKeyDown);
   }
@@ -357,6 +381,7 @@ export class SimulationWorkspace {
     this._stopPlayback();
     this._setPlaybackButtonState(false);
     if (this._selectedMode !== "random" || !this._grid) return;
+    this._clearPlaybackRestoreSnapshot();
     this._randomPresetVariation = false;
     this._randomAutoSeed = null;
     this._resetSimulationPlaybackState();
@@ -366,6 +391,7 @@ export class SimulationWorkspace {
 
   private _onRandomParamChange = (): void => {
     if (this._selectedMode !== "random" || !this._grid) return;
+    this._clearPlaybackRestoreSnapshot();
     if (!this._randomControls.isAutoSeedEnabled()) {
       this._randomAutoSeed = null;
     }
@@ -385,18 +411,37 @@ export class SimulationWorkspace {
     this._stopPlayback();
     this._setPlaybackButtonState(false);
     this._resetSimulationPlaybackState();
+    this._clearPlaybackRestoreSnapshot();
     this._grid.clearCanvas();
   };
 
-  private _onRestoreDrawing = (): void => {
-    if (this._selectedMode !== "drawing" || !this._grid || !this._drawingInitialGridSnapshot) {
+  private _onRestorePlayback = (): void => {
+    if (!this._grid || !this._playbackRestoreSnapshot) {
       return;
     }
 
-    this._stopPlayback();
-    this._setPlaybackButtonState(false);
-    this._resetSimulationPlaybackState();
-    this._grid.seedFromGrid(this._drawingInitialGridSnapshot);
+    if (this._selectedMode === "drawing") {
+      if (this._playbackRestoreSnapshot.kind !== "drawing") {
+        return;
+      }
+      this._stopPlayback();
+      this._setPlaybackButtonState(false);
+      this._resetSimulationPlaybackState();
+      this._grid.seedFromGrid(this._playbackRestoreSnapshot.grid);
+      return;
+    }
+
+    if (this._selectedMode === "random") {
+      if (this._playbackRestoreSnapshot.kind !== "random") {
+        return;
+      }
+      const { baseGrid, rotationDeg, zoomLevel } = this._playbackRestoreSnapshot;
+      this._stopPlayback();
+      this._setPlaybackButtonState(false);
+      this._resetSimulationPlaybackState();
+      this._grid.restoreRandomPlaybackLayout(baseGrid, rotationDeg, zoomLevel);
+      this._randomControls.syncRotationZoomSliders(rotationDeg, zoomLevel);
+    }
   };
 
   private _onDrawingHxfExportClick = async (): Promise<void> => {
@@ -472,8 +517,12 @@ export class SimulationWorkspace {
       return;
     }
 
-    this._clearDrawingRestoreSnapshot();
+    this._clearPlaybackRestoreSnapshot();
     this._grid.seedFromGrid(automata);
+
+    if (!this._capabilities.canSaveDrawings) {
+      return;
+    }
 
     const patternName = this._patternNameFromImportFile(file);
 
@@ -657,7 +706,7 @@ export class SimulationWorkspace {
 
   private _handleStateChange = (stats: GridStateChangeStats): void => {
     this._updateCellStats(stats);
-    this._syncDrawingRestoreButton();
+    this._syncPlaybackRestoreButtons();
     if (this._playbackTelemetryTracker.cyclePeriod === null) {
       this._updateTelemetryLegendValues(stats);
       this._aliveVariationChart.push(stats.alive);
@@ -686,6 +735,7 @@ export class SimulationWorkspace {
       return;
     }
 
+    this._clearPlaybackRestoreSnapshot();
     this._randomPresetVariation = false;
     this._refreshAutoSeed();
     this._resetSimulationPlaybackState();
@@ -697,10 +747,24 @@ export class SimulationWorkspace {
       return;
     }
 
+    this._clearPlaybackRestoreSnapshot();
     this._randomPresetVariation = true;
     this._refreshAutoSeed();
     this._resetSimulationPlaybackState();
     this._grid.reseedRandomPreset(this._currentRandomPreset(), true, this._currentRandomParams());
+  };
+
+  private _onGeometrize = (): void => {
+    if (this._selectedMode !== "random" || !this._grid) {
+      return;
+    }
+
+    this._clearPlaybackRestoreSnapshot();
+    this._stopPlayback();
+    this._setPlaybackButtonState(false);
+    this._resetSimulationPlaybackState();
+    this._grid.geometrizeRandomPattern();
+    this._randomControls.resetRotationZoomAfterGeometrize();
   };
 
   private _onRandomPaneRandomize = (): void => {
@@ -708,6 +772,7 @@ export class SimulationWorkspace {
       return;
     }
 
+    this._clearPlaybackRestoreSnapshot();
     this._randomControls.randomizeControls();
     this._randomPresetVariation = true;
 
@@ -723,7 +788,7 @@ export class SimulationWorkspace {
   };
 
   private _onRandomPresetSave = async (): Promise<void> => {
-    if (this._selectedMode !== "random" || !this._grid) {
+    if (this._selectedMode !== "random" || !this._grid || !this._capabilities.canSaveDrawings) {
       return;
     }
 
@@ -779,7 +844,7 @@ export class SimulationWorkspace {
       this._setPlaybackButtonState(false);
       return;
     } else {
-      this._captureDrawingRestoreSnapshot();
+      this._capturePlaybackRestoreSnapshot();
       this._setPlaybackButtonState(true);
       this._start();
       this._isPlaying = true;
@@ -818,38 +883,71 @@ export class SimulationWorkspace {
     this._setDrawingPlaybackState(false);
   }
 
-  private _captureDrawingRestoreSnapshot(): void {
-    if (this._selectedMode !== "drawing" || !this._grid) {
+  private _capturePlaybackRestoreSnapshot(): void {
+    if (!this._grid) {
       return;
     }
 
-    this._drawingInitialGridSnapshot = this._grid.toGrid();
-    this._drawingInitialStateSnapshot = this._grid.copyState();
-    this._updateDrawingRestoreButton(false);
-  }
-
-  private _clearDrawingRestoreSnapshot(): void {
-    this._drawingInitialGridSnapshot = null;
-    this._drawingInitialStateSnapshot = null;
-    this._updateDrawingRestoreButton();
-  }
-
-  private _syncDrawingRestoreButton(): void {
-    if (this._selectedMode !== "drawing" || !this._grid || !this._drawingInitialStateSnapshot) {
-      this._updateDrawingRestoreButton();
+    if (this._selectedMode === "drawing") {
+      this._playbackRestoreSnapshot = {
+        kind: "drawing",
+        grid: this._grid.toGrid(),
+        state: this._grid.copyState(),
+      };
+    } else if (this._selectedMode === "random") {
+      const layout = this._grid.captureRandomPlaybackLayout();
+      if (!layout) {
+        return;
+      }
+      this._playbackRestoreSnapshot = {
+        kind: "random",
+        ...layout,
+        state: this._grid.copyState(),
+      };
+    } else {
       return;
     }
 
-    this._updateDrawingRestoreButton(!this._statesEqual(this._grid.copyState(), this._drawingInitialStateSnapshot));
+    this._syncPlaybackRestoreButtons();
   }
 
-  private _updateDrawingRestoreButton(hasChanges = false): void {
-    const isDisabled = this._drawingInitialStateSnapshot === null || !hasChanges;
-    this._drawingRestoreButton.disabled = isDisabled;
-    this._drawingRestoreTooltipTarget.hidden = !isDisabled;
+  private _clearPlaybackRestoreSnapshot(): void {
+    this._playbackRestoreSnapshot = null;
+    this._syncPlaybackRestoreButtons();
+  }
 
-    if (!isDisabled) {
-      this._drawingRestoreTooltip.hide();
+  private _syncPlaybackRestoreButtons(): void {
+    if (!this._grid || !this._playbackRestoreSnapshot) {
+      this._setDrawingRestoreUiDisabled(true);
+      this._setRandomRestoreUiDisabled(true);
+      return;
+    }
+
+    if (this._playbackRestoreSnapshot.kind === "drawing") {
+      const hasChanges = !this._statesEqual(this._grid.copyState(), this._playbackRestoreSnapshot.state);
+      this._setDrawingRestoreUiDisabled(!hasChanges);
+      this._setRandomRestoreUiDisabled(true);
+      return;
+    }
+
+    const hasChanges = !this._statesEqual(this._grid.copyState(), this._playbackRestoreSnapshot.state);
+    this._setRandomRestoreUiDisabled(!hasChanges);
+    this._setDrawingRestoreUiDisabled(true);
+  }
+
+  private _setDrawingRestoreUiDisabled(disabled: boolean): void {
+    this._drawingRestoreButton.disabled = disabled;
+    this._drawingRestoreTooltipTarget.hidden = !disabled;
+    if (!disabled) {
+      this._playbackRestoreTooltip.hide();
+    }
+  }
+
+  private _setRandomRestoreUiDisabled(disabled: boolean): void {
+    this._randomRestoreButton.disabled = disabled;
+    this._randomRestoreTooltipTarget.hidden = !disabled;
+    if (!disabled) {
+      this._playbackRestoreTooltip.hide();
     }
   }
 
@@ -867,25 +965,33 @@ export class SimulationWorkspace {
     return true;
   }
 
-  private _handleRestoreTooltipPointerEnter = (event: PointerEvent): void => {
-    this._showRestoreTooltip(event);
+  private _handleDrawingRestoreTooltipPointerEnter = (event: PointerEvent): void => {
+    this._showPlaybackRestoreDisabledTooltip(this._drawingRestoreButton, event);
   };
 
-  private _handleRestoreTooltipPointerMove = (event: PointerEvent): void => {
-    this._showRestoreTooltip(event);
+  private _handleDrawingRestoreTooltipPointerMove = (event: PointerEvent): void => {
+    this._showPlaybackRestoreDisabledTooltip(this._drawingRestoreButton, event);
   };
 
-  private _hideRestoreTooltip = (): void => {
-    this._drawingRestoreTooltip.hide();
+  private _handleRandomRestoreTooltipPointerEnter = (event: PointerEvent): void => {
+    this._showPlaybackRestoreDisabledTooltip(this._randomRestoreButton, event);
   };
 
-  private _showRestoreTooltip(event: PointerEvent): void {
-    if (event.pointerType === "touch" || !this._drawingRestoreButton.disabled) {
-      this._drawingRestoreTooltip.hide();
+  private _handleRandomRestoreTooltipPointerMove = (event: PointerEvent): void => {
+    this._showPlaybackRestoreDisabledTooltip(this._randomRestoreButton, event);
+  };
+
+  private _hidePlaybackRestoreTooltip = (): void => {
+    this._playbackRestoreTooltip.hide();
+  };
+
+  private _showPlaybackRestoreDisabledTooltip(button: HTMLButtonElement, event: PointerEvent): void {
+    if (event.pointerType === "touch" || !button.disabled) {
+      this._playbackRestoreTooltip.hide();
       return;
     }
 
-    this._drawingRestoreTooltip.show(CONTROL_TEXTS.drawing.restoreDisabledHint, {
+    this._playbackRestoreTooltip.show(CONTROL_TEXTS.drawing.restoreDisabledHint, {
       clientX: event.clientX,
       clientY: event.clientY,
     });
@@ -925,7 +1031,7 @@ export class SimulationWorkspace {
     }
 
     this._grid?.destroyListener();
-    this._clearDrawingRestoreSnapshot();
+    this._clearPlaybackRestoreSnapshot();
     this._currentPatternComments = [];
     this._updateDrawingCursorCoordinates(null);
     this._updateCellStats({
@@ -948,16 +1054,53 @@ export class SimulationWorkspace {
         this._zoomBox?.hide();
         this._userCustomSelector?.hide();
         this._imageImporter?.hide();
-        this._randomPresetVariation = false;
-        this._refreshAutoSeed();
-        this._grid = new Grid({
-          canvas: this._canvas,
-          ctx: this._stage,
-          mode: "random",
-          randomPreset: this._currentRandomPreset(),
-          randomParams: this._currentRandomParams(),
-          onStateChange: this._handleStateChange,
-        });
+        {
+          const maxRandomEntryAttempts = 32;
+          let randomEntryGrid!: Grid;
+          for (let attempt = 0; attempt < maxRandomEntryAttempts; attempt++) {
+            this._randomControls.randomizeControls();
+            this._randomPresetVariation = true;
+            if (this._randomControls.isAutoSeedEnabled()) {
+              this._refreshAutoSeed();
+            } else {
+              this._randomAutoSeed = null;
+            }
+            if (attempt === 0) {
+              randomEntryGrid = new Grid({
+                canvas: this._canvas,
+                ctx: this._stage,
+                mode: "random",
+                randomPreset: this._currentRandomPreset(),
+                randomParams: this._currentRandomParams(),
+                randomPresetVariation: true,
+                initialRotationDeg: this._randomControls.currentRotation(),
+                initialZoomLevel: this._randomControls.currentZoom(),
+                onStateChange: this._handleStateChange,
+              });
+              this._grid = randomEntryGrid;
+            } else {
+              randomEntryGrid.syncTransforms(
+                this._randomControls.currentRotation(),
+                this._randomControls.currentZoom(),
+              );
+              randomEntryGrid.reseedRandomPreset(this._currentRandomPreset(), true, this._currentRandomParams());
+            }
+            if (randomEntryGrid.getAliveCount() > 0) {
+              break;
+            }
+          }
+          if (randomEntryGrid.getAliveCount() === 0) {
+            this._randomControls.applyFallbackNoiseConfiguration();
+            this._randomPresetVariation = true;
+            if (this._randomControls.isAutoSeedEnabled()) {
+              this._refreshAutoSeed();
+            } else {
+              this._randomAutoSeed = null;
+            }
+            randomEntryGrid.syncTransforms(this._randomControls.currentRotation(), this._randomControls.currentZoom());
+            randomEntryGrid.reseedRandomPreset(this._currentRandomPreset(), true, this._currentRandomParams());
+          }
+        }
         break;
 
       case "zoo": {
@@ -1014,11 +1157,17 @@ export class SimulationWorkspace {
         this._userCustomSelector ??= new UserCustomSelector(this._changeZoo, this._savePresetModal);
         this._drawingToolBox.show();
         this._zoomBox.show();
-        this._userCustomSelector.show();
-        this._userCustomSelector.setCurrentValue(this._selectedSpecies ?? "");
-        await this._userCustomSelector.getCustomList();
+        this._userCustomSelector.setSaveEnabled(this._capabilities.canSaveDrawings, APP_TEXTS.drawing.saveGuestHint);
+        if (this._capabilities.canSaveDrawings) {
+          this._userCustomSelector.show();
+          this._userCustomSelector.setCurrentValue(this._selectedSpecies ?? "");
+          await this._userCustomSelector.getCustomList();
+        } else {
+          this._userCustomSelector.hide();
+          this._userCustomSelector.setCurrentValue("");
+        }
         this._imageImporter ??= new ImageImporter((grid) => {
-          this._clearDrawingRestoreSnapshot();
+          this._clearPlaybackRestoreSnapshot();
           this._grid?.seedFromGrid(grid);
         });
         this._imageImporter.show();

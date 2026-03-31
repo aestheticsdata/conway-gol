@@ -10,6 +10,9 @@ class EnvironmentVariables {
 
   @IsString()
   CATALOG_DIR: string;
+
+  @IsString()
+  SESSION_SECRET: string;
 }
 
 export function validate(config: Record<string, unknown>): EnvironmentVariables {

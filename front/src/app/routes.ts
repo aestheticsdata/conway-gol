@@ -15,17 +15,16 @@ export type WorkspaceRoute = typeof SIMULATION_ROUTE | typeof ZOO_ROUTE | typeof
 
 export const DEFAULT_APP_ROUTE: AppPath = LOGIN_ROUTE;
 
-export const PUBLIC_APP_ROUTES: readonly AppPath[] = [
-  LOGIN_ROUTE,
-  REGISTER_ROUTE,
-  ABOUT_ROUTE,
+export const PUBLIC_APP_ROUTES: readonly AppPath[] = [LOGIN_ROUTE, REGISTER_ROUTE, ABOUT_ROUTE];
+export const AUTH_ENTRY_APP_ROUTES: readonly AppPath[] = [LOGIN_ROUTE, REGISTER_ROUTE];
+export const GUEST_STUDIO_APP_ROUTES: readonly AppPath[] = [
   SIMULATION_ROUTE,
   ZOO_ROUTE,
   DRAWING_ROUTE,
-  SETTINGS_ROUTE,
   DOCUMENTATION_ROUTE,
   LEXICON_ROUTE,
 ];
+export const AUTH_ONLY_APP_ROUTES: readonly AppPath[] = [SETTINGS_ROUTE];
 
 export const WORKSPACE_ROUTE_TO_MODE: Record<WorkspaceRoute, Mode> = {
   [SIMULATION_ROUTE]: "random",
@@ -38,3 +37,15 @@ export const MODE_TO_WORKSPACE_ROUTE: Record<Mode, WorkspaceRoute> = {
   zoo: ZOO_ROUTE,
   drawing: DRAWING_ROUTE,
 };
+
+export function isAuthEntryAppRoute(path: AppPath): boolean {
+  return AUTH_ENTRY_APP_ROUTES.includes(path);
+}
+
+export function isAuthOnlyAppRoute(path: AppPath): boolean {
+  return AUTH_ONLY_APP_ROUTES.includes(path);
+}
+
+export function isGuestStudioAppRoute(path: AppPath): boolean {
+  return GUEST_STUDIO_APP_ROUTES.includes(path);
+}

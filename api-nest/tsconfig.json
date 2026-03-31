@@ -19,6 +19,7 @@
       "@config/*": ["src/config/*"],
       "@health/*": ["src/health/*"],
       "@patterns/*": ["src/patterns/*"],
+      "@auth/*": ["src/auth/*"],
       "@db/*": ["src/prisma/*"],
       "@generated/*": ["generated/*"]
     },
