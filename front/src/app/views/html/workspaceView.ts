@@ -240,7 +240,7 @@ function createDrawingHxfImageDelimiter(): string {
 }
 
 function createDrawingActionsSidebar(route: WorkspaceRoute): string {
-  const fadeInClass = route === DRAWING_ROUTE ? " route-pane-fade-in" : "";
+  const fadeInClass = route === DRAWING_ROUTE || route === SIMULATION_ROUTE ? " route-pane-fade-in" : "";
 
   return `
     <aside class="drawing-actions-pane${fadeInClass}" style="display: none">

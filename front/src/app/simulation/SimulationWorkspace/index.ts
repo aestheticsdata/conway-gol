@@ -70,6 +70,7 @@ export class SimulationWorkspace {
   private readonly _randomRestoreButton: HTMLButtonElement;
   private readonly _drawingHxfExportButton: HTMLButtonElement;
   private readonly _drawingHxfImportButton: HTMLButtonElement;
+  private readonly _drawingHxfActionsDelimiter: HTMLElement;
   private readonly _drawingHxfImportInput: HTMLInputElement;
   private readonly _drawingRestoreTooltipTarget: HTMLElement;
   private readonly _randomRestoreTooltipTarget: HTMLElement;
@@ -148,6 +149,7 @@ export class SimulationWorkspace {
     this._randomRestoreButton = queryRequired<HTMLButtonElement>(".random-restore", this._root);
     this._drawingHxfExportButton = queryRequired<HTMLButtonElement>(".drawing-hxf-export", this._root);
     this._drawingHxfImportButton = queryRequired<HTMLButtonElement>(".drawing-hxf-import", this._root);
+    this._drawingHxfActionsDelimiter = queryRequired<HTMLElement>(".drawing-actions-pane__hxf-image-delimiter", this._root);
     this._drawingHxfImportInput = queryRequired<HTMLInputElement>("#drawing-hxf-import-input", this._root);
     this._drawingRestoreTooltipTarget = queryRequired<HTMLElement>(".drawing-restore-tooltip-target", this._root);
     this._randomRestoreTooltipTarget = queryRequired<HTMLElement>(".random-restore-tooltip-target", this._root);
@@ -443,7 +445,7 @@ export class SimulationWorkspace {
   };
 
   private _onDrawingHxfExportClick = async (): Promise<void> => {
-    if (this._selectedMode !== "drawing" || !this._grid) {
+    if (this._selectedMode === "zoo" || !this._grid) {
       return;
     }
 
@@ -997,7 +999,9 @@ export class SimulationWorkspace {
         this._setDisplay(this._zooPrimitivesDOMSelector, false);
         this._setDisplay(this._zooPatternListsAction, false);
         this._drawingInspectorDOMSelector.style.display = "none";
-        this._setDisplay(this._drawingActionsSidebar, false);
+        this._setDisplay(this._drawingActionsSidebar, true);
+        this._setDisplay(this._drawingHxfImportButton, false);
+        this._setDisplay(this._drawingHxfActionsDelimiter, false);
         this._randomControls.show();
         this._commentsDOMSelector.replaceChildren();
         this._setDisplay(this._drawingCanvas, false);
@@ -1100,6 +1104,8 @@ export class SimulationWorkspace {
         this._setDisplay(this._zooPatternListsAction, false);
         this._drawingInspectorDOMSelector.style.display = "flex";
         this._setDisplay(this._drawingActionsSidebar, true);
+        this._setDisplay(this._drawingHxfImportButton, true);
+        this._setDisplay(this._drawingHxfActionsDelimiter, true);
         this._commentsDOMSelector.replaceChildren();
         this._setDisplay(this._drawingCanvas, true);
         this._drawingToolBox ??= new DrawingToolBox();
