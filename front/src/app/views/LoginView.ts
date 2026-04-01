@@ -111,11 +111,6 @@ export class LoginView extends AuthPageView {
 
   private _syncUsernameFieldChrome(): void {
     const value = this._usernameField?.value ?? "";
-    const hasUsername = value.trim().length > 0;
-
-    if (this._guestButton) {
-      this._guestButton.disabled = hasUsername;
-    }
 
     if (this._clearUsernameButton) {
       this._clearUsernameButton.hidden = value.length === 0;
