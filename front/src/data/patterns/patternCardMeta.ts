@@ -1,3 +1,5 @@
+import { isHxfNoiseCommentLine, resolveHxfDisplayAutomata } from "@data/patterns/hxfPatternAdapter";
+
 import type { RemotePattern } from "@services/PatternService";
 
 export interface PatternCardLink {
@@ -172,15 +174,21 @@ export function extractHxfPatternCardMeta(input: ExtractHxfPatternCardMetaInput)
       }
     }
 
+    if (isHxfNoiseCommentLine(line)) {
+      continue;
+    }
+
     descriptionCandidates.push(line);
   }
+
+  const pattern = resolveHxfDisplayAutomata(remotePattern.automata, remotePattern.comments);
 
   return {
     author,
     description: descriptionCandidates[0] ?? fallbackDescription,
     displayName,
     links: linkCandidates.map((href) => createPatternLink(href)),
-    pattern: remotePattern.automata,
+    pattern,
   };
 }
 

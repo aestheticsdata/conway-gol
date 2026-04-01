@@ -20,6 +20,7 @@ A full-stack implementation of [Conway's Game of Life](https://en.wikipedia.org/
 - [API Endpoints](#api-endpoints)
 - [User avatars (profile)](#user-avatars-profile)
 - [Pattern File Format (.hxf)](#pattern-file-format-hxf)
+- [Catalog pattern UI adapters (Zoo cards)](#catalog-pattern-ui-adapters-zoo-cards)
 - [Refactoring History](#refactoring-history)
 
 ## Features
@@ -219,6 +220,8 @@ conway-gol/
 │   │   │   │   ├── lexiconParser.test.ts
 │   │   │   │   └── lexiconParser.ts
 │   │   │   ├── patterns/
+│   │   │   │   ├── hxfPatternAdapter.test.ts
+│   │   │   │   ├── hxfPatternAdapter.ts
 │   │   │   │   └── patternCardMeta.ts
 │   │   │   └── species/
 │   │   │       └── species.ts
@@ -569,7 +572,7 @@ The telemetry charts share reusable renderers under `front/src/ui/controls/telem
 - `AliveVariationChart.ts`: left-panel playback graph that renders the signed per-step change in living cells
 - `AliveCountChart.ts`: left-panel playback graph that renders the absolute number of living cells over time
 
-`Data` in `front/src/data/Data.ts` fetches catalog or custom patterns, centers them on the current grid dimensions, and exposes a plain `number[][]` seed for the simulation. After `load()` resolves, `Data.comments` holds the pattern's metadata lines for the caller to display.
+`Data` in `front/src/data/Data.ts` fetches catalog or custom patterns, centers them on the current grid dimensions, and exposes a plain `number[][]` seed for the simulation. After `load()` resolves, `Data.comments` holds the pattern's metadata lines for the caller to display. The Zoo pattern list modal does not use `Data` for card copy or thumbnails; it uses `extractHxfPatternCardMeta` and the catalog UI adapters described under [Catalog pattern UI adapters (Zoo cards)](#catalog-pattern-ui-adapters-zoo-cards).
 
 `ZoomBox` in `front/src/simulation/grid/zoom/ZoomBox.ts` renders the magnified 14x14 area around the cursor in drawing mode.
 
@@ -1102,6 +1105,19 @@ Catalog patterns are stored as JSON with the `.hxf` extension:
 - `comments`: metadata lines
 
 Custom patterns are submitted in the same JSON shape through `POST /usercustom/:filename`, but are persisted in the database rather than the filesystem.
+
+### Catalog pattern UI adapters (Zoo cards)
+
+Some catalog entries follow informal conventions from ConwayLife-style imports: the first `comments` line may be a `*.cells` source filename, the only prose may be a wiki URL, or the pattern may appear as fixed-width ASCII rows (`.` dead, `*` / `O` / `o` alive) while `automata` is empty or all zeros. The on-disk `.hxf` files are not rewritten; instead the frontend adapts payloads when building **Zoo pattern list** cards.
+
+| Module | Role |
+|--------|------|
+| `front/src/data/patterns/hxfPatternAdapter.ts` | Pure helpers: detect catalog noise lines (`.cells` basename, long ASCII-only grid rows), and `resolveHxfDisplayAutomata(automata, comments)` to recover a grid from those rows when no live cells exist in `automata`. |
+| `front/src/data/patterns/patternCardMeta.ts` | `extractHxfPatternCardMeta()` skips noise lines when collecting description candidates (so the card summary is not the filename or a wall of dots), and passes the resolved grid to the preview canvas via `ZooPatternModal`. |
+
+Tests live in `front/src/data/patterns/hxfPatternAdapter.test.ts`.
+
+This does **not** change `Data.load()`, the simulation seed, or the pattern comment panel in the workspace: those still use the raw API response. Only the Zoo modal card title, description blurb, links, and thumbnail use the adapter.
 
 ## Refactoring History
 
