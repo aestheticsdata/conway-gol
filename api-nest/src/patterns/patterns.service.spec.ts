@@ -127,4 +127,24 @@ describe("PatternsService", () => {
     await expect(service.list()).resolves.toEqual(["canadagoose"]);
     expect(mockedFs.readdir).toHaveBeenCalledWith("/catalog");
   });
+
+  it("returns a batch map of catalog patterns keyed by normalized name", async () => {
+    mockedFs.readFile.mockImplementation(async (filePath: fs.PathLike) => {
+      const base = String(filePath).split(/[/\\]/).pop() ?? "";
+      if (base === "a.hxf") {
+        return JSON.stringify({ comments: ["A"], automata: [[1]] });
+      }
+      if (base === "b.hxf") {
+        return JSON.stringify({ comments: ["B"], automata: [[0, 1]] });
+      }
+      throw Object.assign(new Error("ENOENT"), { code: "ENOENT" });
+    });
+
+    const service = new PatternsService(configService as never, prisma as never);
+
+    await expect(service.getCatalogPatternsBatch(["A", "b", "a", "missing"])).resolves.toEqual({
+      a: { comments: ["A"], automata: [[1]] },
+      b: { comments: ["B"], automata: [[0, 1]] },
+    });
+  });
 });

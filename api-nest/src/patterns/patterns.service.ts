@@ -15,7 +15,7 @@ import { ConfigService } from "@nestjs/config";
 
 import type { AppSession } from "@app/auth/session.d";
 
-interface PatternPayload {
+export interface PatternPayload {
   comments: string[];
   automata: number[][];
 }
@@ -59,6 +59,36 @@ export class PatternsService {
     });
 
     return dbPatterns.map(({ name }) => name);
+  }
+
+  /**
+   * Loads many catalog patterns in one round-trip (Zoo modal). Skips unknown names and
+   * `-custom` entries. Keys in the returned map are normalized lowercase filenames.
+   */
+  async getCatalogPatternsBatch(names: string[]): Promise<Record<string, PatternPayload>> {
+    const seen = new Set<string>();
+    const unique: string[] = [];
+    for (const raw of names) {
+      const n = raw.trim().toLowerCase();
+      if (!n || n.endsWith("-custom") || seen.has(n)) {
+        continue;
+      }
+      seen.add(n);
+      unique.push(n);
+    }
+
+    const out: Record<string, PatternPayload> = {};
+    await Promise.all(
+      unique.map(async (name) => {
+        try {
+          const content = await this.getPatternContent(name);
+          out[name] = JSON.parse(content) as PatternPayload;
+        } catch {
+          /* missing file or invalid JSON — omit */
+        }
+      }),
+    );
+    return out;
   }
 
   async getPatternContent(name: string, session?: AppSession): Promise<string> {

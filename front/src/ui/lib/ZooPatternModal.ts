@@ -4,11 +4,12 @@ import { PERSON_ICON } from "@assets/icons/personIcon";
 import { extractHxfPatternCardMeta } from "@data/patterns/patternCardMeta";
 import { species } from "@data/species/species";
 import { authSessionService } from "@services/AuthSessionService";
+import { catalogPatternBatchCoordinator } from "@services/catalogPatternBatchCoordinator";
 import { patternFavoriteService } from "@services/PatternFavoriteService";
-import PatternService from "@services/PatternService";
 import { APP_TEXTS, formatZooPatternListsCountSuffix } from "@texts";
 import { createLinkButtonElement } from "@ui/components/button/createButton";
 import { drawPatternPreview, normalizePatternPreviewSource } from "@ui/lib/patternPreview";
+import { normalizeZooSearchText, zooSearchFieldMatches } from "@ui/lib/zooPatternSearch";
 
 import type { PatternCardLink } from "@data/patterns/patternCardMeta";
 import type { RemotePattern } from "@services/PatternService";
@@ -81,6 +82,8 @@ const SCROLL_REVEAL_MIN_LEAD_PX = 40;
 const SCROLL_REVEAL_MAX_LEAD_PX = 96;
 const SCROLL_REVEAL_TOP_INSET_PX = 16;
 const SCROLL_VELOCITY_MAX_PX_PER_MS = 1.6;
+/** Reveal rows slightly below the modal body fold so the 2nd grid row is not stuck at opacity 0 until scroll. */
+const REVEAL_FLUSH_EXTRA_BELOW_BODY_PX = 520;
 
 function applyCardMotion(
   card: HTMLElement,
@@ -148,7 +151,7 @@ class ZooPatternModal {
   private readonly _emptyState: HTMLElement;
   private readonly _titleCountEl: HTMLSpanElement;
   private readonly _favoriteService = patternFavoriteService;
-  private readonly _patternService = new PatternService();
+  private readonly _catalogPatternBatch = catalogPatternBatchCoordinator;
   private readonly _cardRecords = new Map<string, PatternCardRecord>();
   private _patternNames: string[] = [];
   private _selectedPattern = "";
@@ -163,6 +166,7 @@ class ZooPatternModal {
   private _scrollRevealFrameId = 0;
   private _hasBodyScrolled = false;
   private _isOpen = false;
+  private _searchRefreshTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(root: HTMLElement = document.body) {
     this._overlay = document.createElement("div");
@@ -261,6 +265,10 @@ class ZooPatternModal {
     }
 
     this._isOpen = false;
+    if (this._searchRefreshTimer !== null) {
+      window.clearTimeout(this._searchRefreshTimer);
+      this._searchRefreshTimer = null;
+    }
     this._overlay.classList.remove("is-open");
     this._overlay.classList.add("is-closing");
     document.removeEventListener("keydown", this._handleDocumentKeyDown);
@@ -304,6 +312,10 @@ class ZooPatternModal {
     if (this._scrollRevealFrameId !== 0) {
       window.cancelAnimationFrame(this._scrollRevealFrameId);
       this._scrollRevealFrameId = 0;
+    }
+    if (this._searchRefreshTimer !== null) {
+      window.clearTimeout(this._searchRefreshTimer);
+      this._searchRefreshTimer = null;
     }
     this._overlay.removeEventListener("click", this._handleOverlayClick);
     this._closeButton.removeEventListener("click", this._handleCloseButtonClick);
@@ -406,6 +418,63 @@ class ZooPatternModal {
 
     this._resultsGrid.replaceChildren(fragment);
     this._resetObserver(matches);
+    this._scheduleRevealFlushThroughNearViewport();
+  }
+
+  /**
+   * IntersectionObserver often skips the next grid row when it sits just under the scroll body’s
+   * bottom edge; flush-reveal rows that intersect an expanded viewport band after layout.
+   */
+  private _scheduleRevealFlushThroughNearViewport(): void {
+    if (typeof window.IntersectionObserver !== "function") {
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (!this._isOpen) {
+          return;
+        }
+        this._revealCardRowsInViewportFlushBand();
+      });
+    });
+  }
+
+  private _revealCardRowsInViewportFlushBand(): void {
+    const body = this._body;
+    const bodyRect = body.getBoundingClientRect();
+    const bandTop = bodyRect.top - 4;
+    const bandBottom = bodyRect.bottom + Math.max(REVEAL_FLUSH_EXTRA_BELOW_BODY_PX, bodyRect.height * 0.85);
+
+    const cards = Array.from(this._resultsGrid.querySelectorAll<HTMLElement>(".zoo-pattern-card"))
+      .filter((card) => !card.classList.contains("is-entered"))
+      .sort((left, right) => {
+        const topDelta = left.offsetTop - right.offsetTop;
+        if (Math.abs(topDelta) > CARD_REVEAL_ROW_TOLERANCE_PX) {
+          return topDelta;
+        }
+
+        return Number(left.dataset.renderIndex ?? "0") - Number(right.dataset.renderIndex ?? "0");
+      });
+
+    const revealedRowTops: number[] = [];
+    for (const card of cards) {
+      const rect = card.getBoundingClientRect();
+      if (rect.bottom <= bandTop) {
+        continue;
+      }
+      if (rect.top >= bandBottom) {
+        break;
+      }
+
+      const rowTop = card.offsetTop;
+      if (revealedRowTops.some((y) => Math.abs(y - rowTop) <= CARD_REVEAL_ROW_TOLERANCE_PX)) {
+        continue;
+      }
+
+      revealedRowTops.push(rowTop);
+      this._revealRow(card, "initial");
+    }
   }
 
   private _refreshFavoriteSnapshot(): void {
@@ -440,6 +509,11 @@ class ZooPatternModal {
       return true;
     }
 
+    const queryNorm = normalizeZooSearchText(query);
+    if (!queryNorm) {
+      return true;
+    }
+
     const record = this._cardRecords.get(patternName);
     const values = [
       patternName,
@@ -448,7 +522,26 @@ class ZooPatternModal {
       record?.meta?.description ?? "",
     ];
 
-    return values.some((value) => value.toLowerCase().includes(query));
+    return values.some((value) => zooSearchFieldMatches(value, queryNorm));
+  }
+
+  /** Re-run the search when async card meta arrives so description/title-only matches appear. */
+  private _scheduleSearchGridRefresh(): void {
+    if (!this._isOpen) {
+      return;
+    }
+    if (!this._searchInput.value.trim()) {
+      return;
+    }
+    if (this._searchRefreshTimer !== null) {
+      window.clearTimeout(this._searchRefreshTimer);
+    }
+    this._searchRefreshTimer = window.setTimeout(() => {
+      this._searchRefreshTimer = null;
+      if (this._isOpen) {
+        this._renderPatternGrid();
+      }
+    }, 48);
   }
 
   private _resetObserver(patternNames: string[]): void {
@@ -826,8 +919,8 @@ class ZooPatternModal {
       return record.loadingPromise;
     }
 
-    record.loadingPromise = this._patternService
-      .getPattern(patternName)
+    record.loadingPromise = this._catalogPatternBatch
+      .requestCatalogPattern(patternName)
       .then((remotePattern) => {
         const meta = extractPatternMeta(patternName, remotePattern);
         record.meta = meta;
@@ -872,6 +965,7 @@ class ZooPatternModal {
       })
       .finally(() => {
         record.loadingPromise = null;
+        this._scheduleSearchGridRefresh();
       });
 
     return record.loadingPromise;

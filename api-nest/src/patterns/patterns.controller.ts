@@ -1,9 +1,10 @@
 import { assertValidCsrfToken } from "@app/auth/assert-valid-csrf-token";
 import { SessionAuthGuard } from "@app/auth/session-auth.guard";
-import { Body, Controller, Delete, Get, Param, Post, Put, Query, Req, Res, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, Query, Req, Res, UseGuards } from "@nestjs/common";
 import { CatalogPatternFavoritesService } from "@patterns/catalog-pattern-favorites.service";
 import { CatalogPatternNameParamDto } from "@patterns/dto/catalog-pattern-name-param.dto";
-import { PatternsService } from "@patterns/patterns.service";
+import { PatternBatchBodyDto } from "@patterns/dto/pattern-batch-body.dto";
+import { type PatternPayload, PatternsService } from "@patterns/patterns.service";
 
 import type { Request, Response } from "express";
 
@@ -17,6 +18,13 @@ export class PatternsController {
   @Get("list")
   list(@Query("subdir") subdir: string | undefined, @Req() req: Request) {
     return this.patternsService.list(subdir, req.session);
+  }
+
+  /** Batched catalog reads for the Zoo list (one HTTP request for many thumbnails). */
+  @Post("pattern/batch")
+  @HttpCode(200)
+  getPatternBatch(@Body() body: PatternBatchBodyDto): Promise<Record<string, PatternPayload>> {
+    return this.patternsService.getCatalogPatternsBatch(body.names);
   }
 
   @Get("pattern/:name")

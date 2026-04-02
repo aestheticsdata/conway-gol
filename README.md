@@ -21,6 +21,7 @@ A full-stack implementation of [Conway's Game of Life](https://en.wikipedia.org/
 - [User avatars (profile)](#user-avatars-profile)
 - [Pattern File Format (.hxf)](#pattern-file-format-hxf)
 - [Catalog pattern UI adapters (Zoo cards)](#catalog-pattern-ui-adapters-zoo-cards)
+- [Zoo pattern list modal (search and card reveal)](#zoo-pattern-list-modal-search-and-card-reveal)
 - [Refactoring History](#refactoring-history)
 
 ## Features
@@ -192,6 +193,9 @@ conway-gol/
 │   │   │       └── zoom/
 │   │   │           └── ZoomBox.ts
 │   │   ├── lib/
+│   │   │   ├── async/
+│   │   │   │   ├── concurrencyLimiter.test.ts
+│   │   │   │   └── concurrencyLimiter.ts
 │   │   │   ├── api/
 │   │   │   │   └── api.ts
 │   │   │   ├── canvas/
@@ -234,6 +238,8 @@ conway-gol/
 │   │   │       ├── AuthSessionService.ts
 │   │   │       ├── CritterService.ts
 │   │   │       ├── LocalCredentialService.ts
+│   │   │       ├── catalogPatternBatchCoordinator.ts
+│   │   │       ├── catalogPatternFetchLimiter.ts
 │   │   │       ├── PatternFavoriteService.ts
 │   │   │       ├── PatternService.ts
 │   │   │       ├── SessionService.ts
@@ -259,7 +265,9 @@ conway-gol/
 │   │   │   └── lib/
 │   │   │       ├── WorkspaceUserMenu.ts
 │   │   │       ├── ZooPatternModal.ts
-│   │   │       └── patternPreview.ts
+│   │   │       ├── patternPreview.ts
+│   │   │       ├── zooPatternSearch.test.ts
+│   │   │       └── zooPatternSearch.ts
 │   │   ├── index.html
 │   │   ├── index.ts
 │   │   └── vite-env.d.ts
@@ -280,7 +288,7 @@ Summary of refactored frontend folders (complements the tree above):
 - **`simulation/grid/geometrizePattern/`** — Stochastic geometrization for random mode: `symmetry.ts`, `coarsen.ts`, `stripes.ts`, `regularPass.ts`, `morphology.ts`, `regions.ts`, `recipes.ts`, `quality.ts` (`isGeometrizeResultAcceptable`, `softenGeometrizeResult`), plus small helpers (`cloneGrid`, `randomInt`, `types`). Public entry: `@grid/geometrizePattern` → `geometrizeGridPattern`, `isGeometrizeResultAcceptable`, `softenGeometrizeResult`, type `GeometrizeRng`.
 - **`simulation/grid/seeding/`** — `RandomPresetSeeder` wires `shapes/` (exported `SHAPE_RANDOM_PRESET_SEEDERS` from `shapes/index.ts`), `randomPresetFractalSeeders.ts`, and `randomPresetNoise.ts`. **`randomPresetUtils/`** — one file per concern: `presetSeed`, `mulberry32`, `createPresetRng`, `fillRect`, `drawOrthogonalSegment` (re-exported from `index.ts`). **`noiseMask/`** — `math/` (`clamp01`, `mix`, `smoothstep01`, `applyNoiseLevelMix`) and **`generators/`** — one `fill*Noise` file per noise type plus `fillNoiseMask.ts`. Shared **`randomPresetTypes.ts`** exports `RandomSeedParams`, `DEFAULT_RANDOM_PARAMS`, `NoiseType`, etc.; UI and `Grid` import types/constants from there, not from a barrel on `RandomPresetSeeder`.
 - **`simulation/cell/`** — Cell state constants (`@cell/constants`); consumed by the grid engine and seeders.
-- **`lib/`** — Domain-agnostic code utilities: `api/` (`getRequestURL`), `canvas/` (including `cellPatternCrossfade/`), `dom/`, `constants/`, `url/` (`searchParamsHelper` + tests), `image/`. There is no `@helpers` alias; use `@lib/...` paths.
+- **`lib/`** — Domain-agnostic code utilities: `api/` (`getRequestURL`), `async/` (`ConcurrencyLimiter` for bounded parallelism), `canvas/` (including `cellPatternCrossfade/`), `dom/`, `constants/`, `url/` (`searchParamsHelper` + tests), `image/`. There is no `@helpers` alias; use `@lib/...` paths.
 - **`texts/`** — Copy and labels only (`appTexts.ts`: `APP_TEXTS`, `AUTH_VALIDATION_TEXTS`, `GRID_TEXTS`, `DATA_TEXTS`, `CONTROL_TEXTS`, formatters). Imported via `@texts`, kept outside `lib/` so “library code” and user-facing strings stay separate.
 - **`platform/`** — `infra/http/HttpClient` (`@infra/...`) and `services/` (`@services/...`); Axios is confined to `HttpClient`.
 
@@ -811,7 +819,7 @@ Design rules used by the current frontend:
 - Required DOM access should go through `front/src/lib/dom/dom.ts`.
 - Data loading (`Data`) does not touch the DOM. Pattern comments are returned to the caller via `Data.comments` and rendered via `SimulationWorkspace/commentDom.ts` (`buildCommentDomNodes`).
 - Cross-module imports use path aliases (`@app`, `@cell`, `@data`, `@grid`, `@infra`, `@lib`, `@navigation`, `@router`, `@services`, `@simulation`, `@texts`, `@views`). Prefer aliases for any import that leaves the current top-level folder (e.g. `@grid/seeding/...`, `@grid/geometrizePattern/...`, `@simulation/SimulationWorkspace/...`).
-- `front/src/lib/` holds domain-agnostic utilities that are not UI components, not simulation/grid logic, not HTTP services, and not copy: `api/`, `canvas/` (including `cellPatternCrossfade/`), `dom/`, `constants/`, `url/`, `image/`.
+- `front/src/lib/` holds domain-agnostic utilities that are not UI components, not simulation/grid logic, not HTTP services, and not copy: `api/`, `async/`, `canvas/` (including `cellPatternCrossfade/`), `dom/`, `constants/`, `url/`, `image/`.
 - `front/src/texts/appTexts.ts` (`@texts`) is the single module for UI strings, validation messages, preset labels, data-layer error prefixes, and drawing-control copy.
 
 ## Cell pattern crossfade (random mode)
@@ -966,6 +974,8 @@ pnpm dev
 
 Open the Vite URL shown in the terminal, usually `http://localhost:5173`.
 
+**Zoo mode** loads pattern names from the API (`GET /list`). If that request fails (API stopped, wrong port, or missing `DATABASE_URL`), the pattern picker falls back to the small built-in `species` list (~14 names), so most catalog entries (e.g. anything under `api-nest/data/patterns/`) will not appear in search until the API is running.
+
 Useful frontend scripts:
 
 - `pnpm check` runs the full local validation (`lint` + `typecheck`)
@@ -1080,9 +1090,18 @@ Manual rollback:
 | GET | `/list` | List catalog pattern names |
 | GET | `/list?subdir=user-custom` | List public custom pattern names |
 | GET | `/pattern/:name` | Fetch a pattern as plain text |
+| POST | `/pattern/batch` | Fetch many catalog patterns as JSON (`{ names: string[] }`, max 48); used by the Zoo modal |
 | GET | `/critter/:name` | Legacy alias of `/pattern/:name` |
 | GET | `/usercustom` | List public custom patterns |
 | POST | `/usercustom/:filename` | Save or update a public custom pattern |
+
+#### Zoo pattern GET bursts and HTTP 503
+
+Nest returns **404** (missing file) or **500** (read error) for `/pattern/:name`; it does **not** emit **503**. If the browser shows many **503** responses on `/conway-gol/api/pattern/...` while the Zoo list is open, the status almost always comes from **Nginx** (or another reverse proxy): `limit_req` / `limit_conn`, upstream overload, or too few worker connections while the UI fires many parallel GETs for card previews.
+
+The preferred fix is architectural: the Zoo modal loads card data through **`POST /pattern/batch`**, coalescing visible pattern names into a few JSON requests (debounced chunks of up to 48 names) instead of one GET per card. That keeps traffic well inside typical `limit_req` budgets even when scrolling quickly.
+
+`PatternService.getPattern` (single GET) remains for `Data.load()` and other call sites; it still uses a small concurrency limiter and retries **502**, **503**, and **429**. Operators can raise proxy limits if batch traffic ever needs it.
 
 ## Pattern File Format (.hxf)
 
@@ -1118,6 +1137,19 @@ Some catalog entries follow informal conventions from ConwayLife-style imports: 
 Tests live in `front/src/data/patterns/hxfPatternAdapter.test.ts`.
 
 This does **not** change `Data.load()`, the simulation seed, or the pattern comment panel in the workspace: those still use the raw API response. Only the Zoo modal card title, description blurb, links, and thumbnail use the adapter.
+
+#### Zoo pattern list modal (search and card reveal)
+
+`front/src/ui/lib/ZooPatternModal.ts` implements the searchable grid of catalog cards.
+
+| Concern | Behaviour |
+|---------|-----------|
+| **Search** | `front/src/ui/lib/zooPatternSearch.ts` lowercases and strips punctuation/spacing so queries such as `trans` and `trans-` match the same normalized needle against the internal pattern id, display title, author, and description (tests in `zooPatternSearch.test.ts`). |
+| **Results after metadata loads** | When `POST /pattern/batch` resolves, a short debounced `_renderPatternGrid()` re-runs so rows that only match loaded copy (e.g. prose in `comments`) appear without typing again. |
+| **Second row stuck invisible** | Cards start at `opacity: 0` until they gain `is-entered`. `IntersectionObserver` alone often skipped the next grid row when it sat just below the scroll body. After each grid rebuild, a double `requestAnimationFrame` pass calls `_revealCardRowsInViewportFlushBand()` to reveal every row intersecting the visible body plus a band (~520 px or 85% of body height) below the fold, so the next row shows without manual scroll. |
+| **CSS** | `front/src/styles/zoo/pattern-cards.css` does not use `content-visibility: auto` on cards, avoiding browsers underestimating off-screen row height in the grid. |
+
+Card payloads are still loaded through `catalogPatternBatchCoordinator` (`front/src/platform/services/catalogPatternBatchCoordinator.ts`) and `extractHxfPatternCardMeta` as described above and under [Zoo pattern GET bursts and HTTP 503](#zoo-pattern-get-bursts-and-http-503).
 
 ## Refactoring History
 

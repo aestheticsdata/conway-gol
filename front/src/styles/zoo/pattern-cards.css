@@ -17,7 +17,6 @@
     transform 180ms cubic-bezier(0.2, 0.78, 0.24, 1),
     border-color 180ms ease,
     box-shadow 180ms ease;
-  content-visibility: auto;
 }
 
 .zoo-pattern-card.is-entered {
