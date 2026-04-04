@@ -1,23 +1,29 @@
 import { CLOSE_ICON } from "@assets/icons/closeIcon";
 import { createButton } from "@ui/components/button/createButton";
 
-type SavePresetModalTexts = {
+interface PromptModalTexts {
+  description?: string;
   title: string;
   inputPlaceholder: string;
   saveLabel: string;
   cancelLabel: string;
   nameRequired: string;
   closeLabel: string;
-};
+}
 
-type SavePresetModalOptions = {
+type PromptModalMode = "notice" | "prompt";
+
+interface PromptModalOptions {
   autocomplete?: HTMLInputElement["autocomplete"];
+  hideCancel?: boolean;
   inputType?: "password" | "text";
   /** Prefills the name field (export filename, etc.). */
   initialValue?: string;
-};
+  mode?: PromptModalMode;
+}
 
-const DEFAULT_TEXTS: SavePresetModalTexts = {
+const DEFAULT_TEXTS: PromptModalTexts = {
+  description: "",
   title: "Save preset",
   inputPlaceholder: "Preset name",
   saveLabel: "save",
@@ -26,9 +32,10 @@ const DEFAULT_TEXTS: SavePresetModalTexts = {
   closeLabel: "close",
 };
 
-class SavePresetModal {
+class PromptModal {
   private readonly _overlay: HTMLDivElement;
   private readonly _title: HTMLHeadingElement;
+  private readonly _description: HTMLParagraphElement;
   private readonly _input: HTMLInputElement;
   private readonly _error: HTMLParagraphElement;
   private readonly _saveBtn: HTMLButtonElement;
@@ -37,7 +44,8 @@ class SavePresetModal {
   private _resolver: ((value: string | null) => void) | null = null;
   private _pendingPromise: Promise<string | null> | null = null;
   private _previouslyFocused: HTMLElement | null = null;
-  private _texts: SavePresetModalTexts = DEFAULT_TEXTS;
+  private _texts: PromptModalTexts = DEFAULT_TEXTS;
+  private _mode: PromptModalMode = "prompt";
 
   constructor(root: HTMLElement = document.body) {
     this._overlay = document.createElement("div");
@@ -52,6 +60,7 @@ class SavePresetModal {
             <span aria-hidden="true">${CLOSE_ICON}</span>
           </button>
         </div>
+        <p class="ui-save-modal__description" hidden></p>
         <input
           type="text"
           class="ui-input ui-save-modal__input"
@@ -68,6 +77,7 @@ class SavePresetModal {
     `;
 
     this._title = this._query(".ui-save-modal__title");
+    this._description = this._query(".ui-save-modal__description");
     this._input = this._query(".ui-save-modal__input");
     this._error = this._query(".ui-save-modal__error");
     this._saveBtn = this._query(".ui-save-modal__save");
@@ -83,7 +93,7 @@ class SavePresetModal {
     root.append(this._overlay);
   }
 
-  public open(texts: Partial<SavePresetModalTexts> = {}, options: SavePresetModalOptions = {}): Promise<string | null> {
+  public open(texts: Partial<PromptModalTexts> = {}, options: PromptModalOptions = {}): Promise<string | null> {
     if (this._resolver) {
       this._resolver(null);
       this._resolver = null;
@@ -93,6 +103,7 @@ class SavePresetModal {
       ...DEFAULT_TEXTS,
       ...texts,
     };
+    this._mode = options.mode ?? "prompt";
 
     this._previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     this._overlay.hidden = false;
@@ -102,15 +113,23 @@ class SavePresetModal {
     });
 
     this._title.textContent = this._texts.title;
+    this._description.textContent = this._texts.description ?? "";
+    this._description.hidden = (this._texts.description ?? "").length === 0;
     this._input.placeholder = this._texts.inputPlaceholder;
     this._input.type = options.inputType ?? "text";
     this._input.autocomplete = options.autocomplete ?? "off";
     this._saveBtn.textContent = this._texts.saveLabel;
     this._cancelBtn.textContent = this._texts.cancelLabel;
+    this._cancelBtn.hidden = options.hideCancel ?? false;
     this._closeBtn.setAttribute("aria-label", this._texts.closeLabel);
     this._input.value = options.initialValue ?? "";
+    this._input.hidden = this._mode === "notice";
     this._setError("");
-    this._input.focus();
+    if (this._mode === "notice") {
+      this._saveBtn.focus();
+    } else {
+      this._input.focus();
+    }
     document.addEventListener("keydown", this._handleDocumentKeyDown);
 
     this._pendingPromise = new Promise<string | null>((resolve) => {
@@ -125,6 +144,25 @@ class SavePresetModal {
     this._overlay.remove();
     this._resolver = null;
     this._pendingPromise = null;
+  }
+
+  public async openNotice(
+    texts: Pick<PromptModalTexts, "closeLabel" | "description" | "saveLabel" | "title"> &
+      Partial<Pick<PromptModalTexts, "cancelLabel">>,
+  ): Promise<void> {
+    await this.open(
+      {
+        cancelLabel: texts.cancelLabel ?? DEFAULT_TEXTS.cancelLabel,
+        closeLabel: texts.closeLabel,
+        description: texts.description,
+        saveLabel: texts.saveLabel,
+        title: texts.title,
+      },
+      {
+        hideCancel: true,
+        mode: "notice",
+      },
+    );
   }
 
   private _query<T extends HTMLElement>(selector: string): T {
@@ -160,6 +198,11 @@ class SavePresetModal {
   };
 
   private _handleSave = (): void => {
+    if (this._mode === "notice") {
+      this._close("", { restoreFocus: false });
+      return;
+    }
+
     const trimmedName = this._input.value.trim();
     if (!trimmedName) {
       this._setError(this._texts.nameRequired);
@@ -215,4 +258,4 @@ class SavePresetModal {
   }
 }
 
-export default SavePresetModal;
+export default PromptModal;

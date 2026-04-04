@@ -22,6 +22,13 @@ export interface SessionViewer {
 }
 
 export type AuthSessionMode = "authenticated" | "guest";
+export interface SessionStateChangeEvent {
+  reason: "explicit" | "unauthorized";
+  viewer: SessionViewer;
+}
+export interface SessionStateChangeListener {
+  (event: SessionStateChangeEvent): void;
+}
 
 type AuthSessionStatus = AuthSessionMode | "unknown";
 
@@ -29,11 +36,16 @@ const GUEST_USERNAME = "Guest";
 
 class AuthSessionService {
   private _status: AuthSessionStatus = "unknown";
+  private readonly _listeners = new Set<SessionStateChangeListener>();
 
   constructor(
     private readonly _auth = new AuthService(),
     private readonly _session = new SessionService(),
-  ) {}
+  ) {
+    httpClient.setUnauthorizedResponseHandler(() => {
+      this.handleUnauthorizedSession();
+    });
+  }
 
   public isAuthenticated(): boolean {
     return this._status === "authenticated";
@@ -77,6 +89,7 @@ class AuthSessionService {
     this._session.setUsername(user.username);
     this._session.setAvatarId(user.avatarId ?? this._session.getAvatarIdOrFallback());
     this._status = "authenticated";
+    this._emitSessionChange("explicit");
   }
 
   public async restore(): Promise<AuthSessionMode> {
@@ -102,13 +115,40 @@ class AuthSessionService {
   }
 
   public setGuest(): void {
-    this.clearLocal();
+    this.clearLocal("explicit");
   }
 
-  public clearLocal(): void {
+  public clearLocal(reason: SessionStateChangeEvent["reason"] = "explicit"): void {
     this._status = "guest";
     httpClient.clearCsrfToken();
     this._session.clear();
+    this._emitSessionChange(reason);
+  }
+
+  public handleUnauthorizedSession(): void {
+    if (!this.isAuthenticated()) {
+      return;
+    }
+
+    this.clearLocal("unauthorized");
+  }
+
+  public subscribe(listener: SessionStateChangeListener): () => void {
+    this._listeners.add(listener);
+    return () => {
+      this._listeners.delete(listener);
+    };
+  }
+
+  private _emitSessionChange(reason: SessionStateChangeEvent["reason"]): void {
+    const event: SessionStateChangeEvent = {
+      reason,
+      viewer: this.getViewer(),
+    };
+
+    for (const listener of this._listeners) {
+      listener(event);
+    }
   }
 }
 

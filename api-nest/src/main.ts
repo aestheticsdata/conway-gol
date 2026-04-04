@@ -21,6 +21,7 @@ export function configureApp(app: INestApplication): void {
     session({
       name: SESSION_COOKIE_NAME,
       secret: sessionSecret,
+      rolling: true,
       resave: false,
       saveUninitialized: false,
       cookie: {

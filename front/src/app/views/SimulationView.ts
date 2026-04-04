@@ -8,11 +8,13 @@ import { createWorkspaceView } from "./html";
 import type { WorkspaceRoute } from "@app/routes";
 import type { AppPath } from "@navigation/NavigationAdapter";
 import type { RouteContext, Screen } from "@router/Screen";
+import type { SessionStateChangeEvent } from "@services/AuthSessionService";
 
 export class SimulationView implements Screen {
   private _root?: HTMLElement;
   private _workspace?: SimulationWorkspace;
   private _userMenu?: WorkspaceUserMenu;
+  private _unsubscribeSession?: () => void;
 
   constructor(
     private readonly _route: WorkspaceRoute,
@@ -27,9 +29,11 @@ export class SimulationView implements Screen {
     container.replaceChildren(this._root);
 
     this._userMenu = new WorkspaceUserMenu({
+      currentPath: this._route,
       root: this._root,
       onLogout: this._onLogout,
     });
+    this._unsubscribeSession = authSessionService.subscribe(this._handleSessionStateChange);
   }
 
   public async enter(context: RouteContext): Promise<void> {
@@ -56,9 +60,11 @@ export class SimulationView implements Screen {
   }
 
   public destroy(): void {
+    this._unsubscribeSession?.();
     this._userMenu?.destroy();
     this._workspace = undefined;
     this._userMenu = undefined;
+    this._unsubscribeSession = undefined;
     this._root = undefined;
   }
 
@@ -66,5 +72,10 @@ export class SimulationView implements Screen {
     void authSessionService.logout().finally(() => {
       void this._navigate(LOGIN_ROUTE);
     });
+  };
+
+  private _handleSessionStateChange = (event: SessionStateChangeEvent): void => {
+    this._userMenu?.update(event.viewer);
+    this._workspace?.updateCapabilities(event.viewer.capabilities);
   };
 }

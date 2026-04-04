@@ -1,5 +1,5 @@
 export const SESSION_COOKIE_NAME = "cgl.sid";
-export const SESSION_COOKIE_MAX_AGE_MS = 12 * 60 * 60 * 1000;
+export const SESSION_COOKIE_MAX_AGE_MS = 20 * 60 * 1000;
 
 export interface SessionCookieOptions {
   httpOnly: true;

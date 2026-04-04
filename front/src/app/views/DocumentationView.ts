@@ -1,4 +1,4 @@
-import { LOGIN_ROUTE } from "@app/routes";
+import { DOCUMENTATION_ROUTE, LOGIN_ROUTE } from "@app/routes";
 import { authSessionService } from "@services/AuthSessionService";
 import { APP_TEXTS } from "@texts";
 import WorkspaceUserMenu from "@ui/lib/WorkspaceUserMenu";
@@ -21,6 +21,7 @@ export class DocumentationView implements Screen {
     container.replaceChildren(this._root);
 
     this._userMenu = new WorkspaceUserMenu({
+      currentPath: DOCUMENTATION_ROUTE,
       root: this._root,
       onLogout: this._onLogout,
     });

@@ -5,6 +5,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@app": resolve(__dirname, "src"),
+      "@auth": resolve(__dirname, "src/auth"),
       "@config": resolve(__dirname, "src/config"),
       "@health": resolve(__dirname, "src/health"),
       "@patterns": resolve(__dirname, "src/patterns"),

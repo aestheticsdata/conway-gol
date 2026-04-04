@@ -68,6 +68,8 @@ export const CONTROL_TEXTS = {
     hxfImportSavingStatus: "Saving pattern…",
     hxfImportCompleteMessage: "Import complete",
     hxfImportCloseLabel: "Close",
+    sessionExpiredTitle: "Session expired",
+    sessionExpiredMessage: "Your session expired. Reconnect to save drawings.",
     clearCanvasButton: "Clear canvas",
     restoreButton: "Restore",
     restoreDisabledHint: "Restore drawing after changes",

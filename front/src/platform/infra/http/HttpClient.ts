@@ -3,9 +3,14 @@ import axios from "axios";
 
 import type { AxiosInstance, AxiosRequestConfig } from "axios";
 
+export interface HttpClientResponseErrorHandler {
+  (error: unknown): void;
+}
+
 class HttpClient {
   private readonly _client: AxiosInstance;
   private _csrfToken: string | null = null;
+  private _unauthorizedResponseHandler: HttpClientResponseErrorHandler | null = null;
 
   constructor(
     client: AxiosInstance = axios.create({
@@ -21,6 +26,17 @@ class HttpClient {
       }
       return config;
     });
+
+    this._client.interceptors.response.use(
+      (response) => response,
+      async (error: unknown) => {
+        const status = (error as { response?: { status?: number } })?.response?.status;
+        if (status === 401) {
+          this._unauthorizedResponseHandler?.(error);
+        }
+        throw error;
+      },
+    );
   }
 
   public setCsrfToken(token: string): void {
@@ -29,6 +45,10 @@ class HttpClient {
 
   public clearCsrfToken(): void {
     this._csrfToken = null;
+  }
+
+  public setUnauthorizedResponseHandler(handler: HttpClientResponseErrorHandler | null): void {
+    this._unauthorizedResponseHandler = handler;
   }
 
   public async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {

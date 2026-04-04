@@ -29,9 +29,8 @@ import ZooSelector from "@ui/controls/simulation/ZooSelector";
 import AliveCountChart from "@ui/controls/telemetry/AliveCountChart";
 import AliveVariationChart from "@ui/controls/telemetry/AliveVariationChart";
 import HxfImportSavingOverlay from "@ui/lib/HxfImportSavingOverlay";
-import SavePresetModal from "@ui/lib/SavePresetModal";
+import PromptModal from "@ui/lib/PromptModal";
 import Tooltip from "@ui/lib/Tooltip";
-import Swal from "sweetalert2";
 
 import type { WorkspaceRoute } from "@app/routes";
 import type { DrawingCursorPosition, GridStateChangeStats } from "@grid/Grid";
@@ -45,7 +44,7 @@ export class SimulationWorkspace {
   private readonly _root: HTMLElement;
   private readonly _route: WorkspaceRoute;
   private readonly _onRouteModeChange: (route: WorkspaceRoute) => void;
-  private readonly _capabilities: SessionCapabilities;
+  private _capabilities: SessionCapabilities;
   private readonly _canvas: HTMLCanvasElement;
   private readonly _stage: CanvasRenderingContext2D;
   private readonly _drawingCanvas: HTMLCanvasElement;
@@ -61,7 +60,8 @@ export class SimulationWorkspace {
   private readonly _aliveCountChart: AliveCountChart;
   private readonly _critterService = new CritterService();
   private readonly _userCustomService = new UserCustomService();
-  private readonly _savePresetModal = new SavePresetModal();
+  private readonly _savePresetModal = new PromptModal();
+  private readonly _noticeModal = new PromptModal();
   private readonly _hxfImportSavingOverlay = new HxfImportSavingOverlay();
   private readonly _pauseBtn: HTMLButtonElement;
   private readonly _pauseBtnLabel: HTMLElement;
@@ -211,6 +211,13 @@ export class SimulationWorkspace {
     document.addEventListener("keydown", this._handleDocumentKeyDown);
   }
 
+  public updateCapabilities(capabilities: SessionCapabilities): void {
+    this._capabilities = capabilities;
+    this._randomControls.setSaveEnabled(this._capabilities.canSaveDrawings, APP_TEXTS.drawing.saveGuestHint);
+    this._userCustomSelector?.setSaveEnabled(this._capabilities.canSaveDrawings, APP_TEXTS.drawing.saveGuestHint);
+    this._zooSelector?.refreshSessionState();
+  }
+
   public async init(query: URLSearchParams): Promise<void> {
     if (this._selectedMode === "zoo") {
       this._selectedSpecies = getTrimmedSearchParam(query, "pattern");
@@ -236,6 +243,7 @@ export class SimulationWorkspace {
     this._userCustomSelector?.destroy();
     this._drawingToolBox?.destroy();
     this._savePresetModal.destroy();
+    this._noticeModal.destroy();
     this._hxfImportSavingOverlay.destroy();
     this._imageImporter?.destroy();
     this._playbackRestoreTooltip.destroy();
@@ -496,10 +504,11 @@ export class SimulationWorkspace {
     try {
       text = await file.text();
     } catch {
-      void Swal.fire({
-        icon: "error",
+      void this._noticeModal.openNotice({
+        closeLabel: CONTROL_TEXTS.drawing.hxfImportCloseLabel,
+        description: CONTROL_TEXTS.drawing.hxfImportParseError,
+        saveLabel: CONTROL_TEXTS.drawing.hxfImportCloseLabel,
         title: CONTROL_TEXTS.drawing.hxfImportErrorTitle,
-        text: CONTROL_TEXTS.drawing.hxfImportParseError,
       });
       return;
     }
@@ -509,10 +518,11 @@ export class SimulationWorkspace {
       automata = parseHxfImportAutomata(text);
     } catch (err) {
       const isGridError = err instanceof Error && err.message === "grid";
-      void Swal.fire({
-        icon: "error",
+      void this._noticeModal.openNotice({
+        closeLabel: CONTROL_TEXTS.drawing.hxfImportCloseLabel,
+        description: isGridError ? CONTROL_TEXTS.drawing.hxfImportGridError : CONTROL_TEXTS.drawing.hxfImportParseError,
+        saveLabel: CONTROL_TEXTS.drawing.hxfImportCloseLabel,
         title: CONTROL_TEXTS.drawing.hxfImportErrorTitle,
-        text: isGridError ? CONTROL_TEXTS.drawing.hxfImportGridError : CONTROL_TEXTS.drawing.hxfImportParseError,
       });
       return;
     }
@@ -533,6 +543,11 @@ export class SimulationWorkspace {
       await this._userCustomSelector?.getCustomList();
       this._hxfImportSavingOverlay.showImportComplete();
     } catch (err) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 401) {
+        this._hxfImportSavingOverlay.showImportFailed(CONTROL_TEXTS.drawing.sessionExpiredMessage);
+        return;
+      }
       console.error(err);
       this._hxfImportSavingOverlay.showImportFailed(
         err instanceof Error ? err.message : CONTROL_TEXTS.drawing.hxfImportParseError,
@@ -771,8 +786,23 @@ export class SimulationWorkspace {
       return;
     }
 
-    await this._userCustomService.postCustomDrawing(this._grid.toGrid(), filename);
-    await this._userCustomSelector?.getCustomList();
+    try {
+      await this._userCustomService.postCustomDrawing(this._grid.toGrid(), filename);
+      await this._userCustomSelector?.getCustomList();
+    } catch (error: unknown) {
+      const status = (error as { response?: { status?: number } })?.response?.status;
+      if (status === 401) {
+        void this._noticeModal.openNotice({
+          closeLabel: CONTROL_TEXTS.drawing.hxfImportCloseLabel,
+          description: CONTROL_TEXTS.drawing.sessionExpiredMessage,
+          saveLabel: CONTROL_TEXTS.drawing.hxfImportCloseLabel,
+          title: CONTROL_TEXTS.drawing.sessionExpiredTitle,
+        });
+        return;
+      }
+
+      throw error;
+    }
   };
 
   private _setFPS(): void {

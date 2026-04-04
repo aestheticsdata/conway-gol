@@ -1,4 +1,4 @@
-import { LOGIN_ROUTE } from "@app/routes";
+import { LOGIN_ROUTE, SETTINGS_ROUTE } from "@app/routes";
 import { getUserAvatarOption, USER_AVATAR_OPTIONS } from "@assets/icons/userAvatars";
 import { queryAll } from "@lib/dom/dom";
 import AuthService from "@services/AuthService";
@@ -60,6 +60,7 @@ export class SettingsView implements Screen {
     this._menuAvatars = queryAll<HTMLElement>(".workspace-user-menu__avatar", this._root);
     this._avatarButtons = queryAll<HTMLButtonElement>("[data-avatar-id]", this._root);
     this._userMenu = new WorkspaceUserMenu({
+      currentPath: SETTINGS_ROUTE,
       root: this._root,
       onLogout: this._onLogout,
     });

@@ -166,7 +166,7 @@ class ZooPatternModal {
   private _scrollRevealFrameId = 0;
   private _hasBodyScrolled = false;
   private _isOpen = false;
-  private _searchRefreshTimer: ReturnType<typeof setTimeout> | null = null;
+  private _searchRefreshTimer: number | null = null;
 
   constructor(root: HTMLElement = document.body) {
     this._overlay = document.createElement("div");
@@ -321,6 +321,12 @@ class ZooPatternModal {
     this._closeButton.removeEventListener("click", this._handleCloseButtonClick);
     this._searchInput.removeEventListener("input", this._handleSearchInput);
     this._overlay.remove();
+  }
+
+  public refreshSessionState(): void {
+    for (const [patternName, record] of this._cardRecords.entries()) {
+      this._syncFavoriteState(record, patternName);
+    }
   }
 
   private _query<T extends HTMLElement>(selector: string): T {

@@ -1,9 +1,10 @@
 import { GRID_COLS, GRID_ROWS } from "@grid/constants";
 import { queryRequired } from "@lib/dom/dom";
 import { ACCEPTED_EXTENSIONS, floydSteinberg, ImageSeedError, seedFromImage } from "@lib/image/ImageSeeder";
+import { CONTROL_TEXTS } from "@texts";
 import { syncSliderFill } from "@ui/components/slider/createSlider";
+import PromptModal from "@ui/lib/PromptModal";
 import Tooltip from "@ui/lib/Tooltip";
-import Swal from "sweetalert2";
 
 const DEFAULT_THRESHOLD = 128;
 const FORMATS_LABEL = `(${ACCEPTED_EXTENSIONS.join(", ")})`;
@@ -26,6 +27,7 @@ class ImageImporter {
   private readonly _thresholdTooltipTarget: HTMLElement;
   private readonly _thresholdValue: HTMLElement;
   private readonly _tooltip: Tooltip;
+  private readonly _noticeModal: PromptModal;
   private readonly _onImport: (grid: number[][]) => void;
   private _grayscale: Float32Array | null = null;
   private _hasImportedImage = false;
@@ -44,6 +46,7 @@ class ImageImporter {
     );
     this._thresholdValue = queryRequired<HTMLElement>("#image-threshold-value", this._container);
     this._tooltip = new Tooltip();
+    this._noticeModal = new PromptModal();
     this._onImport = onImport;
 
     this._btn.textContent = TEXTS.button;
@@ -92,6 +95,7 @@ class ImageImporter {
     this._thresholdTooltipTarget.removeEventListener("pointerleave", this._hideTooltip);
     this._thresholdTooltipTarget.removeEventListener("pointercancel", this._hideTooltip);
     this._tooltip.destroy();
+    this._noticeModal.destroy();
   }
 
   private _showTooltip = (e: PointerEvent): void => {
@@ -131,7 +135,12 @@ class ImageImporter {
       this._onImport(grid);
     } catch (err) {
       const text = err instanceof ImageSeedError ? err.message : TEXTS.unsupported;
-      void Swal.fire({ icon: "error", title: TEXTS.errorTitle, text });
+      void this._noticeModal.openNotice({
+        closeLabel: CONTROL_TEXTS.drawing.hxfImportCloseLabel,
+        description: text,
+        saveLabel: CONTROL_TEXTS.drawing.hxfImportCloseLabel,
+        title: TEXTS.errorTitle,
+      });
     }
   };
 

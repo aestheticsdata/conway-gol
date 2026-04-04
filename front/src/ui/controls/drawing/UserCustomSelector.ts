@@ -2,13 +2,13 @@ import { queryRequired } from "@lib/dom/dom";
 import UserCustomService from "@services/UserCustomService";
 import { CONTROL_TEXTS } from "@texts";
 import CustomSelect from "@ui/controls/shared/CustomSelect";
-import SavePresetModal from "@ui/lib/SavePresetModal";
+import PromptModal from "@ui/lib/PromptModal";
 import Tooltip from "@ui/lib/Tooltip";
 
 class UserCustomSelector {
   private readonly _customDrawingDOMSelector: HTMLElement;
   private readonly _userCustomService: UserCustomService;
-  private readonly _savePresetModal: SavePresetModal;
+  private readonly _savePresetModal: PromptModal;
   private readonly _customSelect: CustomSelect;
   private readonly _saveTooltipTarget: HTMLElement;
   private readonly _saveDisabledTooltip: Tooltip;
@@ -25,14 +25,14 @@ class UserCustomSelector {
    */
   public getGridData: () => number[][] = () => [];
 
-  constructor(cb: (speciesName: string) => void, savePresetModal?: SavePresetModal) {
+  constructor(cb: (speciesName: string) => void, savePresetModal?: PromptModal) {
     this._customDrawingDOMSelector = queryRequired<HTMLElement>(".custom-drawing-files");
     this.saveBtn = queryRequired<HTMLButtonElement>(".drawing-save-action .save");
     this._saveTooltipTarget = queryRequired<HTMLElement>(".drawing-save-tooltip-target");
     this._cb = cb;
     this.saveBtn.style.display = "block";
     this._userCustomService = new UserCustomService();
-    this._savePresetModal = savePresetModal ?? new SavePresetModal();
+    this._savePresetModal = savePresetModal ?? new PromptModal();
     this._saveDisabledTooltip = new Tooltip();
     this._customSelect = new CustomSelect(queryRequired<HTMLElement>(".custom-drawing-custom-select"), {
       onChange: this._onSelectChange,
@@ -113,9 +113,24 @@ class UserCustomSelector {
     });
 
     if (filename) {
-      await this._userCustomService.postCustomDrawing(this.getGridData(), filename);
-      this._selectedValue = filename;
-      await this.getCustomList();
+      try {
+        await this._userCustomService.postCustomDrawing(this.getGridData(), filename);
+        this._selectedValue = filename;
+        await this.getCustomList();
+      } catch (error: unknown) {
+        const status = (error as { response?: { status?: number } })?.response?.status;
+        if (status === 401) {
+          await this._savePresetModal.openNotice({
+            closeLabel: CONTROL_TEXTS.drawing.hxfImportCloseLabel,
+            description: CONTROL_TEXTS.drawing.sessionExpiredMessage,
+            saveLabel: CONTROL_TEXTS.drawing.hxfImportCloseLabel,
+            title: CONTROL_TEXTS.drawing.sessionExpiredTitle,
+          });
+          return;
+        }
+
+        throw error;
+      }
     }
   };
 

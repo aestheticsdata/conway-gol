@@ -42,6 +42,10 @@ class ZooSelector {
 
   public handleDocumentKeyDown(_event: KeyboardEvent): void {}
 
+  public refreshSessionState(): void {
+    this._patternModal.refreshSessionState();
+  }
+
   public destroy(): void {
     this._patternListsButton?.removeEventListener("click", this._handlePatternListsClick);
     this._patternModal.destroy();

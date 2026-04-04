@@ -1,4 +1,4 @@
-import { LOGIN_ROUTE, ZOO_ROUTE } from "@app/routes";
+import { LEXICON_ROUTE, LOGIN_ROUTE, ZOO_ROUTE } from "@app/routes";
 import { LIFE_LEXICON } from "@data/lexicon/lexiconParser";
 import { resolveLexiconPatternCandidate, resolveLexiconPatternToZooPattern } from "@data/lexicon/zooPatternResolver";
 import { buildPathWithSearchParam } from "@lib/url/searchParamsHelper";
@@ -32,6 +32,7 @@ export class LexiconView implements Screen {
     container.replaceChildren(this._root);
 
     this._userMenu = new WorkspaceUserMenu({
+      currentPath: LEXICON_ROUTE,
       root: this._root,
       onLogout: this._onLogout,
     });
