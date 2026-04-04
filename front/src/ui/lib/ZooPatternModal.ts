@@ -167,6 +167,7 @@ class ZooPatternModal {
   private _hasBodyScrolled = false;
   private _isOpen = false;
   private _searchRefreshTimer: number | null = null;
+  private _savedBodyScrollTop = 0;
 
   constructor(root: HTMLElement = document.body) {
     this._overlay = document.createElement("div");
@@ -229,12 +230,10 @@ class ZooPatternModal {
     this._searchInput.value = "";
     this._isOpen = true;
     this._syncOverlayInset();
-    this._resetBodyScroll();
     this._renderPatternGrid();
     this._refreshFavoriteSnapshot();
     this._overlay.hidden = false;
     this._overlay.classList.remove("is-closing");
-    this._resetBodyScroll();
 
     this._bodyOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -245,10 +244,10 @@ class ZooPatternModal {
     window.addEventListener("scroll", this._syncOverlayInset, true);
 
     requestAnimationFrame(() => {
-      this._resetBodyScroll();
+      this._restoreBodyScroll();
       this._overlay.classList.add("is-open");
       requestAnimationFrame(() => {
-        this._resetBodyScroll();
+        this._restoreBodyScroll();
       });
       this._searchInput.focus();
     });
@@ -269,6 +268,7 @@ class ZooPatternModal {
       window.clearTimeout(this._searchRefreshTimer);
       this._searchRefreshTimer = null;
     }
+    this._savedBodyScrollTop = this._body.scrollTop;
     this._overlay.classList.remove("is-open");
     this._overlay.classList.add("is-closing");
     document.removeEventListener("keydown", this._handleDocumentKeyDown);
@@ -292,7 +292,6 @@ class ZooPatternModal {
       finished = true;
       this._overlay.hidden = true;
       this._overlay.classList.remove("is-closing");
-      this._resetBodyScroll();
       if (restoreFocus) {
         this._previouslyFocused?.focus();
       }
@@ -363,6 +362,7 @@ class ZooPatternModal {
     const elapsed = Math.max(now - this._lastBodyScrollAt, 1);
     const instantaneousVelocity = distance / elapsed;
 
+    this._savedBodyScrollTop = nextScrollTop;
     this._scrollVelocityPxPerMs =
       this._lastBodyScrollAt === 0
         ? instantaneousVelocity
@@ -394,14 +394,20 @@ class ZooPatternModal {
     this._overlay.style.setProperty("--zoo-pattern-modal-top", `${topInset}px`);
   };
 
-  private _resetBodyScroll(): void {
-    this._body.scrollTop = 0;
+  private _restoreBodyScroll(): void {
+    this._applyBodyScrollTop(this._savedBodyScrollTop);
+  }
+
+  private _applyBodyScrollTop(scrollTop: number): void {
+    const maxScrollTop = Math.max(0, this._body.scrollHeight - this._body.clientHeight);
+    const nextScrollTop = Math.min(Math.max(0, Math.round(scrollTop)), maxScrollTop);
+    this._body.scrollTop = nextScrollTop;
     this._body.scrollLeft = 0;
-    this._body.scrollTo?.({ top: 0, left: 0, behavior: "instant" as ScrollBehavior });
-    this._lastBodyScrollTop = 0;
+    this._body.scrollTo?.({ top: nextScrollTop, left: 0, behavior: "instant" as ScrollBehavior });
+    this._lastBodyScrollTop = nextScrollTop;
     this._lastBodyScrollAt = performance.now();
     this._scrollVelocityPxPerMs = 0;
-    this._hasBodyScrolled = false;
+    this._hasBodyScrolled = nextScrollTop > 0.5;
   }
 
   private _renderPatternGrid(): void {
