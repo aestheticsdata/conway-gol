@@ -1,5 +1,6 @@
 {
   "name": "conway-gol-front",
+  "packageManager": "pnpm@12.2.1",
   "version": "1.0.0",
   "private": true,
   "repository": "https://github.com/aestheticsdata/conway-gol.git",
