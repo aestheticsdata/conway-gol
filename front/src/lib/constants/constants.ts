@@ -1,4 +1,4 @@
-export const API_BASE_PATH = "/conway-gol/api";
+export const API_BASE_PATH = "/api";
 
 export const URLS = {
   catalogPatternFavorites: "catalog-pattern-favorites/",

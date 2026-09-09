@@ -2,7 +2,7 @@
 
 A full-stack implementation of [Conway's Game of Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life) with a TypeScript/Canvas frontend and a NestJS API serving a catalog of 1,400+ pre-built patterns plus database-backed custom patterns.
 
-**Live demo:** http://1991computer.com/conway-gol/
+**Live demo:** https://life.1991computer.com/
 
 ## Table of Contents
 
@@ -305,7 +305,7 @@ The frontend is now split between routing, screen composition, simulation orches
 - creates the app router
 - wires a `NavigationApiAdapter` behind a framework-agnostic `NavigationAdapter` interface
 - registers concrete screens for `/login`, `/simulation`, `/zoo`, and `/drawing`
-- normalizes the Vite base path so the app can run under `/conway-gol/`
+- normalizes the Vite base path, so the app is not tied to the origin root it is served from today
 
 `AppRouter` in `front/src/app/router/AppRouter.ts` owns route resolution and screen lifecycle:
 
@@ -345,7 +345,7 @@ The main benefit of this split is that navigation mechanics and screen lifecycle
 
 The app uses the browser Navigation API instead of `hash` routing or a framework router:
 
-- it supports real document paths such as `/conway-gol/login` and `/conway-gol/simulation`
+- it supports real document paths such as `/login` and `/simulation`
 - it lets the app intercept in-app navigations before they become full document reloads
 - it keeps browser back/forward behaviour aligned with SPA navigation
 
@@ -369,7 +369,7 @@ This is important because the Navigation API has a different model from the old 
 
 At the same time, the app does not depend on the Navigation API for the first render. On the initial page load:
 
-- the browser loads the document at `/conway-gol/login`, `/conway-gol/simulation`, etc.
+- the browser loads the document at `/login`, `/simulation`, etc.
 - no `navigate` event is fired for that first load
 - `AppRouter.start()` reads the current browser URL directly and renders the matching screen
 
@@ -381,36 +381,40 @@ Because the app uses real document paths instead of hashes, direct loads and ref
 
 That is not server-side rendering. It simply means the static host or web server must serve `index.html` for frontend routes such as:
 
-- `/conway-gol/login`
-- `/conway-gol/simulation`
-- `/conway-gol/zoo`
-- `/conway-gol/drawing`
+- `/login`
+- `/simulation`
+- `/zoo`
+- `/drawing`
 
 Once the document is loaded, the client-side router takes over.
 
-In production, this is handled by the Nginx rule for the frontend location:
+In production, this is handled by the Nginx rule at the root of the app's own vhost:
 
 ```nginx
-location /conway-gol/ {
-  alias /var/www/1991computer/conway-gol/front/;
-  try_files $uri $uri/ /conway-gol/index.html;
+root /var/www/1991computer/conway-gol/front;
+index index.html;
+
+location / {
+  try_files $uri $uri/ /index.html;
 }
 ```
 
 That rule ensures:
 
 - an in-app navigation intercepted by the Navigation API stays client-side
-- a hard refresh on `/conway-gol/zoo` still returns the SPA document
+- a hard refresh on `/zoo` still returns the SPA document
 - the app can use real paths without `#` fragments
 
 ##### Base path handling
 
-The app is deployed under `/conway-gol/`, not at the domain root. Because of that, router paths are normalized in two directions:
+The app owns its origin — it is served at the root of `life.1991computer.com`, so the Vite `base` is `/` and a browser URL and an app path are the same string.
 
-- `stripBasePath()` converts browser URLs such as `/conway-gol/zoo` into app paths such as `/zoo`
-- `toDocumentPath()` converts app paths such as `/drawing` back into deployable document paths such as `/conway-gol/drawing`
+The normalization layer is still there, and deliberately so:
 
-This keeps route definitions clean while still supporting deployment under a subdirectory.
+- `stripBasePath()` converts a browser URL such as `/zoo` into an app path such as `/zoo`
+- `toDocumentPath()` converts an app path such as `/drawing` back into a deployable document path such as `/drawing`
+
+Both are identity operations at `/`, and both read `import.meta.env.BASE_URL` rather than a hardcoded prefix. Until GOL-1 the app was deployed under `/conway-gol/` on the apex domain, and that indirection is what made the move to a subdomain a one-line change to `vite.config.ts` instead of a rewrite of the router. It is kept for the same reason: route definitions stay written in app paths, and where the app is mounted stays a build-time decision.
 
 ##### Interception rules
 
@@ -697,7 +701,7 @@ The frontend resolves the shared module through the `@conway/shared/*` alias (se
 
 ### Front/API routing
 
-The frontend always calls the same-origin API prefix `/conway-gol/api`.
+The frontend always calls the same-origin API prefix `/api`.
 
 In local development, Vite proxies that prefix to `http://localhost:6300`, so frontend code does not need separate dev vs prod URLs.
 
@@ -1056,6 +1060,63 @@ Manual rollback:
 ./deploy-front.sh rollback
 ```
 
+### Nginx
+
+The app has its own subdomain, so it is a `server` block of its own rather than a `location` under the apex site. On ks-b that is one file per app under `/etc/nginx/conf.d/` — there is no `sites-available` — and port 80 (ACME + http→https) is handled centrally by `00-http-redirect.conf` as `default_server`, so this vhost needs no port-80 block.
+
+`/etc/nginx/conf.d/life.conf`:
+
+```nginx
+server {
+    listen 443 ssl;
+    listen 443 quic;
+    listen [::]:443 ssl;
+    listen [::]:443 quic;
+
+    http2 on;
+
+    server_name life.1991computer.com;
+
+    ssl_certificate     /etc/letsencrypt/live/life.1991computer.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/life.1991computer.com/privkey.pem;
+    include /etc/letsencrypt/options-ssl-nginx.conf;
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+    add_header Alt-Svc 'h3=":443"';
+    add_header X-Content-Type-Options nosniff;
+
+    root /var/www/1991computer/conway-gol/front;
+    index index.html;
+
+    location /api/ {
+        limit_req zone=api_zone burst=20 nodelay;
+        limit_conn addr 20;
+
+        proxy_pass http://localhost:6300/;
+
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Host $host;
+    }
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}
+```
+
+Three things that are load-bearing:
+
+- **No `reuseport`** on the `quic` listeners. `1991computer.com.conf` already owns it for `:443`, and it may be set only once per address:port — setting it here fails `nginx -t` for the whole box.
+- **The trailing slash on `proxy_pass` is required.** The API declares no global prefix (`HealthController` sits at its root), so `/api/health` must reach it as `/health`. Without the slash every route 404s.
+- `api_zone` and `addr` are **shared** rate-limit zones declared in the `http` block of `/etc/nginx/nginx.conf`, not local to this file. See [Zoo pattern GET bursts and HTTP 503](#zoo-pattern-get-bursts-and-http-503) for why they matter here.
+
+After any change:
+
+```bash
+sudo nginx -t && sudo systemctl reload nginx
+```
+
 ### API
 
 Deploy the API from the repo root:
@@ -1097,7 +1158,7 @@ Manual rollback:
 
 #### Zoo pattern GET bursts and HTTP 503
 
-Nest returns **404** (missing file) or **500** (read error) for `/pattern/:name`; it does **not** emit **503**. If the browser shows many **503** responses on `/conway-gol/api/pattern/...` while the Zoo list is open, the status almost always comes from **Nginx** (or another reverse proxy): `limit_req` / `limit_conn`, upstream overload, or too few worker connections while the UI fires many parallel GETs for card previews.
+Nest returns **404** (missing file) or **500** (read error) for `/pattern/:name`; it does **not** emit **503**. If the browser shows many **503** responses on `/api/pattern/...` while the Zoo list is open, the status almost always comes from **Nginx** (or another reverse proxy): `limit_req` / `limit_conn`, upstream overload, or too few worker connections while the UI fires many parallel GETs for card previews.
 
 The preferred fix is architectural: the Zoo modal loads card data through **`POST /pattern/batch`**, coalescing visible pattern names into a few JSON requests (debounced chunks of up to 48 names) instead of one GET per card. That keeps traffic well inside typical `limit_req` budgets even when scrolling quickly.
 

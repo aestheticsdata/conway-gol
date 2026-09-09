@@ -11,8 +11,8 @@ FRONT_BACKUP_DIR="$APP_ROOT/.front.bak"
 FRONT_RELEASES_DIR="$APP_ROOT/.front-releases"
 FRONT_CURRENT_FILE="$APP_ROOT/.front-current-release"
 FRONT_PREVIOUS_FILE="$APP_ROOT/.front-previous-release"
-FRONT_HOSTNAME="${FRONT_HOSTNAME:-1991computer.com}"
-FRONT_PUBLIC_BASE="${FRONT_PUBLIC_BASE:-/conway-gol/}"
+FRONT_HOSTNAME="${FRONT_HOSTNAME:-life.1991computer.com}"
+FRONT_PUBLIC_BASE="${FRONT_PUBLIC_BASE:-/}"
 KEEP_RELEASES="${KEEP_RELEASES:-3}"
 
 # Local project dir (script location = repo root)
