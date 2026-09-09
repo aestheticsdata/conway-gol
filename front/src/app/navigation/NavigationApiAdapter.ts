@@ -23,6 +23,7 @@ type NavigateEventLike = Event & {
   destination: {
     url: string;
   };
+  navigationType: "push" | "replace" | "reload" | "traverse";
   downloadRequest?: unknown;
   formData?: FormData | null;
   hashChange?: boolean;
@@ -125,6 +126,16 @@ export class NavigationApiAdapter implements NavigationAdapter {
       normalizeAppPath(url.pathname) !== this._basePath &&
       !normalizeAppPath(url.pathname).startsWith(`${this._basePath}/`)
     ) {
+      return false;
+    }
+
+    // `history.replaceState` raises a `navigate` event too, and the Navigation API reports it as a
+    // replace to the path the document is already on. That is a state update — the Zoo writing
+    // `?pattern=` — not a route change, so it must not reach the router: rendering it would tear the
+    // current screen down and build it again. Real replaces move to another route (the fallback and
+    // `beforeEnter` redirects), and back/forward across two queries of one path arrives as a
+    // traverse, so both still render.
+    if (event.navigationType === "replace" && path === this.currentPath()) {
       return false;
     }
 

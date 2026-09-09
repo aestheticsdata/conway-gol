@@ -132,13 +132,14 @@ tile is a route change: the workspace is built again for the new screen, its rig
 200 ms entrance, and the FPS slider is back at 12 — the storyboard waits on the URL and on a mark
 of the new screen, never on the animation.
 
-**Selecting a pattern rebuilds the workspace too.** The Zoo writes `?pattern=` with
-`history.replaceState`; the Navigation API reports that as a `navigate` event, and the router
-answers it by rendering the route again. The workspace is torn down and built afresh, the catalogue
-list is fetched a second time, and the grid stays blank until the pattern lands — on a page that
-has just held fourteen hundred cards, two to three seconds of near-empty frame between the card
-click and the pattern. That is the app, not the harness; the storyboard asserts on the URL and on
-the comment block changing hands rather than waiting it out.
+**Selecting a pattern does not.** The Zoo writes `?pattern=` with `history.replaceState`, and the
+Navigation API reports that as a `navigate` event like any other — which used to reach the router
+and render the route again, tearing the workspace down and building it afresh for what is a query
+string. The adapter drops it now (GOL-5): a replace that lands on the path the document is already
+on is a state update, not a route change, so the live workspace loads the pattern itself. The right
+pane keeps its entrance, the counters keep their values, the catalogue list is not fetched a second
+time, and the card click is answered by the grid rather than by a teardown. The storyboard asserts
+on the URL and on the comment block changing hands, which is the beat itself and not a wait.
 
 **The modal is heavy.** *Patterns list* creates a card for every one of the 1432 names, each with a
 preview canvas, an IntersectionObserver for its lazy load and another for its staggered reveal
