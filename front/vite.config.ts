@@ -8,16 +8,16 @@ export default defineConfig(({ mode }) => {
   return {
     root: "src",
 
-    base: "/conway-gol/",
+    base: "/",
 
     publicDir: "../public",
 
     server: {
       proxy: {
-        "/conway-gol/api": {
+        "/api": {
           target: apiProxyTarget,
           changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/conway-gol\/api/, ""),
+          rewrite: (path) => path.replace(/^\/api/, ""),
         },
       },
     },

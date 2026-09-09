@@ -30,7 +30,7 @@ describe("replaceCurrentSearchParam", () => {
     const replaceState = vi.fn();
     vi.stubGlobal("window", {
       location: {
-        href: "https://example.test/conway-gol/zoo?pattern=101",
+        href: "https://example.test/zoo?pattern=101",
       },
       history: {
         state: { current: true },
@@ -40,18 +40,14 @@ describe("replaceCurrentSearchParam", () => {
 
     replaceCurrentSearchParam("pattern", "ak94");
 
-    expect(replaceState).toHaveBeenCalledWith(
-      { current: true },
-      "",
-      new URL("https://example.test/conway-gol/zoo?pattern=ak94"),
-    );
+    expect(replaceState).toHaveBeenCalledWith({ current: true }, "", new URL("https://example.test/zoo?pattern=ak94"));
   });
 
   it("removes the search param when the value is null", () => {
     const replaceState = vi.fn();
     vi.stubGlobal("window", {
       location: {
-        href: "https://example.test/conway-gol/zoo?pattern=101&autostart=1",
+        href: "https://example.test/zoo?pattern=101&autostart=1",
       },
       history: {
         state: null,
@@ -61,6 +57,6 @@ describe("replaceCurrentSearchParam", () => {
 
     replaceCurrentSearchParam("pattern", null);
 
-    expect(replaceState).toHaveBeenCalledWith(null, "", new URL("https://example.test/conway-gol/zoo?autostart=1"));
+    expect(replaceState).toHaveBeenCalledWith(null, "", new URL("https://example.test/zoo?autostart=1"));
   });
 });
