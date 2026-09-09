@@ -10,6 +10,11 @@ export type CustomSelectOption = {
 type CustomSelectConfig = {
   onChange?: (value: string) => void;
   placeholder?: string;
+  /**
+   * Marks for the demo harness (`e2e/demo`): `<testId>-trigger` on the trigger, `<testId>-option` on
+   * every option it creates, beside the option's `data-value`.
+   */
+  testId?: string;
   visibleOptionCount?: number;
 };
 
@@ -22,17 +27,22 @@ class CustomSelect {
   private readonly _options: HTMLElement;
   private readonly _onChange?: (value: string) => void;
   private readonly _placeholder?: string;
+  private readonly _testId?: string;
   private _items: readonly CustomSelectOption[] = [];
 
   constructor(root: HTMLElement, config: CustomSelectConfig = {}) {
     this._root = root;
     this._onChange = config.onChange;
     this._placeholder = config.placeholder;
+    this._testId = config.testId;
     this._nativeSelect = queryRequired<HTMLSelectElement>("select.custom-select__native", root);
     this._trigger = queryRequired<HTMLButtonElement>(".custom-select__trigger", root);
     this._value = queryRequired<HTMLElement>(".custom-select__value", root);
     this._menu = queryRequired<HTMLElement>(".custom-select__menu", root);
     this._options = queryRequired<HTMLElement>(".custom-select__options", root);
+    if (this._testId) {
+      this._trigger.dataset.testid = `${this._testId}-trigger`;
+    }
 
     this.setVisibleOptionCount(config.visibleOptionCount ?? 10);
     this._setMenuOpen(false);
@@ -89,6 +99,9 @@ class CustomSelect {
         option.type = "button";
         option.className = "custom-select__option";
         option.dataset.value = value;
+        if (this._testId) {
+          option.dataset.testid = `${this._testId}-option`;
+        }
         option.setAttribute("role", "option");
         option.setAttribute("aria-label", label);
         if (html) {

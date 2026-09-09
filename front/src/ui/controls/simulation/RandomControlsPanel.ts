@@ -95,6 +95,7 @@ class RandomControlsPanel {
       queryRequired<HTMLElement>(".random-preset-custom-select", this.element),
       {
         onChange: this._handlePresetChange,
+        testId: "random-preset",
         visibleOptionCount: 8,
       },
     );

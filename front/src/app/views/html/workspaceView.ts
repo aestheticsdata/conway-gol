@@ -126,6 +126,8 @@ function createModeSelector(route: WorkspaceRoute): string {
       ...option,
       dataAttributeName: "mode",
       selected: route === option.route,
+      testId: "mode-tile",
+      testData: { route: option.route },
     }),
   ).join("");
 }
@@ -149,15 +151,15 @@ function createIterationSection(): string {
     <div class="pane-section pane-section--separated">
       <div class="iteration">
         <span class="iteration-label"></span>
-        <span class="iteration-counter"></span>
+        <span class="iteration-counter" data-testid="iteration-counter"></span>
       </div>
       <div class="iteration iteration--secondary">
         <span class="stabilization-label"></span>
-        <span class="stabilization-counter"></span>
+        <span class="stabilization-counter" data-testid="stable-after"></span>
       </div>
       <div class="iteration iteration--secondary">
         <span class="cycle-detected-label"></span>
-        <span class="cycle-detected-counter"></span>
+        <span class="cycle-detected-counter" data-testid="cycle-period"></span>
       </div>
     </div>
   `;
@@ -169,11 +171,11 @@ function createTelemetrySection(): string {
       <div class="cell-stats">
         <div class="cell-stat">
           <span class="cell-stat-label alive-cells-label"></span>
-          <span class="alive-cells-counter"></span>
+          <span class="alive-cells-counter" data-testid="alive-cells"></span>
         </div>
         <div class="cell-stat">
           <span class="cell-stat-label dead-cells-label"></span>
-          <span class="dead-cells-counter"></span>
+          <span class="dead-cells-counter" data-testid="dead-cells"></span>
         </div>
       </div>
       <canvas class="telemetry-chart alive-variation-chart"></canvas>
@@ -201,6 +203,7 @@ function createSpeedSection(): string {
           labelId: "speed-label",
           max: 60,
           min: 0,
+          testId: "fps",
           value: 12,
           valueClassName: "speed-value",
         })}
@@ -212,7 +215,7 @@ function createSpeedSection(): string {
 function createPlaybackControls(): string {
   return `
     <div class="pane-section pane-section--separated playback-controls">
-      ${createButton({ className: "pause", icon: "play", label: APP_TEXTS.playback.start })}
+      ${createButton({ className: "pause", icon: "play", label: APP_TEXTS.playback.start, testId: "playback-toggle" })}
     </div>
   `;
 }
@@ -272,7 +275,7 @@ function createCanvasArea(): string {
         <div class="canvas-wrapper">
           <div class="canvas-stack">
             <canvas id="canvasID"></canvas>
-            <canvas id="canvas-drawing"></canvas>
+            <canvas id="canvas-drawing" data-testid="drawing-canvas"></canvas>
           </div>
         </div>
       </div>
@@ -287,6 +290,8 @@ function createRandomNoiseSelector(): string {
       size: "md",
       dataAttributeName: "noise-type",
       dataAttributeValue: option.value,
+      testId: "noise-tile",
+      testData: { noise: option.value },
     }),
   ).join("");
 }
@@ -295,9 +300,9 @@ function createRandomControls(): string {
   return `
     <div class="random-preset-selector" style="display: none">
       <div class="random-pane-randomizer">
-        ${createButton({ className: "random-pane-randomize" })}
+        ${createButton({ className: "random-pane-randomize", testId: "random-randomize" })}
         <div class="random-geometrize-tooltip-host">
-          ${createButton({ className: "random-pane-geometrize", labelSize: "sm" })}
+          ${createButton({ className: "random-pane-geometrize", labelSize: "sm", testId: "random-geometrize" })}
         </div>
       </div>
       <label for="random-preset-trigger"></label>
@@ -329,6 +334,7 @@ function createRandomControls(): string {
           labelId: "random-density-label",
           max: 100,
           min: 0,
+          testId: "random-density",
           value: 30,
           valueId: "random-density-value",
         })}
@@ -338,6 +344,7 @@ function createRandomControls(): string {
           labelId: "random-rotation-label",
           max: 180,
           min: -180,
+          testId: "random-rotation",
           value: 0,
           valueId: "random-rotation-value",
         })}
@@ -347,6 +354,7 @@ function createRandomControls(): string {
           labelId: "random-zoom-label",
           max: 100,
           min: -100,
+          testId: "random-zoom",
           value: 0,
           valueId: "random-zoom-value",
         })}
@@ -362,6 +370,7 @@ function createRandomControls(): string {
           labelId: "random-noise-level-label",
           max: 100,
           min: 0,
+          testId: "random-noise-level",
           value: 50,
           valueId: "random-noise-level-value",
         })}
@@ -379,17 +388,18 @@ function createRandomControls(): string {
           max: 9999999,
           min: 0,
           overlayHtml: '<span class="random-seed-slider__tooltip-target" aria-hidden="true" hidden></span>',
+          testId: "random-seed",
           value: 0,
           valueId: "random-seed-value",
         })}
       </div>
       <div class="random-generate-wrapper">
-        ${createButton({ className: "random-generate" })}
+        ${createButton({ className: "random-generate", testId: "random-generate" })}
         <div class="ui-button-tooltip-wrapper">
           ${createButton({ className: "random-save" })}
           <span class="ui-button-tooltip-target random-save-tooltip-target" aria-hidden="true" hidden></span>
         </div>
-        ${createButton({ className: "random-reset" })}
+        ${createButton({ className: "random-reset", testId: "random-reset" })}
         <div class="random-restore-wrapper">
           ${createButton({ className: "random-restore" })}
           <span class="random-restore-tooltip-target" aria-hidden="true"></span>
@@ -465,7 +475,7 @@ function createDrawingTool(tool: DrawingTool): string {
   const icon = DRAWING_TOOL_ICONS[tool];
 
   return `
-    <div class="item ${tool}" data-tool="${tool}" role="button" tabindex="0" aria-pressed="false">
+    <div class="item ${tool}" data-tool="${tool}" data-testid="drawing-tool" role="button" tabindex="0" aria-pressed="false">
       <span class="drawing-toolbox__icon" aria-hidden="true">${icon}</span>
     </div>
   `;
@@ -510,6 +520,7 @@ function createDrawingToolbox(): string {
         max: MAX_BRUSH_SIZE,
         min: MIN_BRUSH_SIZE,
         step: 1,
+        testId: "brush-size",
         value: DEFAULT_BRUSH_SIZE,
         valueId: "drawing-brush-size-value",
       })}
@@ -549,10 +560,10 @@ function createZooSelector(): string {
   return `
     <div class="zoo-selector" style="display: none">
       <label for="zoo-species-trigger"></label>
-      <div id="zoo-species-trigger" class="zoo-selected-pattern" aria-live="polite">
+      <div id="zoo-species-trigger" class="zoo-selected-pattern" data-testid="zoo-selected-pattern" aria-live="polite">
         <span class="zoo-selected-pattern__value"></span>
       </div>
-      <div class="critter-comments"></div>
+      <div class="critter-comments" data-testid="zoo-comments"></div>
     </div>
   `;
 }
@@ -560,7 +571,12 @@ function createZooSelector(): string {
 function createZooPatternListsAction(): string {
   return `
     <div class="zoo-pattern-lists-action" style="display: none">
-      ${createButton({ className: "zoo-pattern-lists", label: APP_TEXTS.zoo.patternListsButton, size: "compact" })}
+      ${createButton({
+        className: "zoo-pattern-lists",
+        label: APP_TEXTS.zoo.patternListsButton,
+        size: "compact",
+        testId: "zoo-open-patterns",
+      })}
     </div>
   `;
 }

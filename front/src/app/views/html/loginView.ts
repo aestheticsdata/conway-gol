@@ -34,6 +34,7 @@ export function createLoginView(): string {
           className: "auth-guest-entry",
           label: APP_TEXTS.auth.continueAsGuest,
           size: "compact",
+          testId: "login-guest",
         }).replace("<button ", "<button data-continue-as-guest ")}
         ${createButton({
           type: "submit",
