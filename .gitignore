@@ -54,3 +54,9 @@ pids
 
 # Diagnostic reports
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# The demo film harness (see front/e2e/demo/README.md): a take writes a gigabyte of JPEG in flight,
+# then an mp4, chapter files and 4K stills — none of it belongs in git. Playwright's own output too.
+front/e2e/demo/out/
+front/test-results/
+front/playwright-report/

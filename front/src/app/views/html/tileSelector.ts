@@ -9,6 +9,10 @@ export interface TileSelectorButtonOptions {
   dataAttributeValue: string;
   title?: string;
   ariaLabel?: string;
+  /** A `data-testid` for the demo harness (`e2e/demo`). */
+  testId?: string;
+  /** `data-*` companions to the mark, for the facts a storyboard chooses on (`data-route`, `data-noise`). */
+  testData?: Record<string, string>;
 }
 
 function createTileSelectorLabel(icon: string, dataAttributeName: string, dataAttributeValue: string): string {
@@ -28,18 +32,22 @@ export function createTileSelectorButton(options: TileSelectorButtonOptions): st
     dataAttributeValue,
     title,
     ariaLabel,
+    testId,
+    testData,
   } = options;
 
   const selectedClass = selected ? " is-selected" : "";
   const titleAttribute = title ? ` title="${title}"` : "";
   const ariaLabelAttribute = ariaLabel ? ` aria-label="${ariaLabel}"` : "";
+  const testIdAttribute = testId ? ` data-testid="${testId}"` : "";
+  const testDataAttributes = Object.entries(testData ?? {}).map(([name, value]) => ` data-${name}="${value}"`);
 
   return `
     <div class="tile-selector__option" data-size="${size}">
       <button
         type="button"
         class="tile-selector__button${selectedClass}"
-        data-value="${value}"${titleAttribute}${ariaLabelAttribute}
+        data-value="${value}"${testIdAttribute}${testDataAttributes.join("")}${titleAttribute}${ariaLabelAttribute}
       >${createTileSelectorLabel(icon, dataAttributeName, dataAttributeValue)}</button>
     </div>
   `;

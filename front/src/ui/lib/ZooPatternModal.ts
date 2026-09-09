@@ -172,6 +172,7 @@ class ZooPatternModal {
   constructor(root: HTMLElement = document.body) {
     this._overlay = document.createElement("div");
     this._overlay.className = "ui-save-modal zoo-pattern-modal";
+    this._overlay.dataset.testid = "zoo-modal";
     this._overlay.hidden = true;
     this._overlay.innerHTML = `
       <div class="ui-save-modal__backdrop zoo-pattern-modal__backdrop"></div>
@@ -184,24 +185,25 @@ class ZooPatternModal {
         <div class="zoo-pattern-modal__header">
           <div class="zoo-pattern-modal__heading">
             <h2 id="zoo-pattern-modal-title" class="zoo-pattern-modal__title">
-              <span class="zoo-pattern-modal__title-label">${APP_TEXTS.zoo.patternListsTitle}</span><span class="zoo-pattern-modal__title-count"></span>
+              <span class="zoo-pattern-modal__title-label">${APP_TEXTS.zoo.patternListsTitle}</span><span class="zoo-pattern-modal__title-count" data-testid="zoo-modal-count"></span>
             </h2>
           </div>
           <div class="zoo-pattern-modal__header-actions">
             <input
               type="text"
               class="ui-input zoo-pattern-modal__search"
+              data-testid="zoo-modal-search"
               inputmode="search"
               autocomplete="off"
               placeholder="${APP_TEXTS.zoo.searchPlaceholder}"
               aria-label="${APP_TEXTS.zoo.searchPlaceholder}"
             >
-            <button type="button" class="zoo-pattern-modal__close" aria-label="${APP_TEXTS.zoo.closePatternLists}">
+            <button type="button" class="zoo-pattern-modal__close" data-testid="zoo-modal-close" aria-label="${APP_TEXTS.zoo.closePatternLists}">
               <span aria-hidden="true">${CLOSE_ICON}</span>
             </button>
           </div>
         </div>
-        <div class="zoo-pattern-modal__body">
+        <div class="zoo-pattern-modal__body" data-testid="zoo-modal-body">
           <div class="zoo-pattern-modal__grid"></div>
           <p class="zoo-pattern-modal__empty" hidden>${APP_TEXTS.zoo.emptySearch}</p>
         </div>
@@ -755,6 +757,8 @@ class ZooPatternModal {
     card.className = "zoo-pattern-card";
     card.tabIndex = 0;
     card.dataset.patternName = patternName;
+    card.dataset.testid = "zoo-card";
+    card.dataset.pattern = patternName;
     card.setAttribute("role", "button");
 
     const preview = document.createElement("canvas");

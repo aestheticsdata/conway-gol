@@ -24,6 +24,8 @@ export type UiButtonOptions = {
   /** Default: inherit DS body size; `sm` uses `ui-button--label-sm` (see buttons.css). */
   labelSize?: UiButtonLabelSize;
   size?: UiButtonSize;
+  /** A `data-testid` for the demo harness (`e2e/demo`), which addresses marks rather than classes or copy. */
+  testId?: string;
   title?: string;
   type?: UiButtonType;
 };
@@ -72,6 +74,7 @@ export function createButton(options: UiButtonOptions): string {
     label = "",
     labelSize = "default",
     size = "compact",
+    testId,
     title,
     type = "button",
   } = options;
@@ -89,6 +92,7 @@ export function createButton(options: UiButtonOptions): string {
   const titleAttribute = title ? ` title="${escapeHtml(title)}"` : "";
   const ariaLabelAttribute = ariaLabel ? ` aria-label="${escapeHtml(ariaLabel)}"` : "";
   const dataIconAttribute = icon ? ` data-icon="${icon}"` : "";
+  const testIdAttribute = testId ? ` data-testid="${escapeHtml(testId)}"` : "";
   const disabledAttribute = disabled ? " disabled" : "";
   const buttonLabel = escapeHtml(label);
   const iconMarkup = icon ? createIconMarkup(icon) : "";
@@ -99,7 +103,7 @@ export function createButton(options: UiButtonOptions): string {
       : `${iconMarkup}${labelMarkup}`
     : buttonLabel;
 
-  return `<button type="${type}" class="${classes}"${titleAttribute}${ariaLabelAttribute}${dataIconAttribute}${disabledAttribute}>${content}</button>`;
+  return `<button type="${type}" class="${classes}"${titleAttribute}${ariaLabelAttribute}${dataIconAttribute}${testIdAttribute}${disabledAttribute}>${content}</button>`;
 }
 
 export function createLinkButton(options: UiLinkButtonOptions): string {

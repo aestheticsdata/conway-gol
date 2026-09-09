@@ -1018,6 +1018,8 @@ Current frontend tests are intentionally small and focused on pure simulation-ad
 
 Because these tests target a pure tracker module instead of the DOM workspace shell, they run in a plain Node environment and stay fast.
 
+**Demo film.** `pnpm video:generate` in `front/` films the portfolio demo: one Playwright take through the app as a guest — the random screen, the Zoo and its catalogue search, a drawing made on camera — recorded as a single 1920×1080 h264 mp4 with its chapter list beside it, plus four 3840×2160 stills, all into `front/e2e/demo/out/` (gitignored). It needs the front on `:5173`, the API on `:6300` with the full pattern catalogue, and ffmpeg on `PATH`; it writes nothing anywhere. The storyboard, the knobs and the traps are in [front/e2e/demo/README.md](front/e2e/demo/README.md).
+
 ### API
 
 The Nest API test runner remains `Jest`.

@@ -149,7 +149,10 @@ export class SimulationWorkspace {
     this._randomRestoreButton = queryRequired<HTMLButtonElement>(".random-restore", this._root);
     this._drawingHxfExportButton = queryRequired<HTMLButtonElement>(".drawing-hxf-export", this._root);
     this._drawingHxfImportButton = queryRequired<HTMLButtonElement>(".drawing-hxf-import", this._root);
-    this._drawingHxfActionsDelimiter = queryRequired<HTMLElement>(".drawing-actions-pane__hxf-image-delimiter", this._root);
+    this._drawingHxfActionsDelimiter = queryRequired<HTMLElement>(
+      ".drawing-actions-pane__hxf-image-delimiter",
+      this._root,
+    );
     this._drawingHxfImportInput = queryRequired<HTMLInputElement>("#drawing-hxf-import-input", this._root);
     this._drawingRestoreTooltipTarget = queryRequired<HTMLElement>(".drawing-restore-tooltip-target", this._root);
     this._randomRestoreTooltipTarget = queryRequired<HTMLElement>(".random-restore-tooltip-target", this._root);

@@ -12,6 +12,8 @@ type UiSliderFieldOptions = {
   min: number;
   overlayHtml?: string;
   step?: number;
+  /** A mark family for the demo harness (`e2e/demo`): the input gets `<testId>-slider`, its value span `<testId>-value`. */
+  testId?: string;
   value: number;
   valueClassName?: string;
   valueId?: string;
@@ -44,6 +46,7 @@ export function createSliderField(options: UiSliderFieldOptions): string {
     min,
     overlayHtml = "",
     step = 1,
+    testId,
     value,
     valueClassName = "",
     valueId,
@@ -55,12 +58,14 @@ export function createSliderField(options: UiSliderFieldOptions): string {
   const inputClassNames = buildClassName("ui-slider-field__input", inputClassName);
   const labelClassNames = buildClassName("ui-slider-field__label", labelClassName);
   const valueClassNames = buildClassName("ui-slider-field__value", valueClassName);
+  const inputTestIdAttribute = testId ? ` data-testid="${escapeHtml(testId)}-slider"` : "";
+  const valueTestIdAttribute = testId ? ` data-testid="${escapeHtml(testId)}-value"` : "";
 
   return `
     <div class="${rootClassName}">
       <label for="${escapeHtml(id)}" class="${legendClassName}">
         <span${buildIdAttribute("id", labelId)} class="${labelClassNames}">${escapeHtml(label)}</span>
-        <span${buildIdAttribute("id", valueId)} class="${valueClassNames}">${escapeHtml(displayValue)}</span>
+        <span${buildIdAttribute("id", valueId)}${valueTestIdAttribute} class="${valueClassNames}">${escapeHtml(displayValue)}</span>
       </label>
       <div class="${controlClassNames}">
         <input
@@ -70,7 +75,7 @@ export function createSliderField(options: UiSliderFieldOptions): string {
           min="${min}"
           max="${max}"
           value="${value}"
-          step="${step}"
+          step="${step}"${inputTestIdAttribute}
         >
         ${overlayHtml}
       </div>

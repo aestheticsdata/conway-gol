@@ -116,6 +116,7 @@ class DrawingToolBox {
             this._onShapeChange(value);
           }
         },
+        testId: "brush-shape",
       },
     );
     this._brushShapeSelect.setOptions(BRUSH_SHAPE_OPTIONS, DEFAULT_BRUSH_SHAPE);

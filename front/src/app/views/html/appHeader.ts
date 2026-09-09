@@ -212,7 +212,10 @@ export function createConnectedHeader(options: WorkspaceHeaderOptions): string {
   `;
 }
 
-export function createWorkspaceUserMenu(currentPath: AppPath, options: Pick<WorkspaceHeaderOptions, "avatarId" | "sessionMode" | "username">): string {
+export function createWorkspaceUserMenu(
+  currentPath: AppPath,
+  options: Pick<WorkspaceHeaderOptions, "avatarId" | "sessionMode" | "username">,
+): string {
   return options.sessionMode === "authenticated"
     ? createConnectedUserMenu(currentPath, options.username, options.avatarId)
     : createGuestUserMenu(currentPath, options.username, options.avatarId);
