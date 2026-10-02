@@ -585,7 +585,7 @@ function createImageImport(): string {
   return `
     <div class="image-import" style="display: none">
       <input type="file" id="image-import-input" accept="image/jpeg,image/png,image/webp,image/gif,image/bmp,image/avif" style="display: none">
-      ${createButton({ className: "image-import-btn" })}
+      ${createButton({ className: "image-import-btn", testId: "image-import" })}
       <span class="image-import-formats"></span>
       ${createSliderField({
         className: "random-param random-param--separated image-import-threshold",
@@ -595,6 +595,7 @@ function createImageImport(): string {
         max: 255,
         min: 0,
         overlayHtml: '<span class="image-threshold-slider__tooltip-target" aria-hidden="true"></span>',
+        testId: "image-threshold",
         value: 128,
         valueId: "image-threshold-value",
       })}

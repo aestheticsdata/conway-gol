@@ -1,3 +1,5 @@
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { expect, test } from "@e2e/demo/fixture";
 import { CANVAS_PX_WIDTH, CELL_SIZE, GRID_CENTER_COL, GRID_CENTER_ROW } from "@grid/constants";
 import { CONTROL_TEXTS, GRID_TEXTS } from "@texts";
@@ -5,7 +7,7 @@ import { CONTROL_TEXTS, GRID_TEXTS } from "@texts";
 import type { Locator, Page } from "@playwright/test";
 
 /**
- * CGL Studio, end to end — one continuous take, four chapters, three screens.
+ * CGL Studio, end to end — one continuous take, five chapters, three screens.
  *
  * This file is the storyboard and nothing else: no pointer paths, no video, no timing arithmetic.
  * Those live in `cursor.ts`, `fixture.ts` and `pacing.ts`, so what is left here reads as a shot
@@ -24,8 +26,9 @@ import type { Locator, Page } from "@playwright/test";
  * only to check what a control says once it has been used.
  *
  * IT WRITES NOTHING. A guest cannot save, favorite or reach settings, and the storyboard touches
- * none of the export, import, save or favorite controls anyway. The drawing of chapter 4 lives in
- * memory and is gone on the next navigation, which is why its still repaints it.
+ * none of the export, save or favorite controls; its one import is a picture it draws itself, into
+ * `out/`. The drawing of chapter 4 lives in memory and is gone on the next navigation, which is
+ * why its still repaints it.
  *
  * THE REAL MOUSE DOES THE WORK where there is no element to aim at: the thumbs of the range
  * sliders and the cells of the drawing canvas. `demo.glide` walks the pointer to a point, and the
@@ -52,8 +55,10 @@ const FPS = 30;
 /** What chapter 3 types, and the card it clicks: a catalogue pattern, so the API must be up (see `preflight.ts`). */
 const SEARCH = "prepulsar";
 const PATTERN = "prepulsarshuttle26";
-/** How far chapter 3 lets the pattern run before pausing on it. */
+/** How far chapter 3 lets the pattern run before pausing on it: past the period the cycle detector reports. */
 const ITERATIONS = 50;
+/** The period the cycle detector must report for `prepulsarshuttle26` — the 26 in its name. */
+const PERIOD = 26;
 /** Chapter 4's brush, and the cells it taps: four squares around the centre cell, then a circle to the side. */
 const BRUSH = 8;
 const SQUARES: [number, number][] = [
@@ -63,6 +68,16 @@ const SQUARES: [number, number][] = [
   [GRID_CENTER_COL + 30, GRID_CENTER_ROW + 30],
 ];
 const CIRCLE: [number, number] = [GRID_CENTER_COL + 52, GRID_CENTER_ROW];
+/**
+ * Chapter 5's picture: the Mandelbrot set, drawn by the storyboard itself, so nothing on screen is
+ * someone else's image. The set is black and its outside a smooth escape-time grey, which is what
+ * Floyd–Steinberg is for — a flat two-tone picture would dither to the same two tones.
+ */
+const IMAGE_DIR = join(__dirname, "out", "upload");
+const IMAGE = join(IMAGE_DIR, "mandelbrot.png");
+const IMAGE_SIZE = 600;
+/** Where chapter 5 drags the import threshold to: more of the grey falls below it and comes alive. */
+const THRESHOLD = 170;
 
 /** The number inside a label such as ` (1432 patterns)` or `256`. */
 const digitsOf = (text: string | null) => Number((text ?? "").replace(/\D/g, ""));
@@ -168,6 +183,53 @@ async function paintDrawing(target: Page): Promise<void> {
   // the grid, and a still wants the drawing alone.
   const box = await canvas.boundingBox();
   if (box) await target.mouse.move(box.x - 80, box.y + box.height / 2);
+}
+
+/**
+ * The Mandelbrot set as a PNG, rendered in the page's own canvas and written into `out/upload/`:
+ * the interior black, the outside shaded by the smoothed escape count, the view centred on the
+ * main cardioid. Pure arithmetic, the same file on every run.
+ */
+async function writeMandelbrot(target: Page): Promise<void> {
+  const dataUrl = await target.evaluate((size) => {
+    const canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("demo: no 2D context to draw the Mandelbrot set in");
+    const image = context.createImageData(size, size);
+    const maxIterations = 200;
+    for (let py = 0; py < size; py++) {
+      for (let px = 0; px < size; px++) {
+        const cx = -0.65 + ((px - size / 2) / size) * 3;
+        const cy = ((py - size / 2) / size) * 3;
+        let x = 0;
+        let y = 0;
+        let n = 0;
+        while (x * x + y * y <= 16 && n < maxIterations) {
+          const next = x * x - y * y + cx;
+          y = 2 * x * y + cy;
+          x = next;
+          n++;
+        }
+        let grey = 0;
+        if (n < maxIterations) {
+          const smooth = n + 1 - Math.log2(Math.log2(Math.sqrt(x * x + y * y)));
+          grey = Math.round(255 * Math.min(1, Math.max(0, 1 - Math.sqrt(smooth / 40))));
+          grey = 255 - Math.round((255 - grey) * 0.9);
+        }
+        const at = (py * size + px) * 4;
+        image.data[at] = grey;
+        image.data[at + 1] = grey;
+        image.data[at + 2] = grey;
+        image.data[at + 3] = 255;
+      }
+    }
+    context.putImageData(image, 0, 0);
+    return canvas.toDataURL("image/png");
+  }, IMAGE_SIZE);
+  mkdirSync(IMAGE_DIR, { recursive: true });
+  writeFileSync(IMAGE, Buffer.from(dataUrl.replace(/^data:image\/png;base64,/, ""), "base64"));
 }
 
 test("cgl studio, end to end", async ({ demo }) => {
@@ -340,9 +402,14 @@ test("cgl studio, end to end", async ({ demo }) => {
     });
   });
 
-  // *start*, and the pattern run to fifty generations before it is paused on.
+  // *start*, and the pattern run until the cycle detector names its period — every generation is
+  // bit-packed and hashed, and the first exact repeat gives the period — then past fifty
+  // generations before it is paused on. The readout is marked for the film to frame.
   await demo.click(toggle);
   await playing();
+  const period = page.getByTestId("cycle-period");
+  await expect(period).toHaveText(String(PERIOD), { timeout: 30_000 });
+  await demo.mark(period);
   await expect.poll(iterationCount, { timeout: 30_000 }).toBeGreaterThanOrEqual(ITERATIONS);
   await demo.click(toggle);
   await paused();
@@ -380,8 +447,31 @@ test("cgl studio, end to end", async ({ demo }) => {
   await demo.click(toggle);
   await playing();
   await demo.dwell(5000);
+  await demo.click(toggle);
+  await paused();
+  await demo.dwell(500);
 
-  // ── 5 ── At rest ─────────────────────────────────────────────────────────
+  // ── 5 ── Image ───────────────────────────────────────────────────────────
+  // A picture made into a seed: *Import image* takes the Mandelbrot set the storyboard drew, the
+  // seeder converts it to grey and dithers it with Floyd–Steinberg onto the grid, and the
+  // threshold slider re-dithers the same grey without reloading it. Then *start* on it.
+  await demo.chapter("Image");
+  await writeMandelbrot(page);
+  const drawn = await aliveCount();
+  const chooser = page.waitForEvent("filechooser");
+  await demo.click(page.getByTestId("image-import"));
+  await (await chooser).setFiles(IMAGE);
+  await expect.poll(aliveCount, { timeout: 10_000 }).not.toBe(drawn);
+  await demo.dwell(1600);
+  const imported = await aliveCount();
+  await drag(page.getByTestId("image-threshold-slider"), THRESHOLD);
+  await expect.poll(aliveCount).not.toBe(imported);
+  await demo.dwell(1200);
+  await demo.click(toggle);
+  await playing();
+  await demo.dwell(6000);
+
+  // ── 6 ── At rest ─────────────────────────────────────────────────────────
   // Off-frame on the same beat, so the pointer's teleport hides under the last hover fading out.
   await demo.park(-40, -40);
   await demo.dwell(2200);

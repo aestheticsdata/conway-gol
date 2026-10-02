@@ -16,6 +16,7 @@ Output lands in `e2e/demo/out/` (gitignored):
 - `chapters.vtt` — WebVTT, for `<track kind="chapters">` on the portfolio's own `<video>`
 - `chapters.ffmeta` — ffmpeg metadata; already applied to the mp4, kept so a re-encode can reapply it
 - `chapters.json` — the same marks with millisecond precision
+- `events.json` — everything the hand did, on the film's clock: see **For the landing page's films**
 - `shots/01-random.png` … `04-drawing.png` — four stills at 3840×2160, for a page that wants
   pictures too
 
@@ -163,6 +164,30 @@ So the dice are thrown first, quickly, and the state that gets played is built b
 *Marbling* tile (always a real click — *Reset* left the tiles on *Uniform*), the density dragged to
 70 % — some eight thousand alive cells that stay busy for hundreds of generations — and a guard of
 3 000 alive cells before *start*, so a beat that left a blob fails the take instead of filming it.
+
+## For the landing page's films: `events.json`
+
+The landing page cuts a film of about a minute from this take with Remotion (`landing-page/films/`):
+it pushes in on each control the hand presses, pulls back out on the whole studio to see what it
+did, and draws its own pointer. Pixels alone cannot drive that, so every take also writes
+`events.json` (`events.ts`, ported from bkmk's harness with the log in `cursor.ts`, `fixture.ts`
+and `recorder.ts`): every pointer step, every press, every key, and every storyboard verb —
+`click`, `moveTo`, `type`, `scroll`, `dwell` — with its start and end on the film's clock and the
+`data-testid`, `data-*` members and box of the element it was aimed at. The edit names its beats by
+those marks, never by a second, so a re-take keeps it. `demo.mark(locator)` notes where an element
+is with no pointer and no time: the storyboard marks the cycle detector's period once it reads 26,
+the readout the film frames up close. A drag and a brush tap are pointer steps only — the film
+reaches them by the clicks around them. A take for a film is filmed without the drawn arrow, which
+the film redraws:
+
+```bash
+DEMO_CURSOR=off DEMO_FPS=30 pnpm video:generate
+```
+
+Chapter 5, *Image*, imports the Mandelbrot set the storyboard renders itself into
+`out/upload/mandelbrot.png` — smoothed escape-time grey outside a black set, so Floyd–Steinberg has
+a gradient to diffuse — drags the threshold, and runs it. The importer's button and threshold
+slider carry `image-import` and `image-threshold-slider` for it.
 
 ## Knobs
 
