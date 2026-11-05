@@ -2,7 +2,16 @@
 * {
   -moz-box-sizing: border-box;
   box-sizing: border-box;
-  /* no elastic bounce on any scroller; x is left to the back gesture */
+}
+
+/* no elastic bounce: `none` (not `contain`, which keeps the local bounce), y only (x is the back
+   gesture). On the page and the real vertical scrollers, NOT on `*`: every `overflow: hidden` card
+   or `overflow-x: auto` table is a scroll container, and with `none` it kept the wheel instead of
+   handing it to the page, which froze under the pointer. A new vertical scroller goes in this list. */
+html,
+body,
+.zoo-pattern-modal__body,
+.custom-select__options {
   overscroll-behavior-y: none;
 }
 
