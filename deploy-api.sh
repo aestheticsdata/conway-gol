@@ -170,7 +170,36 @@ check_pnpm_baseline() {
   log "➡️  pnpm baseline — local $local_v / server $remote_v"
 }
 
+# The laptop is short on disk: a deploy leaves no build output behind, whether it succeeds or not.
+# The server installs and builds the release; nothing here uses local dependencies (no local
+# checks, the upload is the sources), so nothing is reinstalled before the next deploy. A local
+# `dist` or `coverage` in api-nest/ is only ever left over from an earlier session, and so is its
+# `node_modules`. A `nest start --watch` running from this checkout lives in `dist` and
+# `node_modules`, so everything is kept while one is. Its process is `node
+# …/@nestjs/cli/bin/nest.js start`, which a bare "nest start" never matches, and the checkout's
+# path keeps another project's dev server from counting. `generated/` (the Prisma client) stays:
+# the tests need it and reinstalling does not bring it back. The size is `|| true`: `du` exits
+# non-zero on a single unreadable file, and errexit would end the trap before the `rm`.
+clean_local_build() {
+  local api_dir="$SCRIPT_DIR/api-nest"
+  local dev_server="$api_dir/node_modules/.*nest\.js start"
+  local freed=() dir
+  if pgrep -f "$dev_server" > /dev/null 2>&1; then
+    log "ℹ️  nest start is running from this checkout: local dist and node_modules kept"
+    return 0
+  fi
+  for dir in dist coverage node_modules; do
+    if [ -d "$api_dir/$dir" ]; then
+      freed+=("$(du -sh "$api_dir/$dir" 2>/dev/null | cut -f1 || true) api-nest/$dir")
+      rm -rf -- "${api_dir:?}/$dir"
+    fi
+  done
+  [ ${#freed[@]} -gt 0 ] && log "🧹 Local build output removed: ${freed[*]}"
+  return 0
+}
+
 deploy() {
+  trap clean_local_build EXIT
   check_pnpm_baseline
   cd "$SCRIPT_DIR"
 
